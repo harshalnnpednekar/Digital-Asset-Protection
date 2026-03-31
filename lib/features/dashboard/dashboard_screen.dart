@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_text_styles.dart';
-import '../../core/widgets/section_header.dart';
+
+import 'dashboard_widgets.dart';
+import 'dashboard_kpi_section.dart';
+import 'dashboard_timeline_section.dart';
+import 'dashboard_platforms_section.dart';
+import 'dashboard_table_section.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -11,26 +14,40 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionHeader(title: "SYSTEM DASHBOARD", subtitle: "Overview of operation status and active modules"),
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(PhosphorIcons.clock(), size: 48, color: AppColors.textMuted),
-                    const SizedBox(height: 16),
-                    Text("[ MODULE PENDING BUILD ]", style: AppTextStyles.mono(size: 14, color: AppColors.textMuted)),
-                    const SizedBox(height: 8),
-                    Text("This screen will be built in a subsequent module.", style: AppTextStyles.sans(size: 13, color: AppColors.textMuted)),
-                  ],
+            // SECTION 0 — SYSTEM STATUS BAR
+            const DashboardStatusBar(),
+            const SizedBox(height: 28),
+
+            // SECTION 1 — KPI CARDS
+            const DashboardKpiSection(),
+            const SizedBox(height: 28),
+
+            // SECTION 2 — TWO COLUMN LAYOUT
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // LEFT: Threat Timeline card
+                const Expanded(
+                  flex: 6,
+                  child: DashboardTimelineSection(),
                 ),
-              ),
+                const SizedBox(width: 16),
+                // RIGHT: Platforms & Detections
+                const Expanded(
+                  flex: 4,
+                  child: DashboardPlatformsSection(),
+                ),
+              ],
             ),
+            const SizedBox(height: 28),
+
+            // SECTION 3 — PATIENT ZERO TABLE
+            const DashboardTableSection(),
           ],
         ),
       ),

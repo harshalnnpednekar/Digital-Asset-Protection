@@ -220,7 +220,7 @@ class _NodeGraphPainter extends CustomPainter {
     });
     
     final normalNodePaint = Paint()..color = AppColors.borderDefault;
-    final threatNodePaint = Paint()..color = AppColors.accentAmber.withOpacity(0.4);
+    final threatNodePaint = Paint()..color = AppColors.accentAmber.withAlpha(102);
     
     final normalLinePaint = Paint()..color = AppColors.borderSubtle..strokeWidth = 1.0;
     
@@ -231,7 +231,7 @@ class _NodeGraphPainter extends CustomPainter {
         if (dist < 300) {
           // If both nodes are threat nodes (let's say indices 0, 1, 2 are threats)
           if (i < 3 && j < 3) {
-             _drawDashedLine(canvas, nodes[i], nodes[j], Paint()..color = AppColors.accentCrimson.withOpacity(0.2)..strokeWidth = 1.0);
+             _drawDashedLine(canvas, nodes[i], nodes[j], Paint()..color = AppColors.accentCrimson.withAlpha(51)..strokeWidth = 1.0);
           } else {
              canvas.drawLine(nodes[i], nodes[j], normalLinePaint);
           }

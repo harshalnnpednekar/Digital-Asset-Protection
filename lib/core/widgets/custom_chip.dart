@@ -20,7 +20,7 @@ class CustomChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: backgroundColor ?? color.withOpacity(0.12),
+        color: backgroundColor ?? color.withAlpha(31),
         borderRadius: BorderRadius.zero,
         border: Border.all(color: color, width: 1),
       ),

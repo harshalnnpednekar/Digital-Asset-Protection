@@ -25,7 +25,7 @@ class StatusDot extends StatelessWidget {
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withOpacity(0.3),
+              color: color.withAlpha(77),
             ),
           )
           .animate(onPlay: (controller) => controller.repeat())
