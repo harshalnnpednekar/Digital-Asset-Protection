@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/config/demo_config.dart';
 import 'dashboard_mock_data.dart';
 import 'dashboard_widgets.dart';
 
@@ -18,10 +19,29 @@ class DashboardTableSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _TableHeader(),
-        // TODO: REPLACE WITH FIRESTORE STREAM
-        ...DashboardMockData.patientZeroRecords.map(
-          (record) => _TableRow(record: record),
-        ).toList(),
+        
+        if (kDemoMode) 
+          ...DashboardMockData.patientZeroRecords.map(
+            (record) => _TableRow(record: record),
+          ).toList()
+        else 
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(40),
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: AppColors.borderDefault),
+                left: BorderSide(color: AppColors.borderDefault),
+                right: BorderSide(color: AppColors.borderDefault),
+              ),
+            ),
+            child: Center(
+              child: Text(
+                "NO RECENT IDENTIFICATIONS FOUND",
+                style: AppTextStyles.mono(size: 12, color: AppColors.textMuted, letterSpacing: 1),
+              ),
+            ),
+          ),
       ],
     );
   }

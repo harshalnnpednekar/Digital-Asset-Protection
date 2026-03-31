@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/custom_chip.dart';
+import '../../../core/widgets/scale_button.dart';
 import '../contagion_mock_data.dart';
 
 class NodeDetailSidebar extends StatelessWidget {
@@ -87,18 +88,21 @@ class NodeDetailSidebar extends StatelessWidget {
                           SizedBox(
                             width: double.infinity,
                             height: 44,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.accentAmber,
-                                foregroundColor: AppColors.textOnAmber,
-                                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                                elevation: 0,
-                              ),
-                              onPressed: () {},
-                              child: Text(
-                                "GENERATE DMCA FOR\nTHIS NODE",
-                                style: AppTextStyles.mono(size: 10, weight: FontWeight.w700, letterSpacing: 1),
-                                textAlign: TextAlign.center,
+                            child: ScaleButton(
+                              onTap: () {},
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.accentAmber,
+                                  foregroundColor: AppColors.textOnAmber,
+                                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                  elevation: 0,
+                                ),
+                                onPressed: () {}, // Handled by ScaleButton
+                                child: Text(
+                                  "GENERATE DMCA FOR\nTHIS NODE",
+                                  style: AppTextStyles.mono(size: 10, weight: FontWeight.w700, letterSpacing: 1),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
                             ),
                           ),
@@ -108,15 +112,18 @@ class NodeDetailSidebar extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           height: 36,
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: AppColors.borderDefault),
-                              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                            ),
-                            onPressed: () {},
-                            child: Text(
-                              "COPY EVIDENCE URL",
-                              style: AppTextStyles.sans(size: 11, weight: FontWeight.w600, color: AppColors.textSecondary),
+                          child: ScaleButton(
+                            onTap: () {},
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: AppColors.borderDefault),
+                                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                              ),
+                              onPressed: () {}, // Handled by ScaleButton
+                              child: Text(
+                                "COPY EVIDENCE URL",
+                                style: AppTextStyles.sans(size: 11, weight: FontWeight.w600, color: AppColors.textSecondary),
+                              ),
                             ),
                           ),
                         ),

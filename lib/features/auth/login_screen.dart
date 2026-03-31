@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/custom_chip.dart';
 import '../../core/widgets/sentinel_logo.dart';
+import '../../core/widgets/scale_button.dart';
 import '../../core/widgets/status_dot.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -141,24 +142,27 @@ class _LoginScreenState extends State<LoginScreen> {
                       SizedBox(
                         width: double.infinity,
                         height: 52,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.accentAmber,
-                            foregroundColor: AppColors.textOnAmber,
-                            elevation: 0,
-                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                          ),
-                          onPressed: () {
+                        child: ScaleButton(
+                          onTap: () {
                             AppRouter.isAuthenticated = true;
                             context.go('/dashboard');
                           },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text("AUTHENTICATE", style: AppTextStyles.buttonLabel),
-                              const SizedBox(width: 8),
-                              Icon(PhosphorIcons.arrowRight(), size: 16, color: AppColors.textOnAmber),
-                            ],
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.accentAmber,
+                              foregroundColor: AppColors.textOnAmber,
+                              elevation: 0,
+                              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                            ),
+                            onPressed: () {}, // Handled by ScaleButton
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text("AUTHENTICATE", style: AppTextStyles.buttonLabel),
+                                const SizedBox(width: 8),
+                                Icon(PhosphorIcons.arrowRight(), size: 16, color: AppColors.textOnAmber),
+                              ],
+                            ),
                           ),
                         ),
                       ),

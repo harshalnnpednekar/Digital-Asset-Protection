@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/scale_button.dart';
 
 class UploadModal extends StatefulWidget {
   const UploadModal({super.key});
@@ -229,14 +230,17 @@ class _UploadModalState extends State<UploadModal> {
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accentAmber,
-                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                padding: const EdgeInsets.symmetric(vertical: 14),
+            child: ScaleButton(
+              onTap: () => Navigator.pop(context),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accentAmber,
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: () {}, // Handled by ScaleButton
+                child: Text("CLOSE", style: AppTextStyles.buttonLabel),
               ),
-              onPressed: () => Navigator.pop(context),
-              child: Text("CLOSE", style: AppTextStyles.buttonLabel),
             ),
           ),
         ],
@@ -347,30 +351,33 @@ class _ModalFooter extends StatelessWidget {
       ),
       child: Row(
         children: [
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.accentAmber),
-              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            ),
-            onPressed: onCancel,
-            child: Text(
-              "CANCEL",
-              style: AppTextStyles.mono(size: 13, weight: FontWeight.w700, color: AppColors.accentAmber),
+          ScaleButton(
+            onTap: onCancel,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.accentAmber),
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              ),
+              onPressed: () {}, // Handled by ScaleButton
+              child: Text(
+                "CANCEL",
+                style: AppTextStyles.mono(size: 13, weight: FontWeight.w700, color: AppColors.accentAmber),
+              ),
             ),
           ),
           const Spacer(),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accentAmber,
-              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          ScaleButton(
+            onTap: onStart,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accentAmber,
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              ),
+              onPressed: () {}, // Handled by ScaleButton
+              child: Text("BEGIN CRYPTOGRAPHIC VAULTING  →", style: AppTextStyles.buttonLabel),
             ),
-            onPressed: () {
-              // TODO: CALL /process-asset BACKEND
-              onStart();
-            },
-            child: Text("BEGIN CRYPTOGRAPHIC VAULTING  →", style: AppTextStyles.buttonLabel),
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/custom_chip.dart';
+import '../../../core/widgets/scale_button.dart';
 import '../threats_mock_data.dart';
 import 'confidence_circle.dart';
 
@@ -110,16 +111,19 @@ class ThreatDetailPanel extends StatelessWidget {
           ),
           
           Center(
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.accentBlue),
-                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-              onPressed: () {},
-              child: Text(
-                "▶  PLAY BOTH SIMULTANEOUSLY",
-                style: AppTextStyles.mono(size: 11, weight: FontWeight.w700, color: AppColors.accentBlue, letterSpacing: 1),
+            child: ScaleButton(
+              onTap: () {},
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.accentBlue),
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                onPressed: () {}, // Handled by ScaleButton
+                child: Text(
+                  "▶  PLAY BOTH SIMULTANEOUSLY",
+                  style: AppTextStyles.mono(size: 11, weight: FontWeight.w700, color: AppColors.accentBlue, letterSpacing: 1),
+                ),
               ),
             ),
           ),
@@ -268,33 +272,39 @@ class ThreatDetailPanel extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.borderDefault),
-                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    onPressed: () => onUpdateStatus('DISMISSED'),
-                    child: Text(
-                      "DISMISS AS FAIR USE",
-                      style: AppTextStyles.mono(size: 12, weight: FontWeight.w700, color: AppColors.textSecondary, letterSpacing: 1),
+                  child: ScaleButton(
+                    onTap: () => onUpdateStatus('DISMISSED'),
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.borderDefault),
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      onPressed: () {}, // Handled by ScaleButton
+                      child: Text(
+                        "DISMISS AS FAIR USE",
+                        style: AppTextStyles.mono(size: 12, weight: FontWeight.w700, color: AppColors.textSecondary, letterSpacing: 1),
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accentAmber,
-                      foregroundColor: AppColors.textOnAmber,
-                      elevation: 0,
-                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    onPressed: () => _showDMCAConfirmation(context),
-                    child: Text(
-                      "GENERATE & SUBMIT DMCA  →",
-                      style: AppTextStyles.buttonLabel,
+                  child: ScaleButton(
+                    onTap: () => _showDMCAConfirmation(context),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accentAmber,
+                        foregroundColor: AppColors.textOnAmber,
+                        elevation: 0,
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      onPressed: () {}, // Handled by ScaleButton
+                      child: Text(
+                        "GENERATE & SUBMIT DMCA  →",
+                        style: AppTextStyles.buttonLabel,
+                      ),
                     ),
                   ),
                 ),
@@ -336,25 +346,31 @@ class ThreatDetailPanel extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.borderDefault),
-                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                  ScaleButton(
+                    onTap: () => Navigator.pop(context),
+                    child: OutlinedButton(
+                      onPressed: () {},
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.borderDefault),
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      ),
+                      child: const Text("CANCEL"),
                     ),
-                    child: const Text("CANCEL"),
                   ),
                   const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () {
+                  ScaleButton(
+                    onTap: () {
                       Navigator.pop(context);
                       onUpdateStatus('DMCA_FILED');
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accentCrimson,
-                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accentCrimson,
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      ),
+                      child: const Text("CONFIRM & FILE"),
                     ),
-                    child: const Text("CONFIRM & FILE"),
                   ),
                 ],
               ),

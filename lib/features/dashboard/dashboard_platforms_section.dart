@@ -2,26 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/widgets/shimmer_box.dart';
 import 'dashboard_mock_data.dart';
 import 'dashboard_widgets.dart';
 
 class DashboardPlatformsSection extends StatelessWidget {
-  const DashboardPlatformsSection({super.key});
+  final bool loading;
+  const DashboardPlatformsSection({super.key, this.loading = false});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _ThreatOriginPlatformsCard(),
+        _ThreatOriginPlatformsCard(loading: loading),
         const SizedBox(height: 16),
-        _PatientZeroDetectionsCard(),
+        _PatientZeroDetectionsCard(loading: loading),
       ],
     );
   }
 }
 
 class _ThreatOriginPlatformsCard extends StatelessWidget {
+  final bool loading;
+  const _ThreatOriginPlatformsCard({this.loading = false});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -35,8 +40,15 @@ class _ThreatOriginPlatformsCard extends StatelessWidget {
         children: [
           Text("THREAT ORIGIN PLATFORMS", style: AppTextStyles.sectionLabel),
           const SizedBox(height: 16),
-          // TODO: REPLACE WITH FIRESTORE STREAM
-          ...DashboardMockData.platformStats.map((stat) => _PlatformBar(stat: stat)).toList(),
+          if (loading)
+            Column(
+              children: List.generate(4, (index) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: const ShimmerBox(height: 20, width: double.infinity),
+              )),
+            )
+          else
+            ...DashboardMockData.platformStats.map((stat) => _PlatformBar(stat: stat)).toList(),
         ],
       ),
     );
@@ -122,6 +134,9 @@ class _PlatformBar extends StatelessWidget {
 }
 
 class _PatientZeroDetectionsCard extends StatelessWidget {
+  final bool loading;
+  const _PatientZeroDetectionsCard({this.loading = false});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -135,8 +150,15 @@ class _PatientZeroDetectionsCard extends StatelessWidget {
         children: [
           Text("PATIENT ZERO DETECTIONS", style: AppTextStyles.sectionLabel),
           const SizedBox(height: 16),
-          // TODO: REPLACE WITH FIRESTORE STREAM
-          ...DashboardMockData.recentDetections.map((detection) => _DetectionRow(detection: detection)).toList(),
+          if (loading)
+            Column(
+              children: List.generate(3, (index) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: const ShimmerBox(height: 48, width: double.infinity),
+              )),
+            )
+          else
+            ...DashboardMockData.recentDetections.map((detection) => _DetectionRow(detection: detection)).toList(),
         ],
       ),
     );

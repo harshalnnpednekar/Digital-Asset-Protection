@@ -3,6 +3,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/section_header.dart';
+import '../../core/widgets/shimmer_box.dart';
 import 'contagion_mock_data.dart';
 import 'widgets/contagion_graph_painter.dart';
 import 'widgets/node_detail_sidebar.dart';
@@ -17,6 +18,7 @@ class ContagionScreen extends StatefulWidget {
 class _ContagionScreenState extends State<ContagionScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   String? _selectedNodeId;
+  bool _isLoading = true;
   final TransformationController _transformationController = TransformationController();
 
   @override
@@ -27,12 +29,19 @@ class _ContagionScreenState extends State<ContagionScreen> with SingleTickerProv
       duration: const Duration(milliseconds: 3000),
     )..repeat();
     
+    _simulateLoading();
+    
     // Initial centering of the graph
     // The graph is approx 1000px wide based on the painter logic
     // We'll center it after the layout is ready
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _centerGraph();
     });
+  }
+
+  void _simulateLoading() async {
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (mounted) setState(() => _isLoading = false);
   }
 
   void _centerGraph() {
@@ -91,39 +100,41 @@ class _ContagionScreenState extends State<ContagionScreen> with SingleTickerProv
                         color: AppColors.bgPrimary,
                         border: Border.all(color: AppColors.borderDefault),
                       ),
-                      child: ClipRect(
-                        child: InteractiveViewer(
-                          transformationController: _transformationController,
-                          minScale: 0.5,
-                          maxScale: 3.0,
-                          boundaryMargin: const EdgeInsets.all(500),
-                          child: GestureDetector(
-                            onTapDown: (details) {
-                              final painter = ContagionGraphPainter(
-                                nodes: ContagionMockData.nodes,
-                                animationValue: _controller.value,
-                              );
-                              // We need the local position relative to the graph canvas
-                              final offset = details.localPosition;
-                              final hitId = painter.findNodeAt(offset);
-                              setState(() => _selectedNodeId = hitId);
-                            },
-                            child: AnimatedBuilder(
-                              animation: _controller,
-                              builder: (context, child) {
-                                return CustomPaint(
-                                  size: const Size(1200, 800),
-                                  painter: ContagionGraphPainter(
+                      child: _isLoading 
+                        ? const ShimmerBox(height: double.infinity, width: double.infinity)
+                        : ClipRect(
+                            child: InteractiveViewer(
+                              transformationController: _transformationController,
+                              minScale: 0.5,
+                              maxScale: 3.0,
+                              boundaryMargin: const EdgeInsets.all(500),
+                              child: GestureDetector(
+                                onTapDown: (details) {
+                                  final painter = ContagionGraphPainter(
                                     nodes: ContagionMockData.nodes,
-                                    selectedNodeId: _selectedNodeId,
                                     animationValue: _controller.value,
-                                  ),
-                                );
-                              },
+                                  );
+                                  // We need the local position relative to the graph canvas
+                                  final offset = details.localPosition;
+                                  final hitId = painter.findNodeAt(offset);
+                                  setState(() => _selectedNodeId = hitId);
+                                },
+                                child: AnimatedBuilder(
+                                  animation: _controller,
+                                  builder: (context, child) {
+                                    return CustomPaint(
+                                      size: const Size(1200, 800),
+                                      painter: ContagionGraphPainter(
+                                        nodes: ContagionMockData.nodes,
+                                        selectedNodeId: _selectedNodeId,
+                                        animationValue: _controller.value,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
                     ),
                   ),
                   

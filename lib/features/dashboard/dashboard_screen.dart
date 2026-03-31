@@ -7,11 +7,31 @@ import 'dashboard_timeline_section.dart';
 import 'dashboard_platforms_section.dart';
 import 'dashboard_table_section.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _simulateLoading();
+  }
+
+  void _simulateLoading() async {
+    await Future.delayed(const Duration(milliseconds: 1200));
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // DEMO MODE: using mock data. Set kDemoMode = false to use Firestore.
+    
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
       body: SingleChildScrollView(
@@ -24,7 +44,7 @@ class DashboardScreen extends StatelessWidget {
             const SizedBox(height: 28),
 
             // SECTION 1 — KPI CARDS
-            const DashboardKpiSection(),
+            DashboardKpiSection(loading: _isLoading),
             const SizedBox(height: 28),
 
             // SECTION 2 — TWO COLUMN LAYOUT
@@ -32,15 +52,15 @@ class DashboardScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // LEFT: Threat Timeline card
-                const Expanded(
+                Expanded(
                   flex: 6,
-                  child: DashboardTimelineSection(),
+                  child: DashboardTimelineSection(loading: _isLoading),
                 ),
                 const SizedBox(width: 16),
                 // RIGHT: Platforms & Detections
-                const Expanded(
+                Expanded(
                   flex: 4,
-                  child: DashboardPlatformsSection(),
+                  child: DashboardPlatformsSection(loading: _isLoading),
                 ),
               ],
             ),

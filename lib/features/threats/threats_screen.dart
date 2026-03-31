@@ -3,11 +3,14 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/config/demo_config.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/status_dot.dart';
+import '../../core/widgets/scale_button.dart';
 import 'threats_mock_data.dart';
 import 'widgets/threat_queue_item.dart';
 import 'widgets/threat_detail_panel.dart';
+import '../../core/widgets/shimmer_box.dart';
 
 class ThreatsScreen extends StatefulWidget {
   const ThreatsScreen({super.key});
@@ -19,15 +22,25 @@ class ThreatsScreen extends StatefulWidget {
 class _ThreatsScreenState extends State<ThreatsScreen> {
   late List<ThreatAlert> _alerts;
   String? _selectedThreatId;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _alerts = List.from(ThreatsMockData.alerts);
+    // DEMO MODE: using mock data. Set kDemoMode = false to use Firestore.
+    _alerts = kDemoMode ? List.from(ThreatsMockData.alerts) : [];
+    
     if (_alerts.isNotEmpty) {
       _selectedThreatId = _alerts.first.threatId;
     }
+    _simulateLoading();
   }
+
+  void _simulateLoading() async {
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (mounted) setState(() => _isLoading = false);
+  }
+
 
   void _updateStatus(String status) {
     if (_selectedThreatId == null) return;
@@ -68,22 +81,25 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
                   const SizedBox(width: 8),
                   _StatusCountChip(label: "$dismissedCount DISMISSED", color: AppColors.accentGreen),
                   const SizedBox(width: 16),
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.accentBlue),
-                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    ),
-                    onPressed: () {},
-                    child: Row(
-                      children: [
-                        Icon(PhosphorIcons.broadcast(), size: 14, color: AppColors.accentBlue),
-                        const SizedBox(width: 6),
-                        Text(
-                          "SCAN NOW",
-                          style: AppTextStyles.mono(size: 11, weight: FontWeight.w700, color: AppColors.accentBlue, letterSpacing: 1),
-                        ),
-                      ],
+                  ScaleButton(
+                    onTap: () {},
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.accentBlue),
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
+                      onPressed: () {}, // Handled by ScaleButton
+                      child: Row(
+                        children: [
+                          Icon(PhosphorIcons.broadcast(), size: 14, color: AppColors.accentBlue),
+                          const SizedBox(width: 6),
+                          Text(
+                            "SCAN NOW",
+                            style: AppTextStyles.mono(size: 11, weight: FontWeight.w700, color: AppColors.accentBlue, letterSpacing: 1),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -114,17 +130,39 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
                             trailing: Text("${_alerts.length} ITEMS", style: AppTextStyles.mono(size: 10, color: AppColors.textMuted)),
                           ),
                           Expanded(
-                            child: ListView.builder(
-                              itemCount: _alerts.length,
-                              itemBuilder: (context, index) {
-                                final threat = _alerts[index];
-                                return ThreatQueueItem(
-                                  threat: threat,
-                                  isSelected: _selectedThreatId == threat.threatId,
-                                  onTap: () => setState(() => _selectedThreatId = threat.threatId),
-                                );
-                              },
-                            ),
+                            child: _isLoading 
+                              ? ListView.builder(
+                                  itemCount: 8,
+                                  itemBuilder: (context, index) => const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    child: ShimmerBox(height: 80, width: double.infinity),
+                                  ),
+                                )
+                              : _alerts.isEmpty 
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(PhosphorIcons.shieldCheck(), size: 40, color: AppColors.textMuted.withAlpha(51)),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          "NO ACTIVE THREATS",
+                                          style: AppTextStyles.mono(size: 12, weight: FontWeight.w600, color: AppColors.textMuted),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    itemCount: _alerts.length,
+                                    itemBuilder: (context, index) {
+                                      final threat = _alerts[index];
+                                      return ThreatQueueItem(
+                                        threat: threat,
+                                        isSelected: _selectedThreatId == threat.threatId,
+                                        onTap: () => setState(() => _selectedThreatId = threat.threatId),
+                                      );
+                                    },
+                                  ),
                           ),
                         ],
                       ),

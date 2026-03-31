@@ -111,15 +111,31 @@ class _ThreatQueueItemState extends State<ThreatQueueItem> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                widget.threat.matchedAssetName,
-                                style: AppTextStyles.sans(
-                                  size: 12,
-                                  weight: FontWeight.w500,
-                                  color: AppColors.textPrimary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      widget.threat.matchedAssetName,
+                                      style: AppTextStyles.sans(
+                                        size: 12,
+                                        weight: FontWeight.w500,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  // CHEVRON REVEAL
+                                  AnimatedOpacity(
+                                    opacity: _isHovered ? 1.0 : 0.0,
+                                    duration: const Duration(milliseconds: 200),
+                                    child: Icon(
+                                      PhosphorIcons.caretRight(),
+                                      size: 14,
+                                      color: AppColors.accentAmber,
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 4),
                               Row(

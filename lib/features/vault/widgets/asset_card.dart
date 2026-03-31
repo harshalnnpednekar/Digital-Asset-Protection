@@ -95,10 +95,14 @@ class _AssetCardState extends State<AssetCard> {
                     Positioned(
                       top: 8,
                       left: 8,
-                      child: _CardBadge(
-                        label: "C2PA SECURED",
-                        color: AppColors.accentBlue,
-                        icon: PhosphorIcons.lock(),
+                      child: AnimatedScale(
+                        scale: _isHovered ? 1.05 : 1.0,
+                        duration: const Duration(milliseconds: 200),
+                        child: _CardBadge(
+                          label: "C2PA SECURED",
+                          color: AppColors.accentBlue,
+                          icon: PhosphorIcons.lock(),
+                        ),
                       ),
                     ),
                   

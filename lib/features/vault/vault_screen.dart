@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/config/demo_config.dart';
 import '../../core/widgets/section_header.dart';
+import '../../core/widgets/scale_button.dart';
+import '../../core/widgets/shimmer_box.dart';
 import 'vault_mock_data.dart';
 import 'widgets/asset_card.dart';
 import 'widgets/upload_modal.dart';
@@ -17,6 +20,18 @@ class VaultScreen extends StatefulWidget {
 class _VaultScreenState extends State<VaultScreen> {
   String _selectedFilter = "ALL";
   String _searchQuery = "";
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _simulateLoading();
+  }
+
+  void _simulateLoading() async {
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (mounted) setState(() => _isLoading = false);
+  }
 
   void _showUploadModal() {
     showDialog(
@@ -28,7 +43,10 @@ class _VaultScreenState extends State<VaultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredAssets = VaultMockData.assets.where((asset) {
+    // DEMO MODE: using mock data. Set kDemoMode = false to use Firestore.
+    final assets = kDemoMode ? VaultMockData.assets : <VaultedAsset>[]; 
+
+    final filteredAssets = assets.where((asset) {
       final matchesFilter = _selectedFilter == "ALL" || asset.category == _selectedFilter;
       final matchesSearch = asset.name.toLowerCase().contains(_searchQuery.toLowerCase());
       return matchesFilter && matchesSearch;
@@ -45,21 +63,24 @@ class _VaultScreenState extends State<VaultScreen> {
             SectionHeader(
               title: "ASSET VAULT",
               subtitle: "Cryptographically secured media repository — C2PA manifest + AES-256 steganographic watermarking",
-              trailing: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accentAmber,
-                  foregroundColor: AppColors.textOnAmber,
-                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                ),
-                onPressed: _showUploadModal,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(PhosphorIcons.plus(), size: 14),
-                    const SizedBox(width: 8),
-                    Text("ADD ASSET", style: AppTextStyles.buttonLabel),
-                  ],
+              trailing: ScaleButton(
+                onTap: _showUploadModal,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accentAmber,
+                    foregroundColor: AppColors.textOnAmber,
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  ),
+                  onPressed: () {}, // Handled by ScaleButton
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(PhosphorIcons.plus(), size: 14),
+                      const SizedBox(width: 8),
+                      Text("ADD ASSET", style: AppTextStyles.buttonLabel),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -175,6 +196,50 @@ class _VaultScreenState extends State<VaultScreen> {
             // ASSET GRID
             LayoutBuilder(
               builder: (context, constraints) {
+                if (_isLoading) {
+                  final crossAxisCount = constraints.maxWidth > 1200 ? 3 : 2;
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.78,
+                    ),
+                    itemCount: 6,
+                    itemBuilder: (context, index) => const ShimmerBox(height: 300, width: double.infinity),
+                  );
+                }
+
+                if (filteredAssets.isEmpty) {
+                  return Container(
+                    height: 400,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.borderDefault, style: BorderStyle.none),
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(PhosphorIcons.folderOpen(), size: 48, color: AppColors.textMuted.withAlpha(51)),
+                          const SizedBox(height: 16),
+                          Text(
+                            "NO ASSETS FOUND",
+                            style: AppTextStyles.mono(size: 14, weight: FontWeight.w600, color: AppColors.textMuted),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Try adjusting your filters or search query.",
+                            style: AppTextStyles.caption,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
                 final crossAxisCount = constraints.maxWidth > 1200 ? 3 : 2;
                 return GridView.builder(
                   shrinkWrap: true,

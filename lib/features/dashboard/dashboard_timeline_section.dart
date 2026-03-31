@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/widgets/shimmer_box.dart';
 import 'dashboard_mock_data.dart';
 import 'dashboard_widgets.dart';
 
 class DashboardTimelineSection extends StatelessWidget {
-  const DashboardTimelineSection({super.key});
+  final bool loading;
+  const DashboardTimelineSection({super.key, this.loading = false});
 
   @override
   Widget build(BuildContext context) {
@@ -42,15 +44,25 @@ class DashboardTimelineSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // TODO: REPLACE WITH FIRESTORE STREAM
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: DashboardMockData.timelineEvents.length,
-            itemBuilder: (context, index) {
-              return _TimelineItemTile(item: DashboardMockData.timelineEvents[index]);
-            },
-          ),
+          if (loading)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: Column(
+                children: List.generate(6, (index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: const ShimmerBox(height: 60, width: double.infinity),
+                )),
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: DashboardMockData.timelineEvents.length,
+              itemBuilder: (context, index) {
+                return _TimelineItemTile(item: DashboardMockData.timelineEvents[index]);
+              },
+            ),
         ],
       ),
     );
