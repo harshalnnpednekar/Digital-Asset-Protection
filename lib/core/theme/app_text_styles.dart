@@ -11,11 +11,15 @@ class AppTextStyles {
     FontWeight weight = FontWeight.w400,
     Color color = AppColors.textPrimary,
     double letterSpacing = 0,
+    double? height,
+    FontStyle? fontStyle,
   }) => GoogleFonts.ibmPlexMono(
     fontSize: size,
     fontWeight: weight,
     color: color,
     letterSpacing: letterSpacing,
+    height: height,
+    fontStyle: fontStyle,
   );
 
   // DM Sans — for all body text, descriptions, form inputs
@@ -24,11 +28,15 @@ class AppTextStyles {
     FontWeight weight = FontWeight.w400,
     Color color = AppColors.textPrimary,
     double letterSpacing = 0,
+    double? height,
+    FontStyle? fontStyle,
   }) => GoogleFonts.dmSans(
     fontSize: size,
     fontWeight: weight,
     color: color,
     letterSpacing: letterSpacing,
+    height: height,
+    fontStyle: fontStyle,
   );
 
   // Pre-defined named styles
