@@ -36,7 +36,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             const SectionHeader(
               title: "General Settings",
-              subtitle: "Manage your organization's workspace and security configurations.",
+              subtitle:
+                  "Manage your organization's workspace and security configurations.",
             ),
             const SizedBox(height: 32),
             Expanded(
@@ -70,13 +71,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         color: c.bgSecondary,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: c.borderDefault),
-                        boxShadow: c.isDark ? [] : [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.03),
-                            blurRadius: 30,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
+                        boxShadow: c.isDark
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 30,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
                       ),
                       child: SingleChildScrollView(
                         physics: const BouncingScrollPhysics(),
@@ -95,20 +98,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildActiveCategory(AppThemeColors c) {
     switch (_activeCategory) {
-      case 0: return _WorkspaceSettings(c: c);
-      case 1: return _ProtectionSettings(c: c);
-      case 2: return _ApiSettings(c: c);
+      case 0:
+        return _WorkspaceSettings(c: c);
+      case 1:
+        return _ProtectionSettings(c: c);
+      case 2:
+        return _ApiSettings(c: c);
       default:
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(PhosphorIcons.gearSix(), size: 48, color: c.textMuted.withOpacity(0.3)),
+              Icon(PhosphorIcons.gearSix(),
+                  size: 48, color: c.textMuted.withValues(alpha: 0.3)),
               const SizedBox(height: 16),
-              Text("Additional Configuration", style: AppTextStyles.sectionHeading.copyWith(color: c.textMuted)),
+              Text("Additional Configuration",
+                  style: AppTextStyles.sectionHeading
+                      .copyWith(color: c.textMuted)),
               const SizedBox(height: 8),
-              Text("This module is currently unavailable for your account.", 
-                   style: AppTextStyles.body(size: 14, color: c.textMuted)),
+              Text("This module is currently unavailable for your account.",
+                  style: AppTextStyles.body(size: 14, color: c.textMuted)),
             ],
           ),
         );
@@ -139,15 +148,20 @@ class _SidebarItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: isSelected ? c.accentBlue.withOpacity(c.isDark ? 0.15 : 0.08) : Colors.transparent,
+            color: isSelected
+                ? c.accentBlue.withValues(alpha: c.isDark ? 0.15 : 0.08)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isSelected ? c.accentBlue.withOpacity(0.3) : Colors.transparent,
+              color: isSelected
+                  ? c.accentBlue.withValues(alpha: 0.3)
+                  : Colors.transparent,
             ),
           ),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: isSelected ? c.accentBlue : c.textMuted),
+              Icon(icon,
+                  size: 18, color: isSelected ? c.accentBlue : c.textMuted),
               const SizedBox(width: 12),
               Text(
                 title,
@@ -175,17 +189,21 @@ class _WorkspaceSettings extends StatelessWidget {
       children: [
         _SectionTitle(title: "Workspace Identity", c: c),
         const SizedBox(height: 32),
-        _SettingsRow(
+        const _SettingsRow(
           label: "Workspace Name",
           child: _SettingsInput(hint: "Sentinel Media Protection Ltd."),
         ),
-        _SettingsRow(
+        const _SettingsRow(
           label: "Administrator Email",
           child: _SettingsInput(hint: "admin@sentinel-ai.com"),
         ),
-        _SettingsRow(
+        const _SettingsRow(
           label: "Cloud Integration Region",
-          child: _SettingsDropdown(items: ["India (Mumbai)", "US East (Virginia)", "EU West (Dublin)"]),
+          child: _SettingsDropdown(items: [
+            "India (Mumbai)",
+            "US East (Virginia)",
+            "EU West (Dublin)"
+          ]),
         ),
         const Spacer(),
         _SaveBar(c: c),
@@ -208,14 +226,16 @@ class _ProtectionSettings extends StatelessWidget {
         _SettingsRow(
           label: "Detection Confidence",
           description: "Minimum similarity required for automatic flagging.",
-          child: Slider(value: 0.85, onChanged: (_) {}, activeColor: c.accentBlue),
+          child:
+              Slider(value: 0.85, onChanged: (_) {}, activeColor: c.accentBlue),
         ),
-        _SettingsToggle(
+        const _SettingsToggle(
           label: "Background DMCA Filing",
-          description: "Automatically file requests when confidence exceeds 98%.",
+          description:
+              "Automatically file requests when confidence exceeds 98%.",
           value: true,
         ),
-        _SettingsToggle(
+        const _SettingsToggle(
           label: "Platform Alerts",
           description: "Notify social platforms of detected account anomalies.",
           value: false,
@@ -238,13 +258,15 @@ class _ApiSettings extends StatelessWidget {
       children: [
         _SectionTitle(title: "Credential Management", c: c),
         const SizedBox(height: 32),
-        _SettingsRow(
+        const _SettingsRow(
           label: "AI Engine API Key",
-          child: _SettingsInput(hint: "sk-••••••••••••••••••••••••", isPassword: true),
+          child: _SettingsInput(
+              hint: "sk-••••••••••••••••••••••••", isPassword: true),
         ),
-        _SettingsRow(
+        const _SettingsRow(
           label: "Event Endpoint URL",
-          child: _SettingsInput(hint: "https://api.sentinel-ai.com/v1/webhooks"),
+          child:
+              _SettingsInput(hint: "https://api.sentinel-ai.com/v1/webhooks"),
         ),
         const SizedBox(height: 48),
         _SectionTitle(title: "System Status", c: c),
@@ -258,13 +280,17 @@ class _ApiSettings extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(PhosphorIcons.checkCircle(PhosphorIconsStyle.fill), color: AppColors.accentGreen, size: 24),
+              Icon(PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+                  color: AppColors.accentGreen, size: 24),
               const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Platform Synchronization", style: AppTextStyles.cardTitle),
-                  Text("Real-time sync active with 14ms average latency", style: AppTextStyles.body(size: 13, color: c.textSecondary)),
+                  Text("Platform Synchronization",
+                      style: AppTextStyles.cardTitle),
+                  Text("Real-time sync active with 14ms average latency",
+                      style:
+                          AppTextStyles.body(size: 13, color: c.textSecondary)),
                 ],
               ),
             ],
@@ -288,9 +314,14 @@ class _SectionTitle extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: AppTextStyles.sectionHeading.copyWith(color: AppColors.accentAmber)),
+        Text(title,
+            style: AppTextStyles.sectionHeading
+                .copyWith(color: AppColors.accentAmber)),
         const SizedBox(height: 8),
-        Container(width: 40, height: 2, color: AppColors.accentAmber.withOpacity(0.4)),
+        Container(
+            width: 40,
+            height: 2,
+            color: AppColors.accentAmber.withValues(alpha: 0.4)),
       ],
     );
   }
@@ -301,7 +332,8 @@ class _SettingsRow extends StatelessWidget {
   final String? description;
   final Widget child;
 
-  const _SettingsRow({required this.label, this.description, required this.child});
+  const _SettingsRow(
+      {required this.label, this.description, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -316,11 +348,17 @@ class _SettingsRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: AppTextStyles.body(size: 15, weight: FontWeight.w600, color: c.textPrimary)),
+                Text(label,
+                    style: AppTextStyles.body(
+                        size: 15,
+                        weight: FontWeight.w600,
+                        color: c.textPrimary)),
                 if (description != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text(description!, style: AppTextStyles.body(size: 13, color: c.textSecondary)),
+                    child: Text(description!,
+                        style: AppTextStyles.body(
+                            size: 13, color: c.textSecondary)),
                   ),
               ],
             ),
@@ -338,7 +376,8 @@ class _SettingsToggle extends StatelessWidget {
   final String description;
   final bool value;
 
-  const _SettingsToggle({required this.label, required this.description, required this.value});
+  const _SettingsToggle(
+      {required this.label, required this.description, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -351,15 +390,21 @@ class _SettingsToggle extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: AppTextStyles.body(size: 15, weight: FontWeight.w600, color: c.textPrimary)),
-                Text(description, style: AppTextStyles.body(size: 13, color: c.textSecondary)),
+                Text(label,
+                    style: AppTextStyles.body(
+                        size: 15,
+                        weight: FontWeight.w600,
+                        color: c.textPrimary)),
+                Text(description,
+                    style:
+                        AppTextStyles.body(size: 13, color: c.textSecondary)),
               ],
             ),
           ),
           Switch(
-            value: value, 
+            value: value,
             onChanged: (_) {},
-            activeColor: AppColors.accentAmber,
+            activeThumbColor: AppColors.accentAmber,
           ),
         ],
       ),
@@ -384,9 +429,14 @@ class _SettingsInput extends StatelessWidget {
         hintStyle: AppTextStyles.body(size: 14, color: c.textMuted),
         filled: true,
         fillColor: c.bgPrimary,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: c.borderDefault)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.accentAmber)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: c.borderDefault)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: AppColors.accentAmber)),
       ),
     );
   }
@@ -411,7 +461,11 @@ class _SettingsDropdown extends StatelessWidget {
           value: items[0],
           isExpanded: true,
           dropdownColor: c.bgSecondary,
-          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e, style: AppTextStyles.body(size: 14)))).toList(),
+          items: items
+              .map((e) => DropdownMenuItem(
+                  value: e,
+                  child: Text(e, style: AppTextStyles.body(size: 14))))
+              .toList(),
           onChanged: (_) {},
         ),
       ),
@@ -428,7 +482,7 @@ class _SaveBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: c.bgPrimary.withOpacity(0.5),
+        color: c.bgPrimary.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: c.borderDefault),
       ),
@@ -437,7 +491,8 @@ class _SaveBar extends StatelessWidget {
         children: [
           TextButton(
             onPressed: () {},
-            child: Text("Reset to default", style: AppTextStyles.buttonLabel.copyWith(color: c.textMuted)),
+            child: Text("Reset to default",
+                style: AppTextStyles.buttonLabel.copyWith(color: c.textMuted)),
           ),
           const SizedBox(width: 16),
           ScaleButton(
@@ -445,12 +500,16 @@ class _SaveBar extends StatelessWidget {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.accentBlue,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
                 elevation: 0,
               ),
               onPressed: () {},
-              child: Text("Save Changes", style: AppTextStyles.buttonLabel.copyWith(color: Colors.white)),
+              child: Text("Save Changes",
+                  style:
+                      AppTextStyles.buttonLabel.copyWith(color: Colors.white)),
             ),
           ),
         ],

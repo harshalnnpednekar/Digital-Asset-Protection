@@ -24,16 +24,16 @@ class AppColors {
   // LIGHT MODE PALETTE — "BRIEFING DOCUMENT"
   // ─────────────────────────────────────────
   static const Color lightBgPrimary     = Color(0xFFF5F2EC);
-  static const Color lightBgSecondary   = Color(0xFFEEEAE1);
-  static const Color lightBgTertiary    = Color(0xFFE6E1D6);
+  static const Color lightBgSecondary   = Color(0xFFE6E1D6);
+  static const Color lightBgTertiary    = Color(0xFFDCD6C9);
   static const Color lightBgSurface     = Color(0xFFFFFFFF);
   static const Color lightBgOverlay     = Color(0xFFF0EDE5);
-  static const Color lightBorderDefault = Color(0xFFD4C9B0);
-  static const Color lightBorderSubtle  = Color(0xFFE0DAD0);
+  static const Color lightBorderDefault = Color(0xFFBDB29A);
+  static const Color lightBorderSubtle  = Color(0xFFD4C9B0);
   static const Color lightBorderFocus   = Color(0xFF0099CC);
   static const Color lightTextPrimary   = Color(0xFF0F1117);
-  static const Color lightTextSecondary = Color(0xFF4A4A52);
-  static const Color lightTextMuted     = Color(0xFF9A9490);
+  static const Color lightTextSecondary = Color(0xFF2D2D33);
+  static const Color lightTextMuted     = Color(0xFF5D5954);
   static const Color lightAccentBlue    = Color(0xFF0099CC);
   static const Color lightAccentBlueDim = Color(0x1A0099CC);
 

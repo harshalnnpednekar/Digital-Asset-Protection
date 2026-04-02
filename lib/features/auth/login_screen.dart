@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,27 +27,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: c.bgPrimary,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isMobile = constraints.maxWidth < 1000;
-          final availableHeight = constraints.maxHeight;
-          
-          return Stack(
-            children: [
-              // LAYER 1: BASE
-              Positioned.fill(child: AnimatedContainer(duration: 300.ms, color: c.bgPrimary)),
+      body: LayoutBuilder(builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 1000;
+        final availableHeight = constraints.maxHeight;
 
-              // LAYER 2: CLEAN BACKGROUND
-              Positioned.fill(
-                child: Container(color: c.bgPrimary),
-              ),
+        return Stack(
+          children: [
+            // LAYER 1: BASE
+            Positioned.fill(
+                child: AnimatedContainer(duration: 300.ms, color: c.bgPrimary)),
 
-              // LAYER 3: CONTENT
-              Positioned.fill(
-                child: isMobile 
+            // LAYER 2: CLEAN BACKGROUND
+            Positioned.fill(
+              child: Container(color: c.bgPrimary),
+            ),
+
+            // LAYER 3: CONTENT
+            Positioned.fill(
+              child: isMobile
                   ? _MobileView(
                       obscurePassword: _obscurePassword,
-                      onToggleObscure: () => setState(() => _obscurePassword = !_obscurePassword),
+                      onToggleObscure: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     )
                   : Row(
                       children: [
@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           flex: 55,
                           child: _LeftPanel(availableHeight: availableHeight),
                         ),
-                        
+
                         // DIVIDER
                         AnimatedContainer(
                           duration: 300.ms,
@@ -70,24 +70,24 @@ class _LoginScreenState extends State<LoginScreen> {
                           flex: 45,
                           child: _RightPanel(
                             obscurePassword: _obscurePassword,
-                            onToggleObscure: () => setState(() => _obscurePassword = !_obscurePassword),
+                            onToggleObscure: () => setState(
+                                () => _obscurePassword = !_obscurePassword),
                             availableHeight: availableHeight,
                           ),
                         ),
                       ],
                     ),
-              ),
+            ),
 
-              // THEME TOGGLE — Top Right
-              const Positioned(
-                top: 8,
-                right: 8,
-                child: ThemeToggleButton(compact: true),
-              ),
-            ],
-          );
-        }
-      ),
+            // THEME TOGGLE — Top Right
+            const Positioned(
+              top: 8,
+              right: 8,
+              child: ThemeToggleButton(compact: true),
+            ),
+          ],
+        );
+      }),
     );
   }
 }
@@ -115,7 +115,9 @@ class _LeftPanel extends StatelessWidget {
                   const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CustomPaint(painter: _MiniShieldPainter(coreColor: AppColors.textOnAmber)),
+                    child: CustomPaint(
+                        painter: _MiniShieldPainter(
+                            coreColor: AppColors.textOnAmber)),
                   ),
                   const SizedBox(width: 10),
                   Text(
@@ -133,17 +135,17 @@ class _LeftPanel extends StatelessWidget {
             ],
           ),
         ).animate().slideY(
-          begin: -1,
-          end: 0,
-          duration: 350.ms,
-          curve: Curves.easeOut,
-        ),
+              begin: -1,
+              end: 0,
+              duration: 350.ms,
+              curve: Curves.easeOut,
+            ),
 
         // ZONE B - MAIN CONTENT
         Expanded(
           child: Stack(
             children: [
-              // BACKGROUND 
+              // BACKGROUND
               Positioned.fill(
                 child: Container(color: c.bgPrimary),
               ),
@@ -172,14 +174,20 @@ class _LeftPanel extends StatelessWidget {
                               color: c.textPrimary,
                               height: 0.9,
                               letterSpacing: -2,
-                              shadows: c.isDark ? [
-                                Shadow(
-                                  color: c.textPrimary.withValues(alpha: 0.3),
-                                  blurRadius: 20,
-                                ),
-                              ] : [],
+                              shadows: c.isDark
+                                  ? [
+                                      Shadow(
+                                        color: c.textPrimary
+                                            .withValues(alpha: 0.3),
+                                        blurRadius: 20,
+                                      ),
+                                    ]
+                                  : [],
                             ),
-                          ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.05, end: 0),
+                          )
+                              .animate()
+                              .fadeIn(duration: 600.ms)
+                              .slideX(begin: -0.05, end: 0),
                           const SizedBox(height: 8),
                           Text(
                             "TOTAL\nCUSTODY.",
@@ -189,31 +197,37 @@ class _LeftPanel extends StatelessWidget {
                               color: AppColors.accentAmber,
                               height: 0.9,
                               letterSpacing: -2,
-                              shadows: c.isDark ? [
-                                Shadow(
-                                  color: AppColors.accentAmber.withValues(alpha: 0.4),
-                                  blurRadius: 30,
-                                ),
-                              ] : [],
+                              shadows: c.isDark
+                                  ? [
+                                      Shadow(
+                                        color: AppColors.accentAmber
+                                            .withValues(alpha: 0.4),
+                                        blurRadius: 30,
+                                      ),
+                                    ]
+                                  : [],
                             ),
-                          ).animate(delay: 150.ms).fadeIn(duration: 600.ms).slideX(begin: -0.05, end: 0),
+                          )
+                              .animate(delay: 150.ms)
+                              .fadeIn(duration: 600.ms)
+                              .slideX(begin: -0.05, end: 0),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 48),
-                      
+
                       const SizedBox(height: 12),
 
                       const SizedBox(height: 48),
 
                       Text(
                         "AI-powered semantic detection and cryptographic\nchain of custody for sports media organizations.",
-                          style: AppTextStyles.body(
-                            size: 18,
-                            weight: FontWeight.w500,
-                            color: c.textSecondary,
-                            height: 1.6,
-                          ),
+                        style: AppTextStyles.body(
+                          size: 18,
+                          weight: FontWeight.w500,
+                          color: c.textSecondary,
+                          height: 1.6,
+                        ),
                       ).animate(delay: 450.ms).fadeIn(),
 
                       const SizedBox(height: 64),
@@ -259,7 +273,8 @@ class _RightPanel extends StatelessWidget {
             height: 52,
             decoration: BoxDecoration(
               color: c.bgSecondary,
-              border: Border(bottom: BorderSide(color: c.borderDefault, width: 1)),
+              border:
+                  Border(bottom: BorderSide(color: c.borderDefault, width: 1)),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 48),
             child: Row(
@@ -293,94 +308,99 @@ class _RightPanel extends StatelessWidget {
 
           // ZONE B - FORM
           Expanded(
-            child: Stack(
-              children: [
-                const SizedBox.shrink(),
-
-                // FORM CONTENT
-                Positioned.fill(
-                  child: Center(
-                    child: SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 400),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 48),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "ADMINISTRATOR",
-                                style: AppTextStyles.display(
-                                  size: 14,
-                                  weight: FontWeight.w800,
-                                  color: AppColors.accentAmber,
-                                  letterSpacing: 3,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "ACCESS TERMINAL",
-                                style: AppTextStyles.display(
-                                  size: 32,
-                                  weight: FontWeight.w800,
-                                  color: c.textPrimary,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Container(width: 24, height: 2, color: AppColors.accentAmber),
-                                  const SizedBox(width: 8),
-                                  Container(width: 8, height: 2, color: c.accentBlue),
-                                  const SizedBox(width: 8),
-                                  Expanded(child: Container(height: 1, color: c.borderDefault)),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "Restricted to verified organizational identities",
-                                style: AppTextStyles.body(
-                                  size: 15,
-                                  color: c.textSecondary,
-                                  weight: FontWeight.w500,
-                                ),
-                              ),
-                              SizedBox(height: availableHeight < 600 ? 20 : 36),
-                              const _FormLabel(label: "IDENTITY", color: AppColors.accentAmber),
-                              const SizedBox(height: 8),
-                              const _StyledTextField(hint: "admin@organization.com"),
-                              SizedBox(height: availableHeight < 600 ? 12 : 20),
-                              const _FormLabel(label: "CREDENTIAL", color: AppColors.accentAmber),
-                              const SizedBox(height: 8),
-                              _StyledTextField(
-                                hint: "••••••••••••",
-                                isPassword: true,
-                                obscureText: obscurePassword,
-                                onToggle: onToggleObscure,
-                              ),
-                              SizedBox(height: availableHeight < 600 ? 18 : 28),
-                              _AuthButton(),
-                              const SizedBox(height: 16),
-                              const _SecurityStatusBar(),
-                              const SizedBox(height: 20),
-                              Text(
-                                "Unauthorized access is a violation of organizational policy and applicable law. All sessions are logged.",
-                                style: AppTextStyles.body(
-                                  size: 13,
-                                  color: c.textMuted,
-                                  height: 1.6,
-                                ),
-                              ),
-                            ],
+            child: Center(
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 48),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "ADMINISTRATOR",
+                          style: AppTextStyles.display(
+                            size: 14,
+                            weight: FontWeight.w800,
+                            color: AppColors.accentAmber,
+                            letterSpacing: 3,
                           ),
-                        ).animate().fadeIn(delay: 150.ms, duration: 500.ms).slideX(begin: 0.03, end: 0, duration: 500.ms),
-                      ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "ACCESS TERMINAL",
+                          style: AppTextStyles.display(
+                            size: 32,
+                            weight: FontWeight.w800,
+                            color: c.textPrimary,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Container(
+                                width: 24,
+                                height: 2,
+                                color: AppColors.accentAmber),
+                            const SizedBox(width: 8),
+                            Container(
+                                width: 8, height: 2, color: c.accentBlue),
+                            const SizedBox(width: 8),
+                            Expanded(
+                                child: Container(
+                                    height: 1, color: c.borderDefault)),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Restricted to verified organizational identities",
+                          style: AppTextStyles.body(
+                            size: 15,
+                            color: c.textSecondary,
+                            weight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: availableHeight < 600 ? 20 : 36),
+                        const _FormLabel(
+                            label: "IDENTITY",
+                            color: AppColors.accentAmber),
+                        const SizedBox(height: 8),
+                        const _StyledTextField(
+                            hint: "admin@organization.com"),
+                        SizedBox(height: availableHeight < 600 ? 12 : 20),
+                        const _FormLabel(
+                            label: "CREDENTIAL",
+                            color: AppColors.accentAmber),
+                        const SizedBox(height: 8),
+                        _StyledTextField(
+                          hint: "••••••••••••",
+                          isPassword: true,
+                          obscureText: obscurePassword,
+                          onToggle: onToggleObscure,
+                        ),
+                        SizedBox(height: availableHeight < 600 ? 18 : 28),
+                        const _AuthButton(),
+                        const SizedBox(height: 16),
+                        const _SecurityStatusBar(),
+                        const SizedBox(height: 20),
+                        Text(
+                          "Unauthorized access is a violation of organizational policy and applicable law. All sessions are logged.",
+                          style: AppTextStyles.body(
+                            size: 13,
+                            color: c.textMuted,
+                            height: 1.6,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                  )
+                      .animate(onPlay: (controller) => controller.forward())
+                      .fadeIn(delay: 150.ms, duration: 500.ms)
+                      .slideX(begin: 0.03, end: 0, duration: 500.ms),
                 ),
-              ],
+              ),
             ),
           ),
 
@@ -436,11 +456,13 @@ class _MobileView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  const _FormLabel(label: "IDENTITY", color: AppColors.accentAmber),
+                  const _FormLabel(
+                      label: "IDENTITY", color: AppColors.accentAmber),
                   const SizedBox(height: 8),
                   const _StyledTextField(hint: "admin@organization.com"),
                   const SizedBox(height: 20),
-                  const _FormLabel(label: "CREDENTIAL", color: AppColors.accentAmber),
+                  const _FormLabel(
+                      label: "CREDENTIAL", color: AppColors.accentAmber),
                   const SizedBox(height: 8),
                   _StyledTextField(
                     hint: "••••••••••••",
@@ -449,7 +471,7 @@ class _MobileView extends StatelessWidget {
                     onToggle: onToggleObscure,
                   ),
                   const SizedBox(height: 32),
-                  _AuthButton(),
+                  const _AuthButton(),
                   const SizedBox(height: 24),
                   const _SecurityStatusBar(),
                 ],
@@ -496,9 +518,9 @@ class _MiniShieldPainter extends CustomPainter {
       ..color = coreColor.withValues(alpha: 0.9)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
-    
+
     canvas.drawCircle(Offset(centerX, centerY), radius * 0.4, detailPaint);
-    
+
     final corePaint = Paint()
       ..color = coreColor
       ..style = PaintingStyle.fill;
@@ -508,8 +530,6 @@ class _MiniShieldPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
-
 
 class _MetricsDashboard extends StatelessWidget {
   const _MetricsDashboard();
@@ -527,7 +547,8 @@ class _MetricsDashboard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Container(height: 3, color: AppColors.accentAmber)),
+              Expanded(
+                  child: Container(height: 3, color: AppColors.accentAmber)),
               Expanded(child: Container(height: 3, color: c.accentBlue)),
             ],
           ),
@@ -572,11 +593,23 @@ class _MetricsDashboard extends StatelessWidget {
                 const SizedBox(height: 32),
                 Row(
                   children: [
-                    const Expanded(child: _LiveStat("THREATS NEUTRALIZED", "4,821", AppColors.accentAmber)),
-                    Container(width: 1, height: 40, color: c.borderDefault.withValues(alpha: 0.5)),
-                    Expanded(child: _LiveStat("ACTIVE SESSIONS", "142", c.accentBlue)),
-                    Container(width: 1, height: 40, color: c.borderDefault.withValues(alpha: 0.5)),
-                    const Expanded(child: _LiveStat("LATENCY", "12ms", AppColors.accentGreen)),
+                    const Expanded(
+                        child: _LiveStat("THREATS NEUTRALIZED", "4,821",
+                            AppColors.accentAmber)),
+                    Container(
+                        width: 1,
+                        height: 40,
+                        color: c.borderDefault.withValues(alpha: 0.5)),
+                    Expanded(
+                        child:
+                            _LiveStat("ACTIVE SESSIONS", "142", c.accentBlue)),
+                    Container(
+                        width: 1,
+                        height: 40,
+                        color: c.borderDefault.withValues(alpha: 0.5)),
+                    const Expanded(
+                        child: _LiveStat(
+                            "LATENCY", "12ms", AppColors.accentGreen)),
                   ],
                 ),
               ],
@@ -665,20 +698,25 @@ class _StyledTextField extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.bgSurface,
-        border: const Border(left: BorderSide(color: AppColors.accentAmber, width: 3)),
+        border: const Border(
+            left: BorderSide(color: AppColors.accentAmber, width: 3)),
       ),
       child: TextField(
         obscureText: obscureText,
         style: AppTextStyles.body(color: c.textPrimary, size: 15),
         decoration: InputDecoration(
           hintText: hint,
-          suffixIcon: isPassword 
-            ? IconButton(
-                icon: Icon(obscureText ? PhosphorIcons.eyeClosed() : PhosphorIcons.eye(), size: 18),
-                color: c.textMuted,
-                onPressed: onToggle,
-              )
-            : null,
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(
+                      obscureText
+                          ? PhosphorIcons.eyeClosed()
+                          : PhosphorIcons.eye(),
+                      size: 18),
+                  color: c.textMuted,
+                  onPressed: onToggle,
+                )
+              : null,
         ),
       ),
     );
@@ -710,17 +748,25 @@ class _AuthButtonState extends State<_AuthButton> {
           height: 56,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: _isHovering ? AppColors.accentAmber.withValues(alpha: 0.9) : AppColors.accentAmber,
-            boxShadow: _isHovering ? [
-              BoxShadow(color: AppColors.accentAmber.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 4)),
-            ] : [],
+            color: _isHovering
+                ? AppColors.accentAmber.withValues(alpha: 0.9)
+                : AppColors.accentAmber,
+            boxShadow: _isHovering
+                ? [
+                    BoxShadow(
+                        color: AppColors.accentAmber.withValues(alpha: 0.3),
+                        blurRadius: 15,
+                        offset: const Offset(0, 4)),
+                  ]
+                : [],
           ),
           child: Stack(
             children: [
               Positioned(
                 right: -10,
                 bottom: -10,
-                child: Icon(PhosphorIcons.shieldCheck(), size: 60, color: Colors.black.withValues(alpha: 0.05)),
+                child: Icon(PhosphorIcons.shieldCheck(),
+                    size: 60, color: Colors.black.withValues(alpha: 0.05)),
               ),
               Center(
                 child: Row(
@@ -736,7 +782,8 @@ class _AuthButtonState extends State<_AuthButton> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Icon(PhosphorIcons.arrowRight(), color: AppColors.textOnAmber, size: 20),
+                    Icon(PhosphorIcons.arrowRight(),
+                        color: AppColors.textOnAmber, size: 20),
                   ],
                 ),
               ),
@@ -782,37 +829,44 @@ class _SecurityStatusBar extends StatelessWidget {
   }
 }
 
-
-
 class _PulsingStatusDot extends StatefulWidget {
   const _PulsingStatusDot();
   @override
   State<_PulsingStatusDot> createState() => _PulsingStatusDotState();
 }
 
-class _PulsingStatusDotState extends State<_PulsingStatusDot> with SingleTickerProviderStateMixin {
+class _PulsingStatusDotState extends State<_PulsingStatusDot>
+    with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: 1.seconds)..repeat(reverse: true);
+    _ctrl = AnimationController(vsync: this, duration: 1.seconds)
+      ..repeat(reverse: true);
   }
+
   @override
   void dispose() {
     _ctrl.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (context, _) => Container(
-        width: 8, height: 8,
+        width: 8,
+        height: 8,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: AppColors.accentGreen,
           boxShadow: [
-            BoxShadow(color: AppColors.accentGreen.withValues(alpha: 0.4 * _ctrl.value), blurRadius: 8, spreadRadius: 2),
+            BoxShadow(
+                color:
+                    AppColors.accentGreen.withValues(alpha: 0.4 * _ctrl.value),
+                blurRadius: 8,
+                spreadRadius: 2),
           ],
         ),
       ),
@@ -826,7 +880,8 @@ class _SimpleStatusDot extends StatelessWidget {
   const _SimpleStatusDot({required this.color, required this.size});
   @override
   Widget build(BuildContext context) => Container(
-    width: size, height: size,
-    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-  );
+        width: size,
+        height: size,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      );
 }
