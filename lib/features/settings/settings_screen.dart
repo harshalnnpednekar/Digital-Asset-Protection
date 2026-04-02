@@ -27,26 +27,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    return Scaffold(
-      backgroundColor: c.bgPrimary,
-      body: Padding(
+    return Container(
+      color: c.bgPrimary,
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SectionHeader(
-              title: "General Settings",
-              subtitle:
-                  "Manage your organization's workspace and security configurations.",
+              title: "GENERAL SETTINGS",
+              subtitle: "Manage your organizational security posture and workspace configurations.",
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 8),
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // SIDE NAV
-                  SizedBox(
+                  Container(
                     width: 240,
+                    padding: const EdgeInsets.only(top: 8),
                     child: Column(
                       children: List.generate(_categories.length, (index) {
                         final cat = _categories[index];
@@ -66,24 +66,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // CONTENT AREA
                   Expanded(
                     child: Container(
-                      padding: const EdgeInsets.all(40),
+                      clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
                         color: c.bgSecondary,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: c.borderDefault),
-                        boxShadow: c.isDark
-                            ? []
-                            : [
+                        boxShadow: !c.isDark
+                            ? [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.03),
                                   blurRadius: 30,
-                                  offset: const Offset(0, 10),
+                                  offset: const Offset(0, 8),
                                 ),
-                              ],
+                              ]
+                            : [],
                       ),
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        child: _buildActiveCategory(c),
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.all(40),
+                              physics: const BouncingScrollPhysics(),
+                              child: _buildActiveCategory(c),
+                            ),
+                          ),
+                          _SaveBar(c: c),
+                        ],
                       ),
                     ),
                   ),
@@ -191,11 +199,11 @@ class _WorkspaceSettings extends StatelessWidget {
         const SizedBox(height: 32),
         const _SettingsRow(
           label: "Workspace Name",
-          child: _SettingsInput(hint: "Sentinel Media Protection Ltd."),
+          child: _SettingsInput(hint: "ASTRA Media Protection Ltd."),
         ),
         const _SettingsRow(
           label: "Administrator Email",
-          child: _SettingsInput(hint: "admin@sentinel-ai.com"),
+          child: _SettingsInput(hint: "admin@astra.security"),
         ),
         const _SettingsRow(
           label: "Cloud Integration Region",
@@ -205,8 +213,6 @@ class _WorkspaceSettings extends StatelessWidget {
             "EU West (Dublin)"
           ]),
         ),
-        const Spacer(),
-        _SaveBar(c: c),
       ],
     );
   }
@@ -240,8 +246,6 @@ class _ProtectionSettings extends StatelessWidget {
           description: "Notify social platforms of detected account anomalies.",
           value: false,
         ),
-        const Spacer(),
-        _SaveBar(c: c),
       ],
     );
   }
@@ -266,7 +270,7 @@ class _ApiSettings extends StatelessWidget {
         const _SettingsRow(
           label: "Event Endpoint URL",
           child:
-              _SettingsInput(hint: "https://api.sentinel-ai.com/v1/webhooks"),
+              _SettingsInput(hint: "https://api.astra.security/v1/webhooks"),
         ),
         const SizedBox(height: 48),
         _SectionTitle(title: "System Status", c: c),
@@ -296,8 +300,6 @@ class _ApiSettings extends StatelessWidget {
             ],
           ),
         ),
-        const Spacer(),
-        _SaveBar(c: c),
       ],
     );
   }
@@ -480,11 +482,10 @@ class _SaveBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       decoration: BoxDecoration(
-        color: c.bgPrimary.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: c.borderDefault),
+        color: c.bgPrimary.withValues(alpha: 0.3),
+        border: Border(top: BorderSide(color: c.borderDefault)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,

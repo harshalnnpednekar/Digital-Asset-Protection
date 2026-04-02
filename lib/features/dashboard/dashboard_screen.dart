@@ -39,8 +39,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // SECTION 0 — SYSTEM STATUS BAR
-            const DashboardStatusBar(),
+            // SECTION 0 — DASHBOARD HEADER
+            const DashboardHeader(),
             const SizedBox(height: 28),
 
             // SECTION 1 — KPI CARDS

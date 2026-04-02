@@ -75,6 +75,6 @@ class AppTextStyles {
   static TextStyle buttonLabel = display(size: 14, weight: FontWeight.w700, letterSpacing: 0.5);
   
   // Legacy stubs (for quick migration)
-  static TextStyle sans({double size = 14, FontWeight weight = FontWeight.w400, Color? color, double letterSpacing = 0}) 
-    => body(size: size, weight: weight, color: color, letterSpacing: letterSpacing);
+  static TextStyle sans({double size = 14, FontWeight weight = FontWeight.w400, Color? color, double letterSpacing = 0, double? height}) 
+    => body(size: size, weight: weight, color: color, letterSpacing: letterSpacing, height: height);
 }

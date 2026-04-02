@@ -86,68 +86,80 @@ class StatusBadge extends StatelessWidget {
   }
 }
 
-class DashboardStatusBar extends StatelessWidget {
-  const DashboardStatusBar({super.key});
+class DashboardHeader extends StatelessWidget {
+  const DashboardHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final now = DateTime.now().toUtc();
-    final timestamp = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} UTC';
+    
+    // Calculate IST (UTC + 5:30)
+    final now = DateTime.now().toUtc().add(const Duration(hours: 5, minutes: 30));
+    final dateStr = '${now.day.toString().padLeft(2, '0')} ${_getMonthName(now.month)} ${now.year}';
+    final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} IST';
 
-    return Container(
-      height: 44,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: c.bgSecondary,
-        border: Border.all(color: c.borderDefault),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-          // LEFT
-          Row(
-            children: [
-              const StatusDot(color: AppColors.accentGreen, size: 7),
-              const SizedBox(width: 8),
-              Text(
-                "System Status: All services operational",
-                style: AppTextStyles.body(
-                  size: 13,
-                  color: AppColors.accentGreen,
-                  weight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          
-          // CENTER
-          Expanded(
-            child: Center(
-              child: Text(
-                "Sentinel AI Dashboard  •  Session Active  •  $timestamp",
-                style: AppTextStyles.body(
-                  size: 11,
-                  color: c.textMuted,
-                  weight: FontWeight.w500,
-                ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "OPERATIONAL OVERVIEW",
+              style: AppTextStyles.display(
+                size: 13,
+                weight: FontWeight.w800,
+                color: c.accentBlue,
+                letterSpacing: 2,
               ),
             ),
-          ),
-          
-          // RIGHT
-          const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              StatusBadge("HF API"),
-              SizedBox(width: 16),
-              StatusBadge("GEMINI"),
-              SizedBox(width: 16),
-              StatusBadge("FIREBASE"),
-            ],
-          ),
-        ],
-      ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const StatusDot(color: AppColors.accentGreen, size: 8),
+                const SizedBox(width: 10),
+                Text(
+                  "All protection systems operational",
+                  style: AppTextStyles.body(
+                    size: 14,
+                    weight: FontWeight.w500,
+                    color: c.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              dateStr.toUpperCase(),
+              style: AppTextStyles.display(
+                size: 12,
+                weight: FontWeight.w700,
+                color: c.textMuted,
+                letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              timeStr,
+              style: AppTextStyles.mono(
+                size: 20,
+                weight: FontWeight.w700,
+                color: c.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
+  }
+
+  String _getMonthName(int month) {
+    final months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    return months[month - 1];
   }
 }

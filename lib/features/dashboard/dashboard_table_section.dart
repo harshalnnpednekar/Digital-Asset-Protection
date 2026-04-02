@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_theme_colors.dart';
@@ -64,50 +65,52 @@ class _TableHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.colors;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       decoration: BoxDecoration(
         color: c.bgSecondary,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
         border: Border.all(color: c.borderDefault),
       ),
       child: Row(
         children: [
           Expanded(
+            flex: 4,
             child: Text(
-              "Asset Name",
+              "PROTECTED ASSET",
               style: AppTextStyles.display(
-                  size: 11, color: c.textMuted, weight: FontWeight.w700),
+                  size: 11, color: c.textMuted, weight: FontWeight.w800, letterSpacing: 1),
             ),
           ),
-          SizedBox(
-            width: 180,
+          Expanded(
+            flex: 3,
             child: Text(
-              "Leak Source",
+              "IDENTIFIED SOURCE",
               style: AppTextStyles.display(
-                  size: 11, color: c.textMuted, weight: FontWeight.w700),
+                  size: 11, color: c.textMuted, weight: FontWeight.w800, letterSpacing: 1),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              "VECTOR",
+              style: AppTextStyles.display(
+                  size: 11, color: c.textMuted, weight: FontWeight.w800, letterSpacing: 1),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              "DETECTION TIME",
+              style: AppTextStyles.display(
+                  size: 11, color: c.textMuted, weight: FontWeight.w800, letterSpacing: 1),
             ),
           ),
           SizedBox(
             width: 120,
             child: Text(
-              "Platform",
+              "STATUS",
               style: AppTextStyles.display(
-                  size: 11, color: c.textMuted, weight: FontWeight.w700),
-            ),
-          ),
-          SizedBox(
-            width: 160,
-            child: Text(
-              "Timestamp",
-              style: AppTextStyles.display(
-                  size: 11, color: c.textMuted, weight: FontWeight.w700),
-            ),
-          ),
-          SizedBox(
-            width: 140,
-            child: Text(
-              "Status",
-              style: AppTextStyles.display(
-                  size: 11, color: c.textMuted, weight: FontWeight.w700),
+                  size: 11, color: c.textMuted, weight: FontWeight.w800, letterSpacing: 1),
             ),
           ),
         ],
@@ -146,69 +149,88 @@ class _TableRowState extends State<_TableRow> {
         statusChipColor = c.textMuted;
     }
 
+    final isPartner = widget.record.leakSource.toLowerCase().contains("partner");
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
-          color: _isHovered ? c.bgOverlay : Colors.transparent,
+          color: _isHovered ? c.bgTertiary : Colors.transparent,
           border: Border(
             bottom: BorderSide(color: c.borderDefault, width: 1),
-            // The left accent on hover
-            left: BorderSide(
-              color: _isHovered ? AppColors.accentAmber : Colors.transparent,
-              width: 3,
-            ),
+            left: BorderSide(color: c.borderDefault, width: 1),
             right: BorderSide(color: c.borderDefault, width: 1),
           ),
         ),
         child: Row(
           children: [
             Expanded(
-              child: Text(
-                widget.record.assetName,
-                style:
-                    AppTextStyles.body(size: 14, weight: FontWeight.w600, color: c.textPrimary),
-                overflow: TextOverflow.ellipsis,
+              flex: 4,
+              child: Row(
+                children: [
+                  Icon(PhosphorIcons.monitor(), size: 16, color: c.textSecondary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      widget.record.assetName,
+                      style: AppTextStyles.body(size: 14, weight: FontWeight.w600, color: c.textPrimary),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(
-              width: 180,
-              child: Text(
-                widget.record.leakSource,
-                style:
-                    AppTextStyles.body(size: 13, weight: FontWeight.w700, color: AppColors.accentAmber),
+            Expanded(
+              flex: 3,
+              child: Row(
+                children: [
+                  Icon(
+                    isPartner ? PhosphorIcons.link() : PhosphorIcons.user(),
+                    size: 14,
+                    color: isPartner ? c.accentBlue : AppColors.accentAmber,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    widget.record.leakSource,
+                    style: AppTextStyles.mono(
+                      size: 12,
+                      weight: FontWeight.w600, 
+                      color: isPartner ? c.textPrimary : AppColors.accentAmber
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(
-              width: 120,
+            Expanded(
+              flex: 2,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
+                  color: c.bgPrimary,
                   border: Border.all(color: c.borderDefault, width: 1),
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Center(
-                  widthFactor: 1,
                   child: Text(
                     widget.record.platform.toUpperCase(),
                     style: AppTextStyles.display(
-                        size: 10, color: c.textMuted, weight: FontWeight.w700, letterSpacing: 0.5),
+                        size: 9, color: c.textMuted, weight: FontWeight.w800, letterSpacing: 1),
                   ),
                 ),
               ),
             ),
-            SizedBox(
-              width: 160,
+            Expanded(
+              flex: 2,
               child: Text(
                 widget.record.timestamp,
-                style: AppTextStyles.body(size: 12, color: c.textMuted, weight: FontWeight.w500),
+                style: AppTextStyles.mono(size: 11, color: c.textMuted, weight: FontWeight.w500),
               ),
             ),
             SizedBox(
-              width: 140,
+              width: 120,
               child: CustomChip(
                 label: widget.record.status,
                 color: statusChipColor,

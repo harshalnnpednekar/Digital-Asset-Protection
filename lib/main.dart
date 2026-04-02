@@ -30,7 +30,7 @@ class SentinelApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     
     return MaterialApp.router(
-      title: 'Sentinel AI — Command Center',
+      title: 'ASTRA — Media Protection Platform',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_text_styles.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -101,47 +100,35 @@ class _LeftPanel extends StatelessWidget {
     final c = context.colors;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ZONE A - AMBER HEADER BAR
-        Container(
-          height: 52,
-          color: AppColors.accentAmber,
-          padding: const EdgeInsets.symmetric(horizontal: 36),
+        // RELOCATED BRANDING
+        Padding(
+          padding: const EdgeInsets.fromLTRB(48, 48, 48, 0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CustomPaint(
-                        painter: _MiniShieldPainter(
-                            coreColor: AppColors.textOnAmber)),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    "SENTINEL AI",
-                    style: AppTextStyles.display(
-                      size: 15,
-                      weight: FontWeight.w800,
-                      color: AppColors.textOnAmber,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ],
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CustomPaint(
+                  painter: _MiniShieldPainter(coreColor: AppColors.accentAmber),
+                ),
               ),
-              const SizedBox.shrink(),
+              const SizedBox(width: 12),
+              Text(
+                "ASTRA",
+                style: AppTextStyles.display(
+                  size: 16,
+                  weight: FontWeight.w800,
+                  color: c.textPrimary,
+                  letterSpacing: 4,
+                ),
+              ),
             ],
-          ),
-        ).animate().slideY(
-              begin: -1,
-              end: 0,
-              duration: 350.ms,
-              curve: Curves.easeOut,
-            ),
+          ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.1, end: 0),
+        ),
 
-        // ZONE B - MAIN CONTENT
+        // MAIN CONTENT
         Expanded(
           child: Stack(
             children: [
@@ -154,13 +141,11 @@ class _LeftPanel extends StatelessWidget {
               SingleChildScrollView(
                 physics: const ClampingScrollPhysics(),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(48, 52, 40, 48),
+                  padding: const EdgeInsets.fromLTRB(48, 64, 48, 48),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const SizedBox(height: 12),
-                      const SizedBox(height: 52),
 
                       // HEADLINE BLOCK
                       Column(
@@ -223,8 +208,8 @@ class _LeftPanel extends StatelessWidget {
                       Text(
                         "AI-powered semantic detection and cryptographic\nchain of custody for sports media organizations.",
                         style: AppTextStyles.body(
-                          size: 18,
-                          weight: FontWeight.w500,
+                          size: 16,
+                          weight: FontWeight.w400,
                           color: c.textSecondary,
                           height: 1.6,
                         ),
@@ -266,145 +251,134 @@ class _RightPanel extends StatelessWidget {
     return AnimatedContainer(
       duration: 300.ms,
       color: c.bgPrimary,
-      child: Column(
+      child: Stack(
         children: [
-          // ZONE A - HEADER
-          Container(
-            height: 52,
-            decoration: BoxDecoration(
-              color: c.bgSecondary,
-              border:
-                  Border(bottom: BorderSide(color: c.borderDefault, width: 1)),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 48),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "SESSION ID: SEN-${DateTime.now().millisecond}-ALPHA",
-                  style: GoogleFonts.ibmPlexMono(
-                    fontSize: 11,
-                    color: c.textMuted,
-                    letterSpacing: 1,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Container(width: 6, height: 6, color: c.accentBlue),
-                    const SizedBox(width: 8),
-                    Text(
-                      "ENC: TLS 1.3  ·  AES-256-GCM",
-                      style: AppTextStyles.mono(
-                        size: 10,
-                        color: c.textMuted,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+          // SUBTLE BACKGROUND ACCENT
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.accentAmber.withValues(alpha: 0.05),
+                    Colors.transparent,
                   ],
-                ),
-              ],
-            ),
-          ),
-
-          // ZONE B - FORM
-          Expanded(
-            child: Center(
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 48),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "ADMINISTRATOR",
-                          style: AppTextStyles.display(
-                            size: 14,
-                            weight: FontWeight.w800,
-                            color: AppColors.accentAmber,
-                            letterSpacing: 3,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "ACCESS TERMINAL",
-                          style: AppTextStyles.display(
-                            size: 32,
-                            weight: FontWeight.w800,
-                            color: c.textPrimary,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Container(
-                                width: 24,
-                                height: 2,
-                                color: AppColors.accentAmber),
-                            const SizedBox(width: 8),
-                            Container(
-                                width: 8, height: 2, color: c.accentBlue),
-                            const SizedBox(width: 8),
-                            Expanded(
-                                child: Container(
-                                    height: 1, color: c.borderDefault)),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Restricted to verified organizational identities",
-                          style: AppTextStyles.body(
-                            size: 15,
-                            color: c.textSecondary,
-                            weight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: availableHeight < 600 ? 20 : 36),
-                        const _FormLabel(
-                            label: "IDENTITY",
-                            color: AppColors.accentAmber),
-                        const SizedBox(height: 8),
-                        const _StyledTextField(
-                            hint: "admin@organization.com"),
-                        SizedBox(height: availableHeight < 600 ? 12 : 20),
-                        const _FormLabel(
-                            label: "CREDENTIAL",
-                            color: AppColors.accentAmber),
-                        const SizedBox(height: 8),
-                        _StyledTextField(
-                          hint: "••••••••••••",
-                          isPassword: true,
-                          obscureText: obscurePassword,
-                          onToggle: onToggleObscure,
-                        ),
-                        SizedBox(height: availableHeight < 600 ? 18 : 28),
-                        const _AuthButton(),
-                        const SizedBox(height: 16),
-                        const _SecurityStatusBar(),
-                        const SizedBox(height: 20),
-                        Text(
-                          "Unauthorized access is a violation of organizational policy and applicable law. All sessions are logged.",
-                          style: AppTextStyles.body(
-                            size: 13,
-                            color: c.textMuted,
-                            height: 1.6,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                      .animate(onPlay: (controller) => controller.forward())
-                      .fadeIn(delay: 150.ms, duration: 500.ms)
-                      .slideX(begin: 0.03, end: 0, duration: 500.ms),
                 ),
               ),
             ),
           ),
 
-          const SizedBox.shrink(),
+          Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 440),
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: AnimatedContainer(
+                          duration: 400.ms,
+                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
+                          decoration: BoxDecoration(
+                            color: c.bgSecondary.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: c.borderDefault.withValues(alpha: 0.5),
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 40,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "ADMINISTRATOR",
+                                style: AppTextStyles.display(
+                                  size: 13,
+                                  weight: FontWeight.w800,
+                                  color: AppColors.accentAmber,
+                                  letterSpacing: 4,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                "ACCESS TERMINAL",
+                                style: AppTextStyles.display(
+                                  size: 32,
+                                  weight: FontWeight.w900,
+                                  color: c.textPrimary,
+                                  letterSpacing: -1,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Container(
+                                width: 40,
+                                height: 3,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [AppColors.accentAmber, c.accentBlue],
+                                  ),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Text(
+                                "Restricted to verified organizational identities. Secure connection active.",
+                                style: AppTextStyles.body(
+                                  size: 14,
+                                  color: c.textSecondary,
+                                  height: 1.5,
+                                ),
+                              ),
+                              SizedBox(height: availableHeight < 600 ? 32 : 48),
+                              const _FormLabel(label: "IDENTITY", color: AppColors.accentAmber),
+                              const SizedBox(height: 8),
+                              const _StyledTextField(hint: "admin@organization.com"),
+                              const SizedBox(height: 24),
+                              const _FormLabel(label: "CREDENTIAL", color: AppColors.accentAmber),
+                              const SizedBox(height: 8),
+                              _StyledTextField(
+                                hint: "••••••••••••",
+                                isPassword: true,
+                                obscureText: obscurePassword,
+                                onToggle: onToggleObscure,
+                              ),
+                              const SizedBox(height: 32),
+                              const _AuthButton(),
+                              const SizedBox(height: 24),
+                              const _SecurityStatusBar(),
+                              const SizedBox(height: 32),
+                              Text(
+                                "SYSTEM NOTICE: Unauthorized access is a violation of organizational policy. All terminal sessions are encrypted and logged.",
+                                style: AppTextStyles.body(
+                                  size: 12,
+                                  color: c.textMuted,
+                                  height: 1.5,
+                                  weight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.05, end: 0),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -436,23 +410,35 @@ class _MobileView extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "SENTINEL AI",
-                    style: AppTextStyles.display(
-                      size: 16,
-                      weight: FontWeight.w800,
-                      color: AppColors.accentAmber,
-                      letterSpacing: 4,
-                    ),
+                  Row(
+                    children: [
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CustomPaint(
+                          painter: _MiniShieldPainter(coreColor: AppColors.accentAmber),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        "ASTRA",
+                        style: AppTextStyles.display(
+                          size: 14,
+                          weight: FontWeight.w800,
+                          color: c.textPrimary,
+                          letterSpacing: 4,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
                     "ADMIN TERMINAL",
                     style: AppTextStyles.display(
                       size: 28,
-                      weight: FontWeight.w800,
+                      weight: FontWeight.w900,
                       color: c.textPrimary,
-                      letterSpacing: -0.5,
+                      letterSpacing: -1,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -540,18 +526,13 @@ class _MetricsDashboard extends StatelessWidget {
     return AnimatedContainer(
       duration: 300.ms,
       decoration: BoxDecoration(
-        color: c.bgSecondary,
-        border: Border.all(color: c.borderDefault, width: 1),
+        color: c.bgSecondary.withValues(alpha: 0.5),
+        border: Border.all(color: c.borderDefault.withValues(alpha: 0.5), width: 1),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Column(
         children: [
-          Row(
-            children: [
-              Expanded(
-                  child: Container(height: 3, color: AppColors.accentAmber)),
-              Expanded(child: Container(height: 3, color: c.accentBlue)),
-            ],
-          ),
+          // Removed the odd dual-color top bar
           Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -745,45 +726,57 @@ class _AuthButtonState extends State<_AuthButton> {
         },
         child: AnimatedContainer(
           duration: 200.ms,
-          height: 56,
+          height: 60,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: _isHovering
-                ? AppColors.accentAmber.withValues(alpha: 0.9)
-                : AppColors.accentAmber,
+            gradient: LinearGradient(
+              colors: [
+                _isHovering ? AppColors.accentAmber : AppColors.accentAmber.withValues(alpha: 0.9),
+                _isHovering ? AppColors.accentAmber.withValues(alpha: 0.9) : AppColors.accentAmber.withValues(alpha: 0.8),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(4),
             boxShadow: _isHovering
                 ? [
                     BoxShadow(
-                        color: AppColors.accentAmber.withValues(alpha: 0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 4)),
+                      color: AppColors.accentAmber.withValues(alpha: 0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
                   ]
                 : [],
           ),
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
               Positioned(
-                right: -10,
-                bottom: -10,
-                child: Icon(PhosphorIcons.shieldCheck(),
-                    size: 60, color: Colors.black.withValues(alpha: 0.05)),
+                right: -5,
+                top: -5,
+                child: Icon(
+                  PhosphorIcons.shieldCheck(),
+                  size: 48,
+                  color: Colors.black.withValues(alpha: 0.04),
+                ),
               ),
               Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      "AUTHENTICATE SYSTEM ACCESS",
+                      "AUTHENTICATE ACCESS",
                       style: AppTextStyles.display(
-                        size: 14,
-                        weight: FontWeight.w800,
+                        size: 15,
+                        weight: FontWeight.w900,
                         color: AppColors.textOnAmber,
-                        letterSpacing: 1.5,
+                        letterSpacing: 2,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Icon(PhosphorIcons.arrowRight(),
-                        color: AppColors.textOnAmber, size: 20),
+                    const SizedBox(width: 16),
+                    Icon(
+                      PhosphorIcons.arrowRight(),
+                      color: AppColors.textOnAmber,
+                      size: 20,
+                    ),
                   ],
                 ),
               ),

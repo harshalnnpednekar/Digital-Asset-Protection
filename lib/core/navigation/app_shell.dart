@@ -7,11 +7,10 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_theme_colors.dart';
 import '../theme/theme_provider.dart';
-import '../widgets/sentinel_logo.dart';
+import '../../core/widgets/astra_logo.dart';
 import '../widgets/scale_button.dart';
 import '../widgets/judge_guide_modal.dart';
 import '../widgets/theme_toggle_button.dart';
-import '../widgets/status_dot.dart';
 import 'app_router.dart';
 
 class AppShell extends ConsumerWidget {
@@ -27,7 +26,7 @@ class AppShell extends ConsumerWidget {
       case '/threats':     return 'Threat Radar';
       case '/contagion':   return 'Contagion Map';
       case '/settings':    return 'Settings';
-      default:             return 'Sentinel AI';
+      default:             return 'ASTRA';
     }
   }
 
@@ -126,62 +125,42 @@ class AppShell extends ConsumerWidget {
             ],
           ),
           const Spacer(),
-          // CENTER: Scanner status
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: c.bgTertiary,
-              border: Border.all(color: c.borderDefault),
-            ),
-            child: Row(
-              children: [
-                const StatusDot(color: AppColors.accentGreen, size: 7),
-                const SizedBox(width: 8),
-                Text(
-                  "Protection Active",
-                  style: AppTextStyles.display(
-                    size: 13,
-                    weight: FontWeight.w700,
-                    color: AppColors.accentGreen,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Container(width: 1, height: 12, color: c.borderDefault),
-                const SizedBox(width: 16),
-                Text(
-                  "Next Update in 14m",
-                  style: AppTextStyles.body(
-                    size: 12,
-                    color: c.textMuted,
-                    weight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // CENTER: (Removed as requested)
           const Spacer(),
           // RIGHT: Bell + Toggle + User
           Row(
             children: [
-              Stack(
-                children: [
-                  IconButton(
-                    icon: Icon(PhosphorIcons.bell(), size: 18),
-                    color: c.textSecondary,
-                    onPressed: () {},
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      width: 8, height: 8,
-                      decoration: BoxDecoration(
-                        color: AppColors.accentCrimson,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: c.bgSecondary, width: 1.5),
+              PopupMenuButton<String>(
+                offset: const Offset(0, 45),
+                color: c.bgSecondary,
+                elevation: 4,
+                shadowColor: Colors.black26,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(color: c.borderDefault),
+                ),
+                icon: Stack(
+                  children: [
+                    Icon(PhosphorIcons.bell(), size: 18, color: c.textSecondary),
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        width: 8, height: 8,
+                        decoration: BoxDecoration(
+                          color: AppColors.accentCrimson,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: c.bgSecondary, width: 1.5),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
+                ),
+                onSelected: (value) {},
+                itemBuilder: (context) => [
+                  _buildNotificationItem(context, "New Leak Detected", "IPL Highlights found on Telegram", AppColors.accentCrimson),
+                  _buildNotificationItem(context, "System Update", "Vulnerability scanner updated to v2.4", c.accentBlue),
+                  _buildNotificationItem(context, "Report Ready", "Weekly threat analysis is available", AppColors.accentGreen),
                 ],
               ),
               const SizedBox(width: 8),
@@ -218,17 +197,11 @@ class AppShell extends ConsumerWidget {
       color: c.bgSecondary,
       child: Column(
         children: [
-          // LOGO
-          Padding(
+           Padding(
             padding: EdgeInsets.symmetric(vertical: 24, horizontal: isCollapsed ? 0 : 20),
             child: isCollapsed 
-              ? Column(
-                  children: [
-                    Text("S", style: AppTextStyles.display(size: 24, weight: FontWeight.w800, color: AppColors.accentAmber)),
-                    Text("AI", style: AppTextStyles.display(size: 14, weight: FontWeight.w800, color: AppColors.darkAccentBlue)),
-                  ],
-                )
-              : const SentinelLogo(),
+              ? Text("A", style: AppTextStyles.display(size: 24, weight: FontWeight.w800, color: AppColors.accentAmber))
+              : const AstraLogo(),
           ),
           const SizedBox(height: 12),
           Divider(color: c.borderDefault, height: 1),
@@ -273,7 +246,7 @@ class AppShell extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text("Admin User", style: AppTextStyles.body(size: 13, weight: FontWeight.w600, color: c.textPrimary)),
-                            Text("admin@sentinel.ai", style: AppTextStyles.body(size: 11, color: c.textMuted), overflow: TextOverflow.ellipsis),
+                            Text("admin@astra.security", style: AppTextStyles.body(size: 11, color: c.textMuted), overflow: TextOverflow.ellipsis),
                           ],
                         ),
                       ),
@@ -401,4 +374,25 @@ class _NavItemState extends State<_NavItem> {
 
     return item;
   }
+}
+PopupMenuItem<String> _buildNotificationItem(BuildContext context, String title, String sub, Color color) {
+  final c = context.colors;
+  return PopupMenuItem<String>(
+    enabled: false,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+            const SizedBox(width: 8),
+            Text(title, style: AppTextStyles.body(size: 13, weight: FontWeight.w700, color: c.textPrimary)),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(sub, style: AppTextStyles.body(size: 11, color: c.textMuted)),
+        const Divider(height: 16),
+      ],
+    ),
+  );
 }

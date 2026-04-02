@@ -32,15 +32,15 @@ class AppThemeColors {
   // Scanline texture color
   Color get scanlineColor => isDark
     ? const Color(0xFF141820)
-    : const Color(0xFFE8E3D8);
+    : const Color(0xFFF1F5F9);
 
-  // Card shadow — none in dark, warm shadow in light
+  // Card shadow — none in dark, cool diffuse shadow in light
   List<BoxShadow> get cardShadow => isDark
     ? []
     : [BoxShadow(
-        color: const Color(0xFF8B7D6B).withValues(alpha: 0.12),
-        blurRadius: 12,
-        offset: const Offset(0, 2),
+        color: const Color(0xFF64748B).withValues(alpha: 0.08),
+        blurRadius: 24,
+        offset: const Offset(0, 4),
       )];
 
   BoxDecoration cardDecoration({Color? borderColor, double borderWidth = 1}) =>

@@ -43,7 +43,7 @@ class JudgeGuideModal extends StatelessWidget {
                   Icon(PhosphorIcons.bookOpen(), color: c.accentBlue, size: 24),
                   const SizedBox(width: 12),
                     Text(
-                      "Platform Operations Guide",
+                      "Operations Manual",
                       style: AppTextStyles.display(
                         size: 20,
                         weight: FontWeight.w700,
@@ -52,7 +52,7 @@ class JudgeGuideModal extends StatelessWidget {
                     ),
                   const Spacer(),
                   IconButton(
-                    icon: Icon(PhosphorIcons.x(), color: c.textMuted),
+                    icon: Icon(PhosphorIcons.x(), size: 14),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -75,7 +75,7 @@ class JudgeGuideModal extends StatelessWidget {
                     const SizedBox(height: 32),
                     _GuideSection(
                       icon: PhosphorIcons.playCircle(),
-                      title: "Recommended Demo Flow",
+                      title: "Operational Mission Protocol",
                       content:
                           "• Asset Vault: View high-value masters secured with C2PA metadata.\n• Threat Radar: Monitor real-time neural-engine matches for unauthorized streams.\n• Analysis Deep-dive: Use Gemini AI to differentiate between piracy and fair-use.\n• Propagation Map: Trace the origin and viral spread of content leaks.",
                     ),
@@ -125,20 +125,24 @@ class JudgeGuideModal extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   ScaleButton(
-                    onTap: () => Navigator.pop(context),
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: c.accentBlue,
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8)),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 24, vertical: 14),
                         elevation: 0,
                       ),
-                      onPressed: () {},
+                      onPressed: () => Navigator.pop(context),
                       child: Text(
                         "Close Overview",
-                        style: AppTextStyles.buttonLabel.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
+                        style: AppTextStyles.buttonLabel.copyWith(
+                          color: Colors.white, 
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ),
