@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/widgets/custom_chip.dart';
 import '../../../core/widgets/scale_button.dart';
 import '../threats_mock_data.dart';
@@ -19,6 +20,7 @@ class ThreatDetailPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     Color intentColor;
     switch (threat.geminiIntent) {
       case 'PIRACY':
@@ -31,12 +33,12 @@ class ThreatDetailPanel extends StatelessWidget {
         intentColor = AppColors.accentGreen;
         break;
       default:
-        intentColor = AppColors.textMuted;
+        intentColor = c.textMuted;
     }
 
     // Override for filed DMCA
     if (threat.status == 'DMCA_FILED') {
-      intentColor = AppColors.accentBlue;
+      intentColor = c.accentBlue;
     } else if (threat.status == 'DISMISSED') {
       intentColor = AppColors.accentGreen;
     }
@@ -57,7 +59,10 @@ class ThreatDetailPanel extends StatelessWidget {
                   children: [
                     Text(
                       threat.matchedAssetName,
-                      style: AppTextStyles.mono(size: 14, weight: FontWeight.w700, color: AppColors.textPrimary),
+                      style: AppTextStyles.mono(
+                          size: 14,
+                          weight: FontWeight.w700,
+                          color: c.textPrimary),
                       maxLines: 1,
                     ),
                     const SizedBox(height: 4),
@@ -67,7 +72,8 @@ class ThreatDetailPanel extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           "DETECTED: ${threat.detectionTime.toUpperCase()}",
-                          style: AppTextStyles.mono(size: 10, color: AppColors.textMuted),
+                          style: AppTextStyles.mono(
+                              size: 10, color: c.textMuted),
                         ),
                       ],
                     ),
@@ -80,7 +86,7 @@ class ThreatDetailPanel extends StatelessWidget {
           ),
 
           // B: EVIDENCE COMPARISON
-          _SectionHeader(label: "EVIDENCE COMPARISON"),
+          const _SectionHeader(label: "EVIDENCE COMPARISON"),
           _SectionWrapper(
             child: Row(
               children: [
@@ -109,43 +115,54 @@ class ThreatDetailPanel extends StatelessWidget {
               ],
             ),
           ),
-          
+
           Center(
             child: ScaleButton(
               onTap: () {},
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.accentBlue),
-                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  side: BorderSide(color: c.accentBlue),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
-                onPressed: () {}, // Handled by ScaleButton
+                onPressed: () {}, 
                 child: Text(
                   "▶  PLAY BOTH SIMULTANEOUSLY",
-                  style: AppTextStyles.mono(size: 11, weight: FontWeight.w700, color: AppColors.accentBlue, letterSpacing: 1),
+                  style: AppTextStyles.mono(
+                      size: 11,
+                      weight: FontWeight.w700,
+                      color: c.accentBlue,
+                      letterSpacing: 1),
                 ),
               ),
             ),
           ),
-          
+
           const SizedBox(height: 24),
 
           // C: CONFIDENCE SCORES
-          _SectionHeader(label: "MATCH CONFIDENCE ANALYSIS"),
+          const _SectionHeader(label: "MATCH CONFIDENCE ANALYSIS"),
           _SectionWrapper(
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ConfidenceCircle(label: "VISUAL SIMILARITY", value: threat.visualSimilarity),
-                    ConfidenceCircle(label: "AUDIO WAVEFORM MATCH", value: threat.audioSimilarity),
+                    ConfidenceCircle(
+                        label: "VISUAL SIMILARITY",
+                        value: threat.visualSimilarity),
+                    ConfidenceCircle(
+                        label: "AUDIO WAVEFORM MATCH",
+                        value: threat.audioSimilarity),
                   ],
                 ),
                 const SizedBox(height: 16),
                 Text(
                   "DUAL-LOCK CONFIRMATION: Both visual semantic embeddings AND audio waveform vectors exceed the 85% detection threshold.",
-                  style: AppTextStyles.sans(size: 11, color: AppColors.textSecondary),
+                  style: AppTextStyles.mono(
+                      size: 11, color: c.textSecondary),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -168,19 +185,31 @@ class ThreatDetailPanel extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("GEMINI AI INTENT ANALYSIS", style: AppTextStyles.mono(size: 10, color: AppColors.textMuted, letterSpacing: 2)),
+                          Text("GEMINI AI INTENT ANALYSIS",
+                              style: AppTextStyles.mono(
+                                  size: 10,
+                                  color: c.textMuted,
+                                  letterSpacing: 2)),
                           const SizedBox(height: 8),
                           Row(
                             children: [
                               Icon(
-                                threat.geminiIntent == 'PIRACY' ? PhosphorIcons.warningCircle() : PhosphorIcons.checkCircle(),
+                                threat.geminiIntent == 'PIRACY'
+                                    ? PhosphorIcons.warningCircle()
+                                    : PhosphorIcons.checkCircle(),
                                 size: 18,
                                 color: intentColor,
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                threat.geminiIntent == 'PIRACY' ? "PIRACY DETECTED" : "FAIR USE DETECTED",
-                                style: AppTextStyles.mono(size: 16, weight: FontWeight.w700, color: intentColor, letterSpacing: 1),
+                                threat.geminiIntent == 'PIRACY'
+                                    ? "PIRACY DETECTED"
+                                    : "FAIR USE DETECTED",
+                                style: AppTextStyles.mono(
+                                    size: 16,
+                                    weight: FontWeight.w700,
+                                    color: intentColor,
+                                    letterSpacing: 1),
                               ),
                             ],
                           ),
@@ -190,10 +219,17 @@ class ThreatDetailPanel extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text("CONFIDENCE", style: AppTextStyles.mono(size: 9, color: AppColors.textMuted, letterSpacing: 1)),
+                          Text("CONFIDENCE",
+                              style: AppTextStyles.mono(
+                                  size: 9,
+                                  color: c.textMuted,
+                                  letterSpacing: 1)),
                           Text(
                             "${(threat.geminiConfidence * 100).toStringAsFixed(1)}%",
-                            style: AppTextStyles.mono(size: 20, weight: FontWeight.w700, color: intentColor),
+                            style: AppTextStyles.mono(
+                                size: 20,
+                                weight: FontWeight.w700,
+                                color: intentColor),
                           ),
                         ],
                       ),
@@ -204,9 +240,9 @@ class ThreatDetailPanel extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     '"${threat.geminiReasoning}"',
-                    style: AppTextStyles.sans(
+                    style: AppTextStyles.mono(
                       size: 12,
-                      color: AppColors.textSecondary,
+                      color: c.textSecondary,
                       height: 1.6,
                       fontStyle: FontStyle.italic,
                     ),
@@ -221,7 +257,7 @@ class ThreatDetailPanel extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.accentCrimsonDim,
+                color: AppColors.accentCrimsonDim.withAlpha(c.isDark ? 255 : 50),
                 border: Border.all(color: AppColors.accentCrimson, width: 2),
               ),
               child: Column(
@@ -232,31 +268,52 @@ class ThreatDetailPanel extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(PhosphorIcons.dna(), size: 16, color: AppColors.accentCrimson),
+                          Icon(PhosphorIcons.dna(),
+                              size: 16, color: AppColors.accentCrimson),
                           const SizedBox(width: 8),
                           Text(
                             "PATIENT ZERO IDENTIFIED",
-                            style: AppTextStyles.mono(size: 13, weight: FontWeight.w700, color: AppColors.accentCrimson, letterSpacing: 0.5),
+                            style: AppTextStyles.mono(
+                                size: 13,
+                                weight: FontWeight.w700,
+                                color: AppColors.accentCrimson,
+                                letterSpacing: 0.5),
                           ),
                         ],
                       ),
-                      const CustomChip(label: "DECRYPTED", color: AppColors.accentCrimson),
+                      const CustomChip(
+                          label: "DECRYPTED", color: AppColors.accentCrimson),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _DataRow(label: "LEAK SOURCE", value: threat.decryptedLeakSource, valueColor: AppColors.accentAmber),
                   _DataRow(
-                    label: "DISTRIBUTION MARKER", 
-                    value: "[AES-256 Payload: ${threat.threatId.hashCode.toRadixString(16).toUpperCase()}]", 
-                    valueColor: AppColors.textSecondary
-                  ),
-                  _DataRow(label: "MARKER ASSIGNED ON", value: threat.patientZeroTimestamp, valueColor: AppColors.textSecondary),
-                  _DataRow(label: "BREACH TYPE", value: "Unauthorized External Distribution", valueColor: AppColors.textSecondary),
-                  _DataRow(label: "FIRST DETECTED", value: threat.detectionTime, valueColor: AppColors.textSecondary),
+                      label: "LEAK SOURCE",
+                      value: threat.decryptedLeakSource,
+                      valueColor: AppColors.accentAmber),
+                  _DataRow(
+                      label: "DISTRIBUTION MARKER",
+                      value:
+                          "[AES-256 Payload: ${threat.threatId.hashCode.toRadixString(16).toUpperCase()}]",
+                      valueColor: c.textSecondary),
+                  _DataRow(
+                      label: "MARKER ASSIGNED ON",
+                      value: threat.patientZeroTimestamp,
+                      valueColor: c.textSecondary),
+                  _DataRow(
+                      label: "BREACH TYPE",
+                      value: "Unauthorized External Distribution",
+                      valueColor: c.textSecondary),
+                  _DataRow(
+                      label: "FIRST DETECTED",
+                      value: threat.detectionTime,
+                      valueColor: c.textSecondary),
                   const SizedBox(height: 12),
                   Text(
                     "Steganographic payload decrypted from media bitstream — admissible as digital forensic evidence",
-                    style: AppTextStyles.mono(size: 9, color: AppColors.textMuted, letterSpacing: 0.5),
+                    style: AppTextStyles.mono(
+                        size: 9,
+                        color: c.textMuted,
+                        letterSpacing: 0.5),
                   ),
                 ],
               ),
@@ -266,8 +323,8 @@ class ThreatDetailPanel extends StatelessWidget {
           // F: ACTION BUTTONS
           Container(
             padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: AppColors.borderDefault)),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: c.borderDefault)),
             ),
             child: Row(
               children: [
@@ -276,14 +333,19 @@ class ThreatDetailPanel extends StatelessWidget {
                     onTap: () => onUpdateStatus('DISMISSED'),
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.borderDefault),
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                        side: BorderSide(color: c.borderDefault),
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      onPressed: () {}, // Handled by ScaleButton
+                      onPressed: () {}, 
                       child: Text(
                         "DISMISS AS FAIR USE",
-                        style: AppTextStyles.mono(size: 12, weight: FontWeight.w700, color: AppColors.textSecondary, letterSpacing: 1),
+                        style: AppTextStyles.mono(
+                            size: 12,
+                            weight: FontWeight.w700,
+                            color: c.textSecondary,
+                            letterSpacing: 1),
                       ),
                     ),
                   ),
@@ -291,16 +353,17 @@ class ThreatDetailPanel extends StatelessWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ScaleButton(
-                    onTap: () => _showDMCAConfirmation(context),
+                    onTap: () => _showDMCAConfirmation(context, threat, onUpdateStatus),
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accentAmber,
                         foregroundColor: AppColors.textOnAmber,
                         elevation: 0,
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      onPressed: () {}, // Handled by ScaleButton
+                      onPressed: () {}, 
                       child: Text(
                         "GENERATE & SUBMIT DMCA  →",
                         style: AppTextStyles.buttonLabel,
@@ -317,7 +380,8 @@ class ThreatDetailPanel extends StatelessWidget {
     );
   }
 
-  void _showDMCAConfirmation(BuildContext context) {
+  void _showDMCAConfirmation(BuildContext context, ThreatAlert threat, Function(String) onUpdateStatus) {
+    final c = context.colors;
     showDialog(
       context: context,
       barrierColor: Colors.black.withAlpha(204),
@@ -326,8 +390,8 @@ class ThreatDetailPanel extends StatelessWidget {
           width: 400,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: AppColors.bgSecondary,
-            border: Border.all(color: AppColors.borderDefault),
+            color: c.bgSecondary,
+            border: Border.all(color: c.borderDefault),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -335,12 +399,16 @@ class ThreatDetailPanel extends StatelessWidget {
             children: [
               Text(
                 "CONFIRM DMCA ENFORCEMENT",
-                style: AppTextStyles.mono(size: 14, weight: FontWeight.w700, color: AppColors.textPrimary),
+                style: AppTextStyles.mono(
+                    size: 14,
+                    weight: FontWeight.w700,
+                    color: c.textPrimary),
               ),
               const SizedBox(height: 12),
               Text(
                 "An automated DMCA takedown notice will be drafted by Gemini AI and submitted to ${threat.platform}. This action is logged and irreversible.",
-                style: AppTextStyles.sans(size: 13, color: AppColors.textSecondary, height: 1.5),
+                style: AppTextStyles.mono(
+                    size: 13, color: c.textSecondary),
               ),
               const SizedBox(height: 24),
               Row(
@@ -351,10 +419,11 @@ class ThreatDetailPanel extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.borderDefault),
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                        side: BorderSide(color: c.borderDefault),
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero),
                       ),
-                      child: const Text("CANCEL"),
+                      child: Text("CANCEL", style: AppTextStyles.mono(size: 12, color: c.textPrimary, weight: FontWeight.w700)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -367,9 +436,10 @@ class ThreatDetailPanel extends StatelessWidget {
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accentCrimson,
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero),
                       ),
-                      child: const Text("CONFIRM & FILE"),
+                      child: Text("CONFIRM & FILE", style: AppTextStyles.mono(size: 12, color: Colors.white, weight: FontWeight.w700)),
                     ),
                   ),
                 ],
@@ -388,9 +458,18 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-      child: Text(label, style: AppTextStyles.sectionLabel),
+      child: Text(
+        label, 
+        style: AppTextStyles.mono(
+          size: 11, 
+          weight: FontWeight.w600, 
+          color: c.textMuted, 
+          letterSpacing: 2.5,
+        ),
+      ),
     );
   }
 }
@@ -402,11 +481,14 @@ class _SectionWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        border: borderBottom ? const Border(bottom: BorderSide(color: AppColors.borderDefault)) : null,
+        border: borderBottom
+            ? Border(bottom: BorderSide(color: c.borderDefault))
+            : null,
       ),
       child: child,
     );
@@ -434,6 +516,7 @@ class _EvidenceStack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -444,18 +527,28 @@ class _EvidenceStack extends StatelessWidget {
         AspectRatio(
           aspectRatio: 16 / 9,
           child: Container(
-            color: isOriginal ? AppColors.bgTertiary : AppColors.accentCrimsonDim,
+            color:
+                isOriginal ? c.bgTertiary : AppColors.accentCrimsonDim.withAlpha(50),
             child: Stack(
               children: [
                 Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(icon, size: 32, color: isOriginal ? AppColors.textMuted : AppColors.accentCrimson.withAlpha(153)),
+                      Icon(icon,
+                          size: 32,
+                          color: isOriginal
+                              ? c.textMuted
+                              : AppColors.accentCrimson.withAlpha(153)),
                       const SizedBox(height: 8),
                       Text(
                         isOriginal ? "ORIGINAL ASSET" : "UNAUTHORIZED COPY",
-                        style: AppTextStyles.mono(size: 9, color: isOriginal ? AppColors.textMuted : AppColors.accentCrimson, letterSpacing: 2),
+                        style: AppTextStyles.mono(
+                            size: 9,
+                            color: isOriginal
+                                ? c.textMuted
+                                : AppColors.accentCrimson,
+                            letterSpacing: 2),
                       ),
                     ],
                   ),
@@ -480,11 +573,21 @@ class _EvidenceStack extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: AppTextStyles.mono(size: 9, color: AppColors.textMuted, letterSpacing: 1.5)),
+              Text(
+                label,
+                style: AppTextStyles.mono(
+                  size: 9, 
+                  color: c.textMuted, 
+                  letterSpacing: 1.5,
+                ),
+              ),
               const SizedBox(height: 4),
               Text(
                 assetName,
-                style: AppTextStyles.sans(size: 11, weight: FontWeight.w500, color: AppColors.textPrimary),
+                style: AppTextStyles.sans(
+                    size: 11,
+                    weight: FontWeight.w500,
+                    color: c.textPrimary),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -501,25 +604,30 @@ class _DataRow extends StatelessWidget {
   final String value;
   final Color valueColor;
 
-  const _DataRow({required this.label, required this.value, required this.valueColor});
+  const _DataRow(
+      {required this.label, required this.value, required this.valueColor});
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.borderDefault)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: c.borderDefault)),
       ),
       child: Row(
         children: [
           SizedBox(
             width: 160,
-            child: Text(label, style: AppTextStyles.mono(size: 10, color: AppColors.textMuted, letterSpacing: 2)),
+            child: Text(label,
+                style: AppTextStyles.mono(
+                    size: 10, color: c.textMuted, letterSpacing: 2)),
           ),
           Expanded(
             child: Text(
               value,
-              style: AppTextStyles.sans(size: 12, weight: FontWeight.w500, color: valueColor),
+              style: AppTextStyles.sans(
+                  size: 12, weight: FontWeight.w500, color: valueColor),
             ),
           ),
         ],
@@ -534,16 +642,18 @@ class _PlatformBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.bgTertiary,
-        border: Border.all(color: AppColors.borderDefault),
+        color: c.bgTertiary,
+        border: Border.all(color: c.borderDefault),
         borderRadius: BorderRadius.circular(2),
       ),
       child: Text(
         platform.toUpperCase(),
-        style: AppTextStyles.mono(size: 8, weight: FontWeight.w600, color: AppColors.textSecondary),
+        style: AppTextStyles.mono(
+            size: 8, weight: FontWeight.w600, color: c.textSecondary),
       ),
     );
   }

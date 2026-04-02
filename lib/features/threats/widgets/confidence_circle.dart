@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/theme/app_theme_colors.dart';
 
 class ConfidenceCircle extends StatefulWidget {
   final String label;
@@ -54,6 +55,7 @@ class _ConfidenceCircleState extends State<ConfidenceCircle> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     Color arcColor;
     if (widget.value > 0.85) {
       arcColor = AppColors.accentCrimson;
@@ -79,6 +81,7 @@ class _ConfidenceCircleState extends State<ConfidenceCircle> with SingleTickerPr
                       painter: _ArcPainter(
                         value: _animation.value,
                         color: arcColor,
+                        trackColor: c.bgTertiary,
                       ),
                     );
                   },
@@ -97,7 +100,7 @@ class _ConfidenceCircleState extends State<ConfidenceCircle> with SingleTickerPr
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Text(
                         widget.label,
-                        style: AppTextStyles.mono(size: 8, color: AppColors.textMuted, letterSpacing: 1.5),
+                        style: AppTextStyles.mono(size: 8, color: c.textMuted, letterSpacing: 1.5),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -115,8 +118,13 @@ class _ConfidenceCircleState extends State<ConfidenceCircle> with SingleTickerPr
 class _ArcPainter extends CustomPainter {
   final double value;
   final Color color;
+  final Color trackColor;
 
-  _ArcPainter({required this.value, required this.color});
+  _ArcPainter({
+    required this.value, 
+    required this.color,
+    required this.trackColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -125,7 +133,7 @@ class _ArcPainter extends CustomPainter {
 
     // Background track
     final bgPaint = Paint()
-      ..color = AppColors.bgTertiary
+      ..color = trackColor
       ..strokeWidth = 8
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -150,6 +158,8 @@ class _ArcPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ArcPainter oldDelegate) {
-    return oldDelegate.value != value || oldDelegate.color != color;
+    return oldDelegate.value != value || 
+           oldDelegate.color != color || 
+           oldDelegate.trackColor != trackColor;
   }
 }

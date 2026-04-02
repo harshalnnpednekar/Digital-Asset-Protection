@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_theme_colors.dart';
 
 class SectionHeader extends StatelessWidget {
   final String title;
@@ -16,6 +16,8 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -26,10 +28,23 @@ class SectionHeader extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Text(title, style: AppTextStyles.screenTitle),
+                   Text(
+                     title, 
+                     style: AppTextStyles.mono(
+                       size: 22, 
+                       weight: FontWeight.w700, 
+                       color: c.textPrimary,
+                     ),
+                   ),
                    if (subtitle != null) ...[
                      const SizedBox(height: 4),
-                     Text(subtitle!, style: AppTextStyles.screenSubtitle),
+                     Text(
+                       subtitle!, 
+                       style: AppTextStyles.sans(
+                         size: 13, 
+                         color: c.textSecondary,
+                       ),
+                     ),
                    ]
                 ],
               ),
@@ -38,7 +53,7 @@ class SectionHeader extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-        const Divider(color: AppColors.borderDefault, height: 1, thickness: 1),
+        Divider(color: c.borderDefault, height: 1, thickness: 1),
         const SizedBox(height: 24),
       ],
     );

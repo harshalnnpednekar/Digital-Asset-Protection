@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/app_theme_colors.dart';
 
 class StatusDot extends StatelessWidget {
   final Color color;
@@ -53,11 +54,10 @@ class CustomChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: AppTextStyles.mono(
-          size: 10,
+        style: AppTextStyles.body(
+          size: 11,
           weight: FontWeight.w600,
           color: color,
-          letterSpacing: 1.0,
         ),
       ),
     );
@@ -71,6 +71,7 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -78,7 +79,7 @@ class StatusBadge extends StatelessWidget {
         const SizedBox(width: 5),
         Text(
           name,
-          style: AppTextStyles.mono(size: 10, color: AppColors.textMuted, letterSpacing: 1),
+          style: AppTextStyles.body(size: 11, color: c.textMuted, weight: FontWeight.w500),
         ),
       ],
     );
@@ -90,6 +91,7 @@ class DashboardStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final now = DateTime.now().toUtc();
     final timestamp = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} UTC';
 
@@ -97,8 +99,8 @@ class DashboardStatusBar extends StatelessWidget {
       height: 44,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.bgTertiary,
-        border: Border.all(color: AppColors.borderDefault),
+        color: c.bgSecondary,
+        border: Border.all(color: c.borderDefault),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
@@ -109,11 +111,10 @@ class DashboardStatusBar extends StatelessWidget {
               const StatusDot(color: AppColors.accentGreen, size: 7),
               const SizedBox(width: 8),
               Text(
-                "SYSTEM STATUS: ALL SERVICES OPERATIONAL",
-                style: AppTextStyles.mono(
-                  size: 11,
+                "System Status: All services operational",
+                style: AppTextStyles.body(
+                  size: 13,
                   color: AppColors.accentGreen,
-                  letterSpacing: 1.5,
                   weight: FontWeight.w600,
                 ),
               ),
@@ -124,11 +125,11 @@ class DashboardStatusBar extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                "SENTINEL AI COMMAND CENTER  //  SESSION ACTIVE  //  $timestamp",
-                style: AppTextStyles.mono(
-                  size: 10,
-                  color: AppColors.textMuted,
-                  letterSpacing: 1,
+                "Sentinel AI Dashboard  •  Session Active  •  $timestamp",
+                style: AppTextStyles.body(
+                  size: 11,
+                  color: c.textMuted,
+                  weight: FontWeight.w500,
                 ),
               ),
             ),

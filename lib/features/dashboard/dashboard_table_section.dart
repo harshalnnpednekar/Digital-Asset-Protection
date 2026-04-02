@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../core/config/demo_config.dart';
 import 'dashboard_mock_data.dart';
 import 'dashboard_widgets.dart';
@@ -10,35 +11,44 @@ class DashboardTableSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "RECENT PATIENT ZERO IDENTIFICATIONS",
-          style: AppTextStyles.sectionLabel,
+          "Source Identification",
+          style: AppTextStyles.display(
+            size: 16, 
+            weight: FontWeight.w700, 
+            color: c.textPrimary,
+          ),
         ),
         const SizedBox(height: 12),
-        _TableHeader(),
-        
-        if (kDemoMode) 
+        const _TableHeader(),
+        if (kDemoMode)
           ...DashboardMockData.patientZeroRecords.map(
             (record) => _TableRow(record: record),
-          ).toList()
-        else 
+          )
+        else
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(40),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(
-                bottom: BorderSide(color: AppColors.borderDefault),
-                left: BorderSide(color: AppColors.borderDefault),
-                right: BorderSide(color: AppColors.borderDefault),
+                bottom: BorderSide(color: c.borderDefault),
+                left: BorderSide(color: c.borderDefault),
+                right: BorderSide(color: c.borderDefault),
               ),
             ),
             child: Center(
               child: Text(
                 "NO RECENT IDENTIFICATIONS FOUND",
-                style: AppTextStyles.mono(size: 12, color: AppColors.textMuted, letterSpacing: 1),
+                style: AppTextStyles.mono(
+                  size: 12, 
+                  color: c.textMuted, 
+                  letterSpacing: 1,
+                ),
               ),
             ),
           ),
@@ -48,48 +58,56 @@ class DashboardTableSection extends StatelessWidget {
 }
 
 class _TableHeader extends StatelessWidget {
+  const _TableHeader();
+
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.bgTertiary,
-        border: Border.all(color: AppColors.borderDefault),
+        color: c.bgSecondary,
+        border: Border.all(color: c.borderDefault),
       ),
       child: Row(
         children: [
           Expanded(
             child: Text(
-              "ASSET NAME",
-              style: AppTextStyles.mono(size: 10, color: AppColors.textMuted, letterSpacing: 2.5),
+              "Asset Name",
+              style: AppTextStyles.display(
+                  size: 11, color: c.textMuted, weight: FontWeight.w700),
             ),
           ),
           SizedBox(
             width: 180,
             child: Text(
-              "LEAK SOURCE",
-              style: AppTextStyles.mono(size: 10, color: AppColors.textMuted, letterSpacing: 2.5),
+              "Leak Source",
+              style: AppTextStyles.display(
+                  size: 11, color: c.textMuted, weight: FontWeight.w700),
             ),
           ),
           SizedBox(
             width: 120,
             child: Text(
-              "PLATFORM",
-              style: AppTextStyles.mono(size: 10, color: AppColors.textMuted, letterSpacing: 2.5),
+              "Platform",
+              style: AppTextStyles.display(
+                  size: 11, color: c.textMuted, weight: FontWeight.w700),
             ),
           ),
           SizedBox(
             width: 160,
             child: Text(
-              "TIMESTAMP",
-              style: AppTextStyles.mono(size: 10, color: AppColors.textMuted, letterSpacing: 2.5),
+              "Timestamp",
+              style: AppTextStyles.display(
+                  size: 11, color: c.textMuted, weight: FontWeight.w700),
             ),
           ),
           SizedBox(
             width: 140,
             child: Text(
-              "STATUS",
-              style: AppTextStyles.mono(size: 10, color: AppColors.textMuted, letterSpacing: 2.5),
+              "Status",
+              style: AppTextStyles.display(
+                  size: 11, color: c.textMuted, weight: FontWeight.w700),
             ),
           ),
         ],
@@ -112,10 +130,11 @@ class _TableRowState extends State<_TableRow> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     Color statusChipColor;
     switch (widget.record.status) {
       case "DMCA FILED":
-        statusChipColor = AppColors.accentBlue;
+        statusChipColor = c.accentBlue;
         break;
       case "INVESTIGATING":
         statusChipColor = AppColors.accentAmber;
@@ -124,7 +143,7 @@ class _TableRowState extends State<_TableRow> {
         statusChipColor = AppColors.accentGreen;
         break;
       default:
-        statusChipColor = AppColors.textMuted;
+        statusChipColor = c.textMuted;
     }
 
     return MouseRegion(
@@ -134,14 +153,15 @@ class _TableRowState extends State<_TableRow> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: BoxDecoration(
-          color: _isHovered ? AppColors.bgOverlay : Colors.transparent,
+          color: _isHovered ? c.bgOverlay : Colors.transparent,
           border: Border(
-            bottom: const BorderSide(color: AppColors.borderDefault, width: 1),
+            bottom: BorderSide(color: c.borderDefault, width: 1),
             // The left accent on hover
             left: BorderSide(
               color: _isHovered ? AppColors.accentAmber : Colors.transparent,
               width: 3,
             ),
+            right: BorderSide(color: c.borderDefault, width: 1),
           ),
         ),
         child: Row(
@@ -149,7 +169,8 @@ class _TableRowState extends State<_TableRow> {
             Expanded(
               child: Text(
                 widget.record.assetName,
-                style: AppTextStyles.sans(size: 13, color: AppColors.textPrimary),
+                style:
+                    AppTextStyles.body(size: 14, weight: FontWeight.w600, color: c.textPrimary),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -157,7 +178,8 @@ class _TableRowState extends State<_TableRow> {
               width: 180,
               child: Text(
                 widget.record.leakSource,
-                style: AppTextStyles.mono(size: 12, color: AppColors.accentAmber),
+                style:
+                    AppTextStyles.body(size: 13, weight: FontWeight.w700, color: AppColors.accentAmber),
               ),
             ),
             SizedBox(
@@ -165,14 +187,15 @@ class _TableRowState extends State<_TableRow> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.borderDefault, width: 1),
+                  border: Border.all(color: c.borderDefault, width: 1),
                   borderRadius: BorderRadius.circular(2),
                 ),
                 child: Center(
                   widthFactor: 1,
                   child: Text(
                     widget.record.platform.toUpperCase(),
-                    style: AppTextStyles.mono(size: 9, color: AppColors.textMuted, letterSpacing: 1),
+                    style: AppTextStyles.display(
+                        size: 10, color: c.textMuted, weight: FontWeight.w700, letterSpacing: 0.5),
                   ),
                 ),
               ),
@@ -181,7 +204,7 @@ class _TableRowState extends State<_TableRow> {
               width: 160,
               child: Text(
                 widget.record.timestamp,
-                style: AppTextStyles.mono(size: 11, color: AppColors.textMuted),
+                style: AppTextStyles.body(size: 12, color: c.textMuted, weight: FontWeight.w500),
               ),
             ),
             SizedBox(

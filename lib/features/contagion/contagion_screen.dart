@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/shimmer_box.dart';
 import 'contagion_mock_data.dart';
@@ -15,11 +16,13 @@ class ContagionScreen extends StatefulWidget {
   State<ContagionScreen> createState() => _ContagionScreenState();
 }
 
-class _ContagionScreenState extends State<ContagionScreen> with SingleTickerProviderStateMixin {
+class _ContagionScreenState extends State<ContagionScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   String? _selectedNodeId;
   bool _isLoading = true;
-  final TransformationController _transformationController = TransformationController();
+  final TransformationController _transformationController =
+      TransformationController();
 
   @override
   void initState() {
@@ -28,12 +31,9 @@ class _ContagionScreenState extends State<ContagionScreen> with SingleTickerProv
       vsync: this,
       duration: const Duration(milliseconds: 3000),
     )..repeat();
-    
+
     _simulateLoading();
-    
-    // Initial centering of the graph
-    // The graph is approx 1000px wide based on the painter logic
-    // We'll center it after the layout is ready
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _centerGraph();
     });
@@ -45,9 +45,8 @@ class _ContagionScreenState extends State<ContagionScreen> with SingleTickerProv
   }
 
   void _centerGraph() {
-    // A simple heuristic for centering on a 1200x800 canvas
-    final double zoom = 1.0;
-    _transformationController.value = Matrix4.identity()..scale(zoom);
+    const double zoom = 1.0;
+    _transformationController.value = Matrix4.diagonal3Values(zoom, zoom, 1.0);
   }
 
   @override
@@ -59,20 +58,24 @@ class _ContagionScreenState extends State<ContagionScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    final selectedNode = _selectedNodeId != null 
-        ? ContagionMockData.nodes.firstWhere((n) => n.id == _selectedNodeId) 
-        : null;
-    
-    final parentNode = selectedNode?.parentId != null 
-        ? ContagionMockData.nodes.firstWhere((n) => n.id == selectedNode!.parentId) 
+    final c = context.colors;
+    final selectedNode = _selectedNodeId != null
+        ? ContagionMockData.nodes.firstWhere((n) => n.id == _selectedNodeId)
         : null;
 
-    final childCount = _selectedNodeId != null 
-        ? ContagionMockData.nodes.where((n) => n.parentId == _selectedNodeId).length 
+    final parentNode = selectedNode?.parentId != null
+        ? ContagionMockData.nodes
+            .firstWhere((n) => n.id == selectedNode!.parentId)
+        : null;
+
+    final childCount = _selectedNodeId != null
+        ? ContagionMockData.nodes
+            .where((n) => n.parentId == _selectedNodeId)
+            .length
         : 0;
 
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: c.bgPrimary,
       body: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
@@ -80,8 +83,9 @@ class _ContagionScreenState extends State<ContagionScreen> with SingleTickerProv
           children: [
             // HEADER
             const SectionHeader(
-              title: "CONTAGION MAP",
-              subtitle: "Live node-graph visualization of piracy propagation topology — Real-time leak tracing",
+              title: "Propagation Map",
+              subtitle:
+                  "Visualizing real-time node propagation and piracy leak distribution across platforms.",
             ),
 
             const SizedBox(height: 16),
@@ -97,49 +101,53 @@ class _ContagionScreenState extends State<ContagionScreen> with SingleTickerProv
                     flex: 7,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: AppColors.bgPrimary,
-                        border: Border.all(color: AppColors.borderDefault),
+                        color: c.bgPrimary,
+                        border: Border.all(color: c.borderDefault),
                       ),
-                      child: _isLoading 
-                        ? const ShimmerBox(height: double.infinity, width: double.infinity)
-                        : ClipRect(
-                            child: InteractiveViewer(
-                              transformationController: _transformationController,
-                              minScale: 0.5,
-                              maxScale: 3.0,
-                              boundaryMargin: const EdgeInsets.all(500),
-                              child: GestureDetector(
-                                onTapDown: (details) {
-                                  final painter = ContagionGraphPainter(
-                                    nodes: ContagionMockData.nodes,
-                                    animationValue: _controller.value,
-                                  );
-                                  // We need the local position relative to the graph canvas
-                                  final offset = details.localPosition;
-                                  final hitId = painter.findNodeAt(offset);
-                                  setState(() => _selectedNodeId = hitId);
-                                },
-                                child: AnimatedBuilder(
-                                  animation: _controller,
-                                  builder: (context, child) {
-                                    return CustomPaint(
-                                      size: const Size(1200, 800),
-                                      painter: ContagionGraphPainter(
-                                        nodes: ContagionMockData.nodes,
-                                        selectedNodeId: _selectedNodeId,
-                                        animationValue: _controller.value,
-                                      ),
+                      child: _isLoading
+                          ? const ShimmerBox(
+                              height: double.infinity, width: double.infinity)
+                          : ClipRect(
+                              child: InteractiveViewer(
+                                transformationController:
+                                    _transformationController,
+                                minScale: 0.5,
+                                maxScale: 3.0,
+                                boundaryMargin: const EdgeInsets.all(500),
+                                child: GestureDetector(
+                                  onTapDown: (details) {
+                                    final painter = ContagionGraphPainter(
+                                      nodes: ContagionMockData.nodes,
+                                      animationValue: _controller.value,
+                                      colors: c,
                                     );
+                                    // We need the local position relative to the graph canvas
+                                    final offset = details.localPosition;
+                                    final hitId = painter.findNodeAt(offset);
+                                    setState(() => _selectedNodeId = hitId);
                                   },
+                                  child: AnimatedBuilder(
+                                    animation: _controller,
+                                    builder: (context, child) {
+                                      return CustomPaint(
+                                        size: const Size(1200, 800),
+                                        painter: ContagionGraphPainter(
+                                          nodes: ContagionMockData.nodes,
+                                          selectedNodeId: _selectedNodeId,
+                                          animationValue: _controller.value,
+                                          colors: c,
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
                     ),
                   ),
-                  
+
                   const SizedBox(width: 16),
-                  
+
                   // SIDEBAR
                   NodeDetailSidebar(
                     node: selectedNode,
@@ -164,40 +172,47 @@ class _AssetSelectorBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.bgTertiary,
-        border: Border.all(color: AppColors.borderDefault),
+        color: c.bgSecondary,
+        border: Border.all(color: c.borderDefault),
       ),
       child: Row(
         children: [
-          Text("TRACKING ASSET:", style: AppTextStyles.mono(size: 11, color: AppColors.textMuted, letterSpacing: 2)),
+          Text("Monitoring Asset:",
+              style: AppTextStyles.body(
+                  size: 11, color: c.textMuted, weight: FontWeight.w600)),
           const SizedBox(width: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.borderDefault),
+              border: Border.all(color: c.borderDefault),
             ),
             child: Row(
               children: [
                 Text(
                   "IPL 2025 — MI vs CSK Highlights",
-                  style: AppTextStyles.mono(size: 11, weight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: AppTextStyles.display(
+                      size: 12,
+                      weight: FontWeight.w600,
+                      color: c.textPrimary),
                 ),
                 const SizedBox(width: 8),
-                Icon(PhosphorIcons.caretDown(), size: 14, color: AppColors.textMuted),
+                Icon(PhosphorIcons.caretDown(),
+                    size: 14, color: c.textMuted),
               ],
             ),
           ),
           const Spacer(),
-          _InlineStatLabel(value: "17", label: "NODES IDENTIFIED"),
+          const _InlineStatLabel(value: "17", label: "Nodes Identified"),
           const SizedBox(width: 24),
-          _InlineStatLabel(value: "4", label: "PLATFORMS AFFECTED"),
+          const _InlineStatLabel(value: "4", label: "Platforms Affected"),
           const SizedBox(width: 24),
-          _InlineStatLabel(value: "2.4M", label: "TOTAL REACH"),
+          const _InlineStatLabel(value: "2.4M", label: "Total Reach"),
           const SizedBox(width: 24),
-          _InlineStatLabel(value: "2h 17m", label: "TIME TO DETECT"),
+          const _InlineStatLabel(value: "2h 17m", label: "Detection Latency"),
         ],
       ),
     );
@@ -212,11 +227,18 @@ class _InlineStatLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Text(value, style: AppTextStyles.mono(size: 16, weight: FontWeight.w700, color: AppColors.accentAmber)),
-        Text(label, style: AppTextStyles.mono(size: 9, color: AppColors.textMuted, letterSpacing: 2)),
+        Text(value,
+            style: AppTextStyles.display(
+                size: 18,
+                weight: FontWeight.w700,
+                color: AppColors.accentAmber)),
+        Text(label,
+            style: AppTextStyles.body(
+                size: 10, color: c.textMuted, weight: FontWeight.w500)),
       ],
     );
   }
@@ -227,26 +249,49 @@ class _ContagionSummaryBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: BoxDecoration(
-        color: AppColors.bgTertiary,
-        border: Border.all(color: AppColors.borderDefault),
+        color: c.bgSecondary,
+        border: Border.all(color: c.borderDefault),
       ),
       child: Row(
         children: [
-          Text("TOTAL PROPAGATION SUMMARY", style: AppTextStyles.mono(size: 10, color: AppColors.textMuted, letterSpacing: 2.5)),
+          Text("Total Propagation Summary",
+              style: AppTextStyles.display(
+                  size: 13, color: c.textMuted, weight: FontWeight.w600)),
           const Spacer(),
-          _SummaryItem(icon: PhosphorIcons.treeStructure(), value: "17 NODES", label: "Propagation points", color: AppColors.accentAmber),
+          _SummaryItem(
+              icon: PhosphorIcons.treeStructure(),
+              value: "17 Nodes",
+              label: "Propagation points",
+              color: AppColors.accentAmber),
           const SizedBox(width: 40),
-          _SummaryItem(icon: PhosphorIcons.globe(), value: "4 PLATFORMS", label: "Channels detected", color: AppColors.accentBlue),
+          _SummaryItem(
+              icon: PhosphorIcons.globe(),
+              value: "4 Platforms",
+              label: "Channels detected",
+              color: c.accentBlue),
           const SizedBox(width: 40),
-          _SummaryItem(icon: PhosphorIcons.users(), value: "2.4M REACH", label: "Est. impressions", color: AppColors.accentCrimson),
+          _SummaryItem(
+              icon: PhosphorIcons.users(),
+              value: "2.4M Reach",
+              label: "Est. impressions",
+              color: AppColors.accentCrimson),
           const SizedBox(width: 40),
-          _SummaryItem(icon: PhosphorIcons.clock(), value: "2H 17M", label: "Detection speed", color: AppColors.accentGreen),
+          _SummaryItem(
+              icon: PhosphorIcons.clock(),
+              value: "2h 17m",
+              label: "Detection speed",
+              color: AppColors.accentGreen),
           const SizedBox(width: 40),
-          _SummaryItem(icon: PhosphorIcons.fileText(), value: "6 DMCA", label: "Takedowns filed", color: AppColors.accentPurple),
+          _SummaryItem(
+              icon: PhosphorIcons.fileText(),
+              value: "6 DMCA",
+              label: "Takedowns filed",
+              color: AppColors.accentPurple),
         ],
       ),
     );
@@ -268,6 +313,7 @@ class _SummaryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Row(
       children: [
         Icon(icon, size: 18, color: color),
@@ -276,8 +322,11 @@ class _SummaryItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(value, style: AppTextStyles.mono(size: 12, weight: FontWeight.w700, color: color)),
-            Text(label, style: AppTextStyles.mono(size: 9, color: AppColors.textMuted)),
+            Text(value,
+                style: AppTextStyles.display(
+                    size: 13, weight: FontWeight.w700, color: color)),
+            Text(label,
+                style: AppTextStyles.body(size: 10, color: c.textMuted, weight: FontWeight.w500)),
           ],
         ),
       ],

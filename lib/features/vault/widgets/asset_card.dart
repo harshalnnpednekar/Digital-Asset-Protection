@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../vault_mock_data.dart';
 
 class AssetCard extends StatefulWidget {
@@ -21,13 +22,14 @@ class _AssetCardState extends State<AssetCard> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     Color categoryColor;
     switch (widget.asset.category) {
       case 'HIGHLIGHT':
         categoryColor = AppColors.accentAmber;
         break;
       case 'PRESS_CONF':
-        categoryColor = AppColors.accentBlue;
+        categoryColor = c.accentBlue;
         break;
       case 'TRAINING':
         categoryColor = AppColors.accentGreen;
@@ -36,7 +38,7 @@ class _AssetCardState extends State<AssetCard> {
         categoryColor = AppColors.accentPurple;
         break;
       default:
-        categoryColor = AppColors.textMuted;
+        categoryColor = c.textMuted;
     }
 
     return MouseRegion(
@@ -44,21 +46,16 @@ class _AssetCardState extends State<AssetCard> {
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: AppColors.bgSurface,
-          border: Border.all(
-            color: _isHovered 
-                ? AppColors.borderDefault.withAlpha(204) // 0.8 opacity approx
-                : AppColors.borderDefault,
-            width: 1,
-          ),
+        decoration: c.cardDecoration(
+          borderColor: _isHovered ? c.accentBlue.withAlpha(204) : c.borderDefault,
+        ).copyWith(
           boxShadow: _isHovered ? [
             BoxShadow(
-              color: AppColors.accentBlue.withAlpha(20), // 0.08 opacity approx
+              color: c.accentBlue.withAlpha(20),
               blurRadius: 16,
               spreadRadius: 0,
             )
-          ] : [],
+          ] : c.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,7 +67,7 @@ class _AssetCardState extends State<AssetCard> {
                 children: [
                   Container(
                     width: double.infinity,
-                    color: AppColors.bgTertiary,
+                    color: c.bgTertiary,
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -78,12 +75,17 @@ class _AssetCardState extends State<AssetCard> {
                           Icon(
                             PhosphorIcons.videoCamera(),
                             size: 32,
-                            color: AppColors.textMuted,
+                            color: c.textMuted,
                           ),
                           const SizedBox(height: 8),
                           Text(
                             widget.asset.category,
-                            style: AppTextStyles.sectionLabel,
+                            style: AppTextStyles.mono(
+                              size: 11,
+                              weight: FontWeight.w600,
+                              color: c.textMuted,
+                              letterSpacing: 2.5,
+                            ),
                           ),
                         ],
                       ),
@@ -100,7 +102,7 @@ class _AssetCardState extends State<AssetCard> {
                         duration: const Duration(milliseconds: 200),
                         child: _CardBadge(
                           label: "C2PA SECURED",
-                          color: AppColors.accentBlue,
+                          color: c.accentBlue,
                           icon: PhosphorIcons.lock(),
                         ),
                       ),
@@ -124,7 +126,7 @@ class _AssetCardState extends State<AssetCard> {
                             height: 3,
                             child: LinearProgressIndicator(
                               value: widget.asset.vectorizationProgress,
-                              backgroundColor: AppColors.bgPrimary,
+                              backgroundColor: c.bgPrimary,
                               valueColor: const AlwaysStoppedAnimation(AppColors.accentAmber),
                             ),
                           )
@@ -150,7 +152,7 @@ class _AssetCardState extends State<AssetCard> {
                     style: AppTextStyles.sans(
                       size: 13,
                       weight: FontWeight.w500,
-                      color: AppColors.textPrimary,
+                      color: c.textPrimary,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -162,18 +164,18 @@ class _AssetCardState extends State<AssetCard> {
                     children: [
                       Text(
                         widget.asset.uploadDate,
-                        style: AppTextStyles.mono(size: 10, color: AppColors.textMuted),
+                        style: AppTextStyles.mono(size: 10, color: c.textMuted),
                       ),
                       Text(
                         widget.asset.duration,
-                        style: AppTextStyles.mono(size: 10, color: AppColors.textMuted),
+                        style: AppTextStyles.mono(size: 10, color: c.textMuted),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     widget.asset.fileSize,
-                    style: AppTextStyles.mono(size: 10, color: AppColors.textMuted),
+                    style: AppTextStyles.mono(size: 10, color: c.textMuted),
                   ),
                   
                   const SizedBox(height: 12),
@@ -182,7 +184,7 @@ class _AssetCardState extends State<AssetCard> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.accentCrimson.withAlpha(13), // 0.05 opacity
+                      color: AppColors.accentCrimson.withAlpha(13), 
                       border: const Border(
                         left: BorderSide(color: AppColors.accentCrimson, width: 3),
                       ),
@@ -211,7 +213,7 @@ class _AssetCardState extends State<AssetCard> {
                   ),
                   
                   const SizedBox(height: 12),
-                  const Divider(color: AppColors.borderDefault, height: 1),
+                  Divider(color: c.borderDefault, height: 1),
                   const SizedBox(height: 8),
                   
                   Row(
@@ -253,8 +255,8 @@ class _CardBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withAlpha(26), // 0.1 opacity approx
-        border: Border.all(color: color.withAlpha(77)), // 0.3 opacity approx
+        color: color.withAlpha(26),
+        border: Border.all(color: color.withAlpha(77)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
@@ -297,7 +299,8 @@ class _IconTextButtonState extends State<_IconTextButton> {
 
   @override
   Widget build(BuildContext context) {
-    final color = _isHovered ? AppColors.accentAmber : AppColors.textMuted;
+    final c = context.colors;
+    final color = _isHovered ? AppColors.accentAmber : c.textMuted;
 
     return InkWell(
       onTap: () {},

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
+import '../theme/app_theme_colors.dart';
 
 class ShimmerBox extends StatefulWidget {
   final double width;
@@ -17,7 +17,8 @@ class ShimmerBox extends StatefulWidget {
   State<ShimmerBox> createState() => _ShimmerBoxState();
 }
 
-class _ShimmerBoxState extends State<ShimmerBox> with SingleTickerProviderStateMixin {
+class _ShimmerBoxState extends State<ShimmerBox>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -37,6 +38,8 @@ class _ShimmerBoxState extends State<ShimmerBox> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
@@ -50,9 +53,9 @@ class _ShimmerBoxState extends State<ShimmerBox> with SingleTickerProviderStateM
               end: Alignment.bottomRight,
               stops: const [0.1, 0.5, 0.9],
               colors: [
-                AppColors.bgTertiary,
-                AppColors.borderDefault,
-                AppColors.bgTertiary,
+                c.bgTertiary,
+                c.borderDefault,
+                c.bgTertiary,
               ],
               transform: _SlidingGradientTransform(offset: _controller.value),
             ),

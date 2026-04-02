@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_theme_colors.dart';
 import 'scale_button.dart';
 
 class JudgeGuideModal extends StatelessWidget {
@@ -17,13 +18,16 @@ class JudgeGuideModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+
     return Center(
       child: Container(
         width: 600,
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+        constraints:
+            BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
         decoration: BoxDecoration(
-          color: AppColors.bgSecondary,
-          border: Border.all(color: AppColors.borderDefault),
+          color: c.bgSecondary,
+          border: Border.all(color: c.borderDefault),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -31,20 +35,24 @@ class JudgeGuideModal extends StatelessWidget {
             // HEADER
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: AppColors.borderDefault)),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: c.borderDefault)),
               ),
               child: Row(
                 children: [
-                  Icon(PhosphorIcons.bookOpen(), color: AppColors.accentBlue, size: 24),
+                  Icon(PhosphorIcons.bookOpen(), color: c.accentBlue, size: 24),
                   const SizedBox(width: 12),
-                  Text(
-                    "JUDGE'S OPERATIONS MANUAL",
-                    style: AppTextStyles.mono(size: 16, weight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: 1),
-                  ),
+                    Text(
+                      "Platform Operations Guide",
+                      style: AppTextStyles.display(
+                        size: 20,
+                        weight: FontWeight.w700,
+                        color: c.textPrimary,
+                      ),
+                    ),
                   const Spacer(),
                   IconButton(
-                    icon: Icon(PhosphorIcons.x(), color: AppColors.textMuted),
+                    icon: Icon(PhosphorIcons.x(), color: c.textMuted),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -59,18 +67,24 @@ class JudgeGuideModal extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _GuideSection(
-                      title: "1. THE VALUE PROPOSITION",
-                      content: "Sentinel AI protects high-value sports media using 'Dual-Lock' security. We combine C2PA cryptographic manifests with invisible AES-256 steganographic watermarks that survive re-compression and cropping.",
+                      icon: PhosphorIcons.sparkle(),
+                      title: "The Value Proposition",
+                      content:
+                          "Sentinel AI provides institutional-grade digital asset protection for sports media. We combine C2PA cryptographic manifests with invisible steganographic watermarking to ensure every frame of your content is authenticated and traceable, even after aggressive re-distribution.",
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     _GuideSection(
-                      title: "2. DEMO FLOW: THE 'LEAK' STORY",
-                      content: "Step A: Go to ASSET VAULT. Notice the 'C2PA Secured' badges.\nStep B: Go to THREAT RADAR. See real-time matches found by our CLIP-aligned neural engine.\nStep C: Open a threat. Compare the 'Vaulted Master' vs 'Unauthorized Copy'. Notice the Gemini AI reasoning for Piracy vs Fair Use.\nStep D: Go to CONTAGION MAP. Visualize how one leak on Telegram spread to X and YouTube.",
+                      icon: PhosphorIcons.playCircle(),
+                      title: "Recommended Demo Flow",
+                      content:
+                          "• Asset Vault: View high-value masters secured with C2PA metadata.\n• Threat Radar: Monitor real-time neural-engine matches for unauthorized streams.\n• Analysis Deep-dive: Use Gemini AI to differentiate between piracy and fair-use.\n• Propagation Map: Trace the origin and viral spread of content leaks.",
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     _GuideSection(
-                      title: "3. TECHNICAL EDGE",
-                      content: "• CLIP Embeddings: Semantic search that understands 'what is happening' in the video, not just pixels.\n• Patient Zero Tracing: Our watermarks identify EXACTLY who leaked the file (e.g. 'Sony LIV Partner' vs 'Internal Editor').\n• Automated Enforcement: Gemini AI drafts legally-compliant DMCA notices in seconds.",
+                      icon: PhosphorIcons.lightning(),
+                      title: "Technical Competitive Edge",
+                      content:
+                          "• Neural CLIP Embeddings: Semantic content matching that ignores cropping or filters.\n• Source Identification: Precise 'Patient Zero' tracing to identify internal or partner leaks.\n• Automated Enforcement: Rapid DMCA generation and platform-level alerting.",
                     ),
                     const SizedBox(height: 32),
                     Container(
@@ -81,12 +95,16 @@ class JudgeGuideModal extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          Icon(PhosphorIcons.info(), color: AppColors.accentAmber, size: 20),
+                          Icon(PhosphorIcons.info(),
+                              color: AppColors.accentAmber, size: 20),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               "Note: This app is currently in DEMO MODE. Live backend wiring to Firestore is toggled in core/config/demo_config.dart.",
-                              style: AppTextStyles.mono(size: 10, color: AppColors.accentAmber, weight: FontWeight.w600),
+                              style: AppTextStyles.body(
+                                  size: 12,
+                                  color: AppColors.accentAmber,
+                                  weight: FontWeight.w600),
                             ),
                           ),
                         ],
@@ -100,8 +118,8 @@ class JudgeGuideModal extends StatelessWidget {
             // FOOTER
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: AppColors.borderDefault)),
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: c.borderDefault)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -110,12 +128,18 @@ class JudgeGuideModal extends StatelessWidget {
                     onTap: () => Navigator.pop(context),
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accentBlue,
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        backgroundColor: c.accentBlue,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 14),
+                        elevation: 0,
                       ),
-                      onPressed: () {}, // Handled by ScaleButton
-                      child: Text("ACKNOWLEDGED", style: AppTextStyles.buttonLabel),
+                      onPressed: () {},
+                      child: Text(
+                        "Close Overview",
+                        style: AppTextStyles.buttonLabel.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
+                      ),
                     ),
                   ),
                 ],
@@ -129,24 +153,54 @@ class JudgeGuideModal extends StatelessWidget {
 }
 
 class _GuideSection extends StatelessWidget {
+  final IconData icon;
   final String title;
   final String content;
 
-  const _GuideSection({required this.title, required this.content});
+  const _GuideSection({
+    required this.icon,
+    required this.title,
+    required this.content,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final c = context.colors;
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: AppTextStyles.mono(size: 12, weight: FontWeight.w700, color: AppColors.accentBlue, letterSpacing: 2),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: c.accentBlue.withAlpha(26),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 20, color: c.accentBlue),
         ),
-        const SizedBox(height: 12),
-        Text(
-          content,
-          style: AppTextStyles.sans(size: 14, color: AppColors.textSecondary, height: 1.6),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: AppTextStyles.display(
+                  size: 15,
+                  weight: FontWeight.w700,
+                  color: c.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                content,
+                style: AppTextStyles.body(
+                  size: 14,
+                  color: c.textSecondary,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

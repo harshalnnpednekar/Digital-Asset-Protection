@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../core/widgets/shimmer_box.dart';
 
 class DashboardKpiSection extends StatelessWidget {
@@ -11,6 +12,8 @@ class DashboardKpiSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+
     if (loading) {
       return Row(
         children: List.generate(4, (index) => Expanded(
@@ -24,15 +27,14 @@ class DashboardKpiSection extends StatelessWidget {
 
     return Row(
       children: [
-        // ... (existing cards)
         Expanded(
           child: _KpiCard(
             label: "ASSETS VAULTED",
             value: "247",
-            valueColor: AppColors.textPrimary,
+            valueColor: c.textPrimary,
             sublabel: "↑ 12 secured this week",
             icon: PhosphorIcons.shieldCheck(),
-            accentColor: AppColors.accentBlue,
+            accentColor: c.accentBlue,
             index: 0,
           ).animate().fadeIn(delay: 0.ms, duration: 400.ms).slideY(begin: 0.15, end: 0),
         ),
@@ -54,7 +56,7 @@ class DashboardKpiSection extends StatelessWidget {
           child: _KpiCard(
             label: "SCANS COMPLETED",
             value: "14,382",
-            valueColor: AppColors.textPrimary,
+            valueColor: c.textPrimary,
             sublabel: "↑ 2,104 in last 24 hours",
             icon: PhosphorIcons.broadcast(),
             accentColor: AppColors.accentAmber,
@@ -108,6 +110,8 @@ class _KpiCardState extends State<_KpiCard> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+
     Widget bottomStrip = Container(
       height: 3,
       width: double.infinity,
@@ -115,7 +119,7 @@ class _KpiCardState extends State<_KpiCard> {
     );
 
     if (widget.isPulsing) {
-      bottomStrip = bottomStrip.animate(onPlay: (c) => c.repeat()).shimmer(
+      bottomStrip = bottomStrip.animate(onPlay: (ct) => ct.repeat()).shimmer(
         duration: 2000.ms,
         color: widget.accentColor.withAlpha(77),
       );
@@ -126,14 +130,12 @@ class _KpiCardState extends State<_KpiCard> {
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: AppColors.bgSurface,
-          border: Border.all(
-            color: _isHovered ? widget.accentColor.withAlpha(102) : AppColors.borderDefault,
-          ),
+        decoration: c.cardDecoration(
+          borderColor: _isHovered ? widget.accentColor.withAlpha(102) : c.borderDefault,
+        ).copyWith(
           boxShadow: _isHovered 
-            ? [BoxShadow(color: widget.accentColor.withAlpha(26), blurRadius: 10, spreadRadius: -2)] 
-            : null,
+            ? [BoxShadow(color: widget.accentColor.withAlpha(c.isDark ? 30 : 50), blurRadius: 15, spreadRadius: -2)] 
+            : c.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,14 +156,34 @@ class _KpiCardState extends State<_KpiCard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.label, style: AppTextStyles.sectionLabel),
+                        Text(
+                          widget.label, 
+                          style: AppTextStyles.display(
+                            size: 13, 
+                            weight: FontWeight.w700, 
+                            color: c.textMuted, 
+                            letterSpacing: 1.2,
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         Text(
                           widget.value,
-                          style: AppTextStyles.kpiNumber.copyWith(color: widget.valueColor),
+                          style: AppTextStyles.display(
+                            size: 38, 
+                            weight: FontWeight.w800, 
+                            color: widget.valueColor,
+                            letterSpacing: -1.0,
+                          ),
                         ),
                         const SizedBox(height: 4),
-                        Text(widget.sublabel, style: AppTextStyles.caption),
+                        Text(
+                          widget.sublabel, 
+                          style: AppTextStyles.body(
+                            size: 12, 
+                            weight: FontWeight.w500,
+                            color: c.textMuted,
+                          ),
+                        ),
                       ],
                     ),
                   ),

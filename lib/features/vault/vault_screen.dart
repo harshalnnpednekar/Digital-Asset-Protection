@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../core/config/demo_config.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/scale_button.dart';
@@ -43,7 +44,7 @@ class _VaultScreenState extends State<VaultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // DEMO MODE: using mock data. Set kDemoMode = false to use Firestore.
+    final c = context.colors;
     final assets = kDemoMode ? VaultMockData.assets : <VaultedAsset>[]; 
 
     final filteredAssets = assets.where((asset) {
@@ -53,7 +54,7 @@ class _VaultScreenState extends State<VaultScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: c.bgPrimary,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
@@ -88,8 +89,8 @@ class _VaultScreenState extends State<VaultScreen> {
             // VAULT STATS STRIP
             Container(
               decoration: BoxDecoration(
-                color: AppColors.bgTertiary,
-                border: Border.all(color: AppColors.borderDefault),
+                color: c.bgSecondary,
+                border: Border.all(color: c.borderDefault),
               ),
               margin: const EdgeInsets.only(bottom: 24),
               child: Row(
@@ -97,12 +98,12 @@ class _VaultScreenState extends State<VaultScreen> {
                    Expanded(
                     child: _StatCell(
                       icon: PhosphorIcons.shieldCheck(),
-                      color: AppColors.accentBlue,
+                      color: c.accentBlue,
                       value: "247",
                       label: "ASSETS VAULTED",
                     ),
                   ),
-                  const _VerticalDivider(),
+                  _VerticalDivider(color: c.borderDefault),
                   Expanded(
                     child: _StatCell(
                       icon: PhosphorIcons.database(),
@@ -111,7 +112,7 @@ class _VaultScreenState extends State<VaultScreen> {
                       label: "STORAGE USED",
                     ),
                   ),
-                  const _VerticalDivider(),
+                  _VerticalDivider(color: c.borderDefault),
                   Expanded(
                     child: _StatCell(
                       icon: PhosphorIcons.checkCircle(),
@@ -130,19 +131,27 @@ class _VaultScreenState extends State<VaultScreen> {
                 Expanded(
                   flex: 5,
                   child: TextFormField(
-                    style: AppTextStyles.mono(size: 13, color: AppColors.textPrimary),
+                    style: AppTextStyles.mono(size: 13, color: c.textPrimary),
                     onChanged: (v) => setState(() => _searchQuery = v),
                     decoration: InputDecoration(
                       hintText: "SEARCH VAULT BY ASSET NAME OR TAG...",
-                      hintStyle: AppTextStyles.mono(size: 11, color: AppColors.textMuted),
+                      hintStyle: AppTextStyles.mono(size: 11, color: c.textMuted),
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(14),
-                        child: Icon(PhosphorIcons.magnifyingGlass(), size: 16, color: AppColors.textMuted),
+                        child: Icon(PhosphorIcons.magnifyingGlass(), size: 16, color: c.textMuted),
                       ),
                       filled: true,
-                      fillColor: AppColors.bgTertiary,
-                      border: const OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.borderDefault),
+                      fillColor: c.bgSecondary,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: c.borderDefault),
+                        borderRadius: BorderRadius.zero,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: c.borderDefault),
+                        borderRadius: BorderRadius.zero,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: c.accentBlue),
                         borderRadius: BorderRadius.zero,
                       ),
                     ),
@@ -217,22 +226,22 @@ class _VaultScreenState extends State<VaultScreen> {
                     height: 400,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.borderDefault, style: BorderStyle.none),
+                      border: Border.all(color: c.borderDefault, style: BorderStyle.none),
                     ),
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(PhosphorIcons.folderOpen(), size: 48, color: AppColors.textMuted.withAlpha(51)),
+                          Icon(PhosphorIcons.folderOpen(), size: 48, color: c.textMuted.withAlpha(51)),
                           const SizedBox(height: 16),
                           Text(
                             "NO ASSETS FOUND",
-                            style: AppTextStyles.mono(size: 14, weight: FontWeight.w600, color: AppColors.textMuted),
+                            style: AppTextStyles.mono(size: 14, weight: FontWeight.w600, color: c.textMuted),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             "Try adjusting your filters or search query.",
-                            style: AppTextStyles.caption,
+                            style: AppTextStyles.mono(size: 11, color: c.textMuted),
                           ),
                         ],
                       ),
@@ -279,6 +288,7 @@ class _StatCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
@@ -290,11 +300,11 @@ class _StatCell extends StatelessWidget {
             children: [
               Text(
                 value,
-                style: AppTextStyles.mono(size: 20, weight: FontWeight.w700, color: AppColors.textPrimary),
+                style: AppTextStyles.mono(size: 20, weight: FontWeight.w700, color: c.textPrimary),
               ),
               Text(
                 label,
-                style: AppTextStyles.mono(size: 10, color: AppColors.textMuted, letterSpacing: 2),
+                style: AppTextStyles.mono(size: 10, color: c.textMuted, letterSpacing: 2),
               ),
             ],
           ),
@@ -305,14 +315,15 @@ class _StatCell extends StatelessWidget {
 }
 
 class _VerticalDivider extends StatelessWidget {
-  const _VerticalDivider();
+  final Color color;
+  const _VerticalDivider({required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 1,
       height: 40,
-      color: AppColors.borderDefault,
+      color: color,
     );
   }
 }
@@ -330,6 +341,7 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return InkWell(
       onTap: onTap,
       child: AnimatedContainer(
@@ -338,7 +350,7 @@ class _FilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.accentAmber : Colors.transparent,
           border: Border.all(
-            color: isSelected ? AppColors.accentAmber : AppColors.borderDefault,
+            color: isSelected ? AppColors.accentAmber : c.borderDefault,
           ),
         ),
         child: Text(
@@ -346,7 +358,7 @@ class _FilterChip extends StatelessWidget {
           style: AppTextStyles.mono(
             size: 11,
             weight: FontWeight.w600,
-            color: isSelected ? AppColors.textOnAmber : AppColors.textSecondary,
+            color: isSelected ? AppColors.textOnAmber : c.textSecondary,
             letterSpacing: 1.5,
           ),
         ),

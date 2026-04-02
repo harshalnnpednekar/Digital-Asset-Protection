@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme_colors.dart';
 
 import 'dashboard_widgets.dart';
 import 'dashboard_kpi_section.dart';
@@ -30,10 +30,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // DEMO MODE: using mock data. Set kDemoMode = false to use Firestore.
+    final c = context.colors;
     
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: c.bgPrimary,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(

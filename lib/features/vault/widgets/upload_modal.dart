@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/widgets/scale_button.dart';
 
 class UploadModal extends StatefulWidget {
@@ -17,7 +18,7 @@ class _UploadModalState extends State<UploadModal> {
   String _assetName = "";
   String _selectedCategory = "HIGHLIGHT";
   String _selectedDistribution = "Partner: StreamMax India";
-  
+
   // Progress state
   int _currentStep = 0; // 0 to 5
   final List<String> _steps = [
@@ -57,28 +58,31 @@ class _UploadModalState extends State<UploadModal> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    
     return Dialog(
-      backgroundColor: AppColors.bgSecondary,
+      backgroundColor: c.bgSecondary,
+      surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
       child: Container(
         width: 560,
         decoration: BoxDecoration(
-          color: AppColors.bgSecondary,
-          border: Border.all(color: AppColors.borderDefault),
+          color: c.bgSecondary,
+          border: Border.all(color: c.borderDefault),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // HEADER
             _ModalHeader(onClose: () => Navigator.pop(context)),
-            
+
             // BODY
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: _showProgress ? _buildProgressView() : _buildFormView(),
             ),
-            
+
             // FOOTER (Only in form view)
             if (!_showProgress)
               _ModalFooter(
@@ -92,6 +96,7 @@ class _UploadModalState extends State<UploadModal> {
   }
 
   Widget _buildFormView() {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -101,53 +106,74 @@ class _UploadModalState extends State<UploadModal> {
             // TODO: WIRE FILE PICKER
           },
           child: CustomPaint(
-            painter: DashedBorderPainter(color: AppColors.accentBlue.withAlpha(102)),
+            painter:
+                DashedBorderPainter(color: c.accentBlue.withAlpha(102)),
             child: Container(
               height: 140,
               width: double.infinity,
-              color: AppColors.bgTertiary,
+              color: c.bgTertiary,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(PhosphorIcons.cloudArrowUp(), size: 32, color: AppColors.accentBlue),
+                    Icon(PhosphorIcons.cloudArrowUp(),
+                        size: 32, color: c.accentBlue),
                     const SizedBox(height: 10),
                     Text(
                       "DRAG VIDEO FILE HERE",
                       style: AppTextStyles.mono(
                         size: 13,
                         weight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: c.textPrimary,
                         letterSpacing: 1,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       "or click to browse — MP4, MOV, AVI",
-                      style: AppTextStyles.sans(size: 11, color: AppColors.textMuted),
+                      style: AppTextStyles.mono(
+                          size: 11, color: c.textMuted),
                     ),
                     const SizedBox(height: 10),
-                    _MiniChip(label: "MAX FILE SIZE: 50GB", color: AppColors.textMuted),
+                    _MiniChip(
+                        label: "MAX FILE SIZE: 50GB",
+                        color: c.textMuted),
                   ],
                 ),
               ),
             ),
           ),
         ),
-        
+
         const SizedBox(height: 20),
-        
-        Text("ASSET NAME", style: AppTextStyles.sectionLabel),
+
+        Text(
+          "ASSET NAME", 
+          style: AppTextStyles.mono(
+            size: 11, 
+            weight: FontWeight.w600, 
+            color: c.textMuted, 
+            letterSpacing: 2.5,
+          ),
+        ),
         const SizedBox(height: 8),
         TextFormField(
-          style: AppTextStyles.mono(size: 13, color: AppColors.textPrimary),
+          style: AppTextStyles.mono(size: 13, color: c.textPrimary),
           onChanged: (v) => _assetName = v,
           decoration: _inputDecoration("e.g. IPL 2025 — MI vs CSK Highlights"),
         ),
-        
+
         const SizedBox(height: 16),
-        
-        Text("ASSET CATEGORY", style: AppTextStyles.sectionLabel),
+
+        Text(
+          "ASSET CATEGORY", 
+          style: AppTextStyles.mono(
+            size: 11, 
+            weight: FontWeight.w600, 
+            color: c.textMuted, 
+            letterSpacing: 2.5,
+          ),
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -176,21 +202,29 @@ class _UploadModalState extends State<UploadModal> {
             ),
           ],
         ),
-        
+
         const SizedBox(height: 16),
-        
-        Text("INTERNAL DISTRIBUTION TARGET", style: AppTextStyles.sectionLabel),
+
+        Text(
+          "INTERNAL DISTRIBUTION TARGET", 
+          style: AppTextStyles.mono(
+            size: 11, 
+            weight: FontWeight.w600, 
+            color: c.textMuted, 
+            letterSpacing: 2.5,
+          ),
+        ),
         const SizedBox(height: 4),
         Text(
           "⚠  This assignment creates a unique steganographic marker for forensic leak tracing",
-          style: AppTextStyles.sans(size: 11, color: AppColors.accentCrimson),
+          style: AppTextStyles.mono(size: 11, color: AppColors.accentCrimson),
         ),
         const SizedBox(height: 8),
-        
+
         DropdownButtonFormField<String>(
-          value: _selectedDistribution,
-          dropdownColor: AppColors.bgSecondary,
-          style: AppTextStyles.mono(size: 13, color: AppColors.textPrimary),
+          initialValue: _selectedDistribution,
+          dropdownColor: c.bgSecondary,
+          style: AppTextStyles.mono(size: 13, color: c.textPrimary),
           decoration: _inputDecoration(""),
           items: [
             "Partner: StreamMax India",
@@ -207,10 +241,12 @@ class _UploadModalState extends State<UploadModal> {
   }
 
   Widget _buildProgressView() {
+    final c = context.colors;
     if (_currentStep == 6) {
       return Column(
         children: [
-          Icon(PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill), size: 48, color: AppColors.accentGreen),
+          Icon(PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
+              size: 48, color: AppColors.accentGreen),
           const SizedBox(height: 12),
           Text(
             "ASSET VAULTED SUCCESSFULLY",
@@ -224,7 +260,7 @@ class _UploadModalState extends State<UploadModal> {
           const SizedBox(height: 8),
           Text(
             "Asset '$_assetName' vaulted successfully. Steganographic Patient Zero marker embedded. C2PA manifest signed.",
-            style: AppTextStyles.sans(size: 12, color: AppColors.textSecondary),
+            style: AppTextStyles.mono(size: 12, color: c.textSecondary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -235,7 +271,8 @@ class _UploadModalState extends State<UploadModal> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accentAmber,
-                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 onPressed: () {}, // Handled by ScaleButton
@@ -262,10 +299,9 @@ class _UploadModalState extends State<UploadModal> {
         const SizedBox(height: 4),
         Text(
           "Do not close this window during processing",
-          style: AppTextStyles.sans(size: 12, color: AppColors.textMuted),
+          style: AppTextStyles.mono(size: 12, color: c.textMuted),
         ),
         const SizedBox(height: 24),
-        
         for (int i = 0; i < _steps.length; i++)
           _UploadStepRow(
             label: _steps[i],
@@ -283,17 +319,18 @@ class _UploadModalState extends State<UploadModal> {
   }
 
   InputDecoration _inputDecoration(String hint) {
+    final c = context.colors;
     return InputDecoration(
       hintText: hint,
-      hintStyle: AppTextStyles.sans(size: 13, color: AppColors.textMuted),
+      hintStyle: AppTextStyles.mono(size: 13, color: c.textMuted),
       filled: true,
-      fillColor: AppColors.bgTertiary,
-      enabledBorder: const OutlineInputBorder(
-        borderSide: BorderSide(color: AppColors.borderDefault),
+      fillColor: c.bgTertiary,
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: c.borderDefault),
         borderRadius: BorderRadius.zero,
       ),
-      focusedBorder: const OutlineInputBorder(
-        borderSide: BorderSide(color: AppColors.accentBlue),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: c.accentBlue),
         borderRadius: BorderRadius.zero,
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -307,27 +344,32 @@ class _ModalHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.borderDefault)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: c.borderDefault)),
       ),
       child: Row(
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("INGEST NEW ASSET", style: AppTextStyles.mono(size: 16, weight: FontWeight.w700, color: AppColors.textPrimary)),
+              Text("INGEST NEW ASSET",
+                  style: AppTextStyles.mono(
+                      size: 16,
+                      weight: FontWeight.w700,
+                      color: c.textPrimary)),
               const SizedBox(height: 4),
               Text(
                 "Asset will be cryptographically watermarked and AI-vectorized",
-                style: AppTextStyles.sans(size: 12, color: AppColors.textMuted),
+                style: AppTextStyles.mono(size: 12, color: c.textMuted),
               ),
             ],
           ),
           const Spacer(),
           IconButton(
-            icon: Icon(PhosphorIcons.x(), color: AppColors.textMuted),
+            icon: Icon(PhosphorIcons.x(), color: c.textMuted),
             onPressed: onClose,
           ),
         ],
@@ -344,10 +386,11 @@ class _ModalFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.borderDefault)),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: c.borderDefault)),
       ),
       child: Row(
         children: [
@@ -356,13 +399,18 @@ class _ModalFooter extends StatelessWidget {
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.accentAmber),
-                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.zero),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               ),
-              onPressed: () {}, // Handled by ScaleButton
+              onPressed: () {}, 
               child: Text(
                 "CANCEL",
-                style: AppTextStyles.mono(size: 13, weight: FontWeight.w700, color: AppColors.accentAmber),
+                style: AppTextStyles.mono(
+                    size: 13,
+                    weight: FontWeight.w700,
+                    color: AppColors.accentAmber),
               ),
             ),
           ),
@@ -372,11 +420,14 @@ class _ModalFooter extends StatelessWidget {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accentAmber,
-                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.zero),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               ),
-              onPressed: () {}, // Handled by ScaleButton
-              child: Text("BEGIN CRYPTOGRAPHIC VAULTING  →", style: AppTextStyles.buttonLabel),
+              onPressed: () {}, 
+              child: Text("BEGIN CRYPTOGRAPHIC VAULTING  →",
+                  style: AppTextStyles.buttonLabel.copyWith(color: AppColors.textOnAmber)),
             ),
           ),
         ],
@@ -400,14 +451,15 @@ class _UploadStepRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     Color textColor;
     switch (status) {
       case StepStatus.complete:
       case StepStatus.active:
-        textColor = AppColors.textPrimary;
+        textColor = c.textPrimary;
         break;
       case StepStatus.pending:
-        textColor = AppColors.textMuted;
+        textColor = c.textMuted;
     }
 
     return Padding(
@@ -422,43 +474,62 @@ class _UploadStepRow extends StatelessWidget {
                 width: 20,
                 height: 20,
                 decoration: BoxDecoration(
-                  color: status == StepStatus.complete 
-                      ? AppColors.accentGreen 
-                      : (status == StepStatus.active ? AppColors.accentAmberDim : AppColors.bgTertiary),
+                  color: status == StepStatus.complete
+                      ? AppColors.accentGreen
+                      : (status == StepStatus.active
+                          ? AppColors.accentAmberDim.withAlpha(50)
+                          : c.bgTertiary),
                   border: Border.all(
-                    color: status == StepStatus.active ? AppColors.accentAmber : AppColors.borderDefault,
+                    color: status == StepStatus.active
+                        ? AppColors.accentAmber
+                        : c.borderDefault,
                   ),
                 ),
                 child: status == StepStatus.complete
-                    ? Icon(PhosphorIcons.check(), size: 12, color: AppColors.bgPrimary)
-                    : (status == StepStatus.active 
-                        ? const Center(child: SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.accentAmber)))
+                    ? Icon(PhosphorIcons.check(),
+                        size: 12, color: Colors.white)
+                    : (status == StepStatus.active
+                        ? const Center(
+                            child: SizedBox(
+                                width: 12,
+                                height: 12,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 1.5,
+                                    color: AppColors.accentAmber)))
                         : null),
               ),
-              
+
               const SizedBox(width: 12),
-              
+
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: AppTextStyles.mono(size: 12, weight: FontWeight.w600, color: textColor)),
+                  Text(label,
+                      style: AppTextStyles.mono(
+                          size: 12, weight: FontWeight.w600, color: textColor)),
                   if (status == StepStatus.active)
-                    Text("Processing...", style: AppTextStyles.mono(size: 10, color: AppColors.accentAmber)),
+                    Text("Processing...",
+                        style: AppTextStyles.mono(
+                            size: 10, color: AppColors.accentAmber)),
                   if (status == StepStatus.complete)
-                    Text("Done ✓", style: AppTextStyles.mono(size: 10, color: AppColors.accentGreen)),
+                    Text("Done ✓",
+                        style: AppTextStyles.mono(
+                            size: 10, color: AppColors.accentGreen)),
                   if (status == StepStatus.pending)
-                    Text("Queued", style: AppTextStyles.mono(size: 10, color: AppColors.textMuted)),
+                    Text("Queued",
+                        style: AppTextStyles.mono(
+                            size: 10, color: c.textMuted)),
                 ],
               ),
-              
+
               const Spacer(),
-              
+
               if (status == StepStatus.active)
-                const SizedBox(
+                SizedBox(
                   width: 100,
                   child: LinearProgressIndicator(
                     color: AppColors.accentAmber,
-                    backgroundColor: AppColors.bgTertiary,
+                    backgroundColor: c.bgTertiary,
                     value: null,
                   ),
                 ),
@@ -469,7 +540,8 @@ class _UploadStepRow extends StatelessWidget {
               padding: const EdgeInsets.only(left: 32, top: 4),
               child: Text(
                 "Patient Zero marker assigned to: $distributionTarget",
-                style: AppTextStyles.mono(size: 10, color: AppColors.accentCrimson),
+                style: AppTextStyles.mono(
+                    size: 10, color: AppColors.accentCrimson),
               ),
             ),
         ],
@@ -491,6 +563,7 @@ class _CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return InkWell(
       onTap: onTap,
       child: AnimatedContainer(
@@ -498,14 +571,16 @@ class _CategoryChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.accentAmber : Colors.transparent,
-          border: Border.all(color: isSelected ? AppColors.accentAmber : AppColors.borderDefault),
+          border: Border.all(
+              color:
+                  isSelected ? AppColors.accentAmber : c.borderDefault),
         ),
         child: Text(
           label,
           style: AppTextStyles.mono(
             size: 11,
             weight: FontWeight.w600,
-            color: isSelected ? AppColors.textOnAmber : AppColors.textSecondary,
+            color: isSelected ? AppColors.textOnAmber : c.textSecondary,
             letterSpacing: 1.5,
           ),
         ),
@@ -531,7 +606,8 @@ class _MiniChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: AppTextStyles.mono(size: 9, weight: FontWeight.w600, color: color),
+        style:
+            AppTextStyles.mono(size: 9, weight: FontWeight.w600, color: color),
       ),
     );
   }
@@ -550,10 +626,9 @@ class DashedBorderPainter extends CustomPainter {
 
     const dashWidth = 8.0;
     const dashSpace = 4.0;
-    
+
     final path = Path();
-    // Re-calculating dash for each side to keep it simple
-    
+
     // Top
     double x = 0;
     while (x < size.width) {
@@ -561,7 +636,7 @@ class DashedBorderPainter extends CustomPainter {
       path.lineTo(x + dashWidth, 0);
       x += dashWidth + dashSpace;
     }
-    
+
     // Right
     double y = 0;
     while (y < size.height) {
@@ -569,7 +644,7 @@ class DashedBorderPainter extends CustomPainter {
       path.lineTo(size.width, y + dashWidth);
       y += dashWidth + dashSpace;
     }
-    
+
     // Bottom
     x = size.width;
     while (x > 0) {
@@ -577,7 +652,7 @@ class DashedBorderPainter extends CustomPainter {
       path.lineTo(x - dashWidth, size.height);
       x -= dashWidth + dashSpace;
     }
-    
+
     // Left
     y = size.height;
     while (y > 0) {

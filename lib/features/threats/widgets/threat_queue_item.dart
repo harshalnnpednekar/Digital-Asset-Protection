@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/widgets/custom_chip.dart';
 import '../threats_mock_data.dart';
 
@@ -26,6 +27,7 @@ class _ThreatQueueItemState extends State<ThreatQueueItem> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     Color statusBarColor;
     switch (widget.threat.geminiIntent) {
       case 'PIRACY':
@@ -38,12 +40,12 @@ class _ThreatQueueItemState extends State<ThreatQueueItem> {
         statusBarColor = AppColors.accentGreen;
         break;
       default:
-        statusBarColor = AppColors.textMuted;
+        statusBarColor = c.textMuted;
     }
 
     // Override for filed DMCA
     if (widget.threat.status == 'DMCA_FILED') {
-      statusBarColor = AppColors.accentBlue;
+      statusBarColor = c.accentBlue;
     } else if (widget.threat.status == 'DISMISSED') {
       statusBarColor = AppColors.accentGreen;
     }
@@ -54,7 +56,7 @@ class _ThreatQueueItemState extends State<ThreatQueueItem> {
     } else if (widget.threat.visualSimilarity > 0.65) {
       matchColor = AppColors.accentAmber;
     } else {
-      matchColor = AppColors.textMuted;
+      matchColor = c.textMuted;
     }
 
     return MouseRegion(
@@ -66,13 +68,14 @@ class _ThreatQueueItemState extends State<ThreatQueueItem> {
           duration: const Duration(milliseconds: 150),
           decoration: BoxDecoration(
             color: widget.isSelected 
-                ? AppColors.bgTertiary 
-                : (_isHovered ? AppColors.bgOverlay : Colors.transparent),
+                ? c.bgTertiary 
+                : (_isHovered ? c.bgOverlay : Colors.transparent),
             border: Border(
-              bottom: const BorderSide(color: AppColors.borderDefault),
+              bottom: BorderSide(color: c.borderDefault),
               right: widget.isSelected 
                   ? const BorderSide(color: AppColors.accentAmber, width: 3)
                   : BorderSide.none,
+              left: BorderSide(color: c.borderDefault),
             ),
           ),
           child: IntrinsicHeight(
@@ -95,12 +98,12 @@ class _ThreatQueueItemState extends State<ThreatQueueItem> {
                         Container(
                           width: 64,
                           height: 36,
-                          color: AppColors.bgTertiary,
+                          color: c.bgTertiary,
                           child: Center(
                             child: Icon(
                               PhosphorIcons.videoCamera(),
                               size: 16,
-                              color: AppColors.textMuted,
+                              color: c.textMuted,
                             ),
                           ),
                         ),
@@ -119,7 +122,7 @@ class _ThreatQueueItemState extends State<ThreatQueueItem> {
                                       style: AppTextStyles.sans(
                                         size: 12,
                                         weight: FontWeight.w500,
-                                        color: AppColors.textPrimary,
+                                        color: c.textPrimary,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -144,7 +147,7 @@ class _ThreatQueueItemState extends State<ThreatQueueItem> {
                                   const SizedBox(width: 8),
                                   Text(
                                     widget.threat.detectionTime,
-                                    style: AppTextStyles.mono(size: 10, color: AppColors.textMuted),
+                                    style: AppTextStyles.mono(size: 10, color: c.textMuted),
                                   ),
                                 ],
                               ),
@@ -184,16 +187,17 @@ class _PlatformBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.bgTertiary,
-        border: Border.all(color: AppColors.borderDefault),
+        color: c.bgTertiary,
+        border: Border.all(color: c.borderDefault),
         borderRadius: BorderRadius.circular(2),
       ),
       child: Text(
         platform.toUpperCase(),
-        style: AppTextStyles.mono(size: 8, weight: FontWeight.w600, color: AppColors.textSecondary),
+        style: AppTextStyles.mono(size: 8, weight: FontWeight.w600, color: c.textSecondary),
       ),
     );
   }

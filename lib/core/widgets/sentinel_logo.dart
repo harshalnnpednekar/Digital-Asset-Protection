@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/app_theme_colors.dart';
 
 class SentinelLogo extends StatelessWidget {
   final bool isLarge;
@@ -9,7 +10,8 @@ class SentinelLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double mainFontSize = isLarge ? 28 : 18;
+    final c = context.colors;
+    final double mainFontSize = isLarge ? 28 : 14;
     final double subFontSize = isLarge ? 10 : 8;
 
     return Column(
@@ -34,7 +36,7 @@ class SentinelLogo extends StatelessWidget {
               style: AppTextStyles.mono(
                 size: mainFontSize,
                 weight: FontWeight.w700,
-                color: AppColors.accentBlue,
+                color: c.accentBlue,
                 letterSpacing: 2,
               ),
             ),
@@ -44,7 +46,7 @@ class SentinelLogo extends StatelessWidget {
           "MEDIA PROTECTION PLATFORM",
           style: AppTextStyles.mono(
             size: subFontSize,
-            color: AppColors.textMuted,
+            color: c.textMuted,
             letterSpacing: 3,
           ),
         ),

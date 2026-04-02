@@ -3,6 +3,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../core/config/demo_config.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/status_dot.dart';
@@ -54,6 +55,7 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final activeCount = _alerts.where((a) => a.status == 'ACTIVE').length;
     final reviewingCount = _alerts.where((a) => a.geminiIntent == 'REVIEWING' && a.status == 'ACTIVE').length;
     final dismissedCount = _alerts.where((a) => a.status == 'DISMISSED').length;
@@ -63,7 +65,7 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
         : null;
 
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: c.bgPrimary,
       body: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
@@ -85,18 +87,18 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
                     onTap: () {},
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.accentBlue),
+                        side: BorderSide(color: c.accentBlue),
                         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       ),
-                      onPressed: () {}, // Handled by ScaleButton
+                      onPressed: () {}, 
                       child: Row(
                         children: [
-                          Icon(PhosphorIcons.broadcast(), size: 14, color: AppColors.accentBlue),
+                          Icon(PhosphorIcons.broadcast(), size: 14, color: c.accentBlue),
                           const SizedBox(width: 6),
                           Text(
                             "SCAN NOW",
-                            style: AppTextStyles.mono(size: 11, weight: FontWeight.w700, color: AppColors.accentBlue, letterSpacing: 1),
+                            style: AppTextStyles.mono(size: 11, weight: FontWeight.w700, color: c.accentBlue, letterSpacing: 1),
                           ),
                         ],
                       ),
@@ -120,14 +122,14 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
                     flex: 35,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: AppColors.bgSecondary,
-                        border: Border.all(color: AppColors.borderDefault),
+                        color: c.bgSecondary,
+                        border: Border.all(color: c.borderDefault),
                       ),
                       child: Column(
                         children: [
                           _PanelHeader(
                             title: "THREAT QUEUE",
-                            trailing: Text("${_alerts.length} ITEMS", style: AppTextStyles.mono(size: 10, color: AppColors.textMuted)),
+                            trailing: Text("${_alerts.length} ITEMS", style: AppTextStyles.mono(size: 10, color: c.textMuted)),
                           ),
                           Expanded(
                             child: _isLoading 
@@ -143,11 +145,11 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Icon(PhosphorIcons.shieldCheck(), size: 40, color: AppColors.textMuted.withAlpha(51)),
+                                        Icon(PhosphorIcons.shieldCheck(), size: 40, color: c.textMuted.withAlpha(51)),
                                         const SizedBox(height: 12),
                                         Text(
                                           "NO ACTIVE THREATS",
-                                          style: AppTextStyles.mono(size: 12, weight: FontWeight.w600, color: AppColors.textMuted),
+                                          style: AppTextStyles.mono(size: 12, weight: FontWeight.w600, color: c.textMuted),
                                         ),
                                       ],
                                     ),
@@ -176,24 +178,24 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
                     flex: 65,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: AppColors.bgSecondary,
-                        border: Border.all(color: AppColors.borderDefault),
+                        color: c.bgSecondary,
+                        border: Border.all(color: c.borderDefault),
                       ),
                       child: selectedThreat == null
                           ? Center(
-                              child: Column(
+                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(PhosphorIcons.broadcast(), size: 64, color: AppColors.textMuted.withAlpha(77)),
+                                  Icon(PhosphorIcons.broadcast(), size: 64, color: c.textMuted.withAlpha(77)),
                                   const SizedBox(height: 16),
                                   Text(
                                     "SELECT A THREAT FROM THE QUEUE",
-                                    style: AppTextStyles.mono(size: 14, color: AppColors.textMuted, letterSpacing: 1),
+                                    style: AppTextStyles.mono(size: 14, color: c.textMuted, letterSpacing: 1),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     "Click any threat item to view full evidence and AI analysis",
-                                    style: AppTextStyles.sans(size: 13, color: AppColors.textMuted),
+                                    style: AppTextStyles.mono(size: 11, color: c.textMuted),
                                   ),
                                 ],
                               ),
@@ -251,17 +253,26 @@ class _ThreatStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       height: 40,
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: AppColors.bgTertiary,
-        border: Border.all(color: AppColors.borderDefault),
+        color: c.bgSecondary,
+        border: Border.all(color: c.borderDefault),
       ),
       child: Row(
         children: [
-          Text("THREAT INTELLIGENCE FEED", style: AppTextStyles.sectionLabel),
+          Text(
+            "THREAT INTELLIGENCE FEED", 
+            style: AppTextStyles.mono(
+              size: 11, 
+              weight: FontWeight.w600, 
+              color: c.textMuted, 
+              letterSpacing: 2.5,
+            ),
+          ),
           const Spacer(),
           Row(
             children: [
@@ -276,7 +287,7 @@ class _ThreatStatusBar extends StatelessWidget {
           const Spacer(),
           Text(
             "SCAN INTERVAL: 30s  //  THRESHOLD: 85%  //  ENGINE: CLIP + GEMINI 1.5",
-            style: AppTextStyles.mono(size: 10, color: AppColors.textMuted, letterSpacing: 0.5),
+            style: AppTextStyles.mono(size: 10, color: c.textMuted, letterSpacing: 0.5),
           ),
         ],
       ),
@@ -292,14 +303,23 @@ class _PanelHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.borderDefault)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: c.borderDefault)),
       ),
       child: Row(
         children: [
-          Text(title, style: AppTextStyles.sectionLabel),
+          Text(
+            title, 
+            style: AppTextStyles.mono(
+              size: 11, 
+              weight: FontWeight.w600, 
+              color: c.textMuted, 
+              letterSpacing: 2.5,
+            ),
+          ),
           const Spacer(),
           trailing,
         ],

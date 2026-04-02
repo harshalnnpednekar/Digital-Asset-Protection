@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../core/widgets/shimmer_box.dart';
 import 'dashboard_mock_data.dart';
 import 'dashboard_widgets.dart';
@@ -29,26 +30,35 @@ class _ThreatOriginPlatformsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.bgSurface,
-        border: Border.all(color: AppColors.borderDefault),
-      ),
+      decoration: c.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("THREAT ORIGIN PLATFORMS", style: AppTextStyles.sectionLabel),
+          Text(
+            "THREAT ORIGIN PLATFORMS", 
+            style: AppTextStyles.display(
+              size: 13, 
+              weight: FontWeight.w700, 
+              color: c.textMuted, 
+              letterSpacing: 1.2,
+            ),
+          ),
           const SizedBox(height: 16),
           if (loading)
             Column(
-              children: List.generate(4, (index) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: const ShimmerBox(height: 20, width: double.infinity),
-              )),
+              children: List.generate(
+                  4,
+                  (index) => const Padding(
+                        padding: EdgeInsets.only(bottom: 12),
+                        child: ShimmerBox(height: 20, width: double.infinity),
+                      )),
             )
           else
-            ...DashboardMockData.platformStats.map((stat) => _PlatformBar(stat: stat)).toList(),
+            ...DashboardMockData.platformStats
+                .map((stat) => _PlatformBar(stat: stat)),
         ],
       ),
     );
@@ -62,6 +72,7 @@ class _PlatformBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     Color barColor;
     switch (stat.platform) {
       case "X (Twitter)":
@@ -71,13 +82,13 @@ class _PlatformBar extends StatelessWidget {
         barColor = AppColors.accentAmber;
         break;
       case "YouTube":
-        barColor = AppColors.accentBlue;
+        barColor = c.accentBlue;
         break;
       case "Reddit":
         barColor = AppColors.accentPurple;
         break;
       default:
-        barColor = AppColors.textMuted;
+        barColor = c.textMuted;
     }
 
     return Padding(
@@ -88,7 +99,8 @@ class _PlatformBar extends StatelessWidget {
             width: 90,
             child: Text(
               stat.platform,
-              style: AppTextStyles.sans(size: 12, color: AppColors.textSecondary),
+              style:
+                  AppTextStyles.body(size: 13, weight: FontWeight.w600, color: c.textSecondary),
             ),
           ),
           const SizedBox(width: 8),
@@ -97,7 +109,7 @@ class _PlatformBar extends StatelessWidget {
               children: [
                 Container(
                   height: 6,
-                  color: AppColors.bgTertiary,
+                  color: c.bgTertiary,
                 ),
                 Animate(
                   effects: [
@@ -124,7 +136,7 @@ class _PlatformBar extends StatelessWidget {
             width: 36,
             child: Text(
               "${stat.percentage.toStringAsFixed(0)}%",
-              style: AppTextStyles.mono(size: 11, color: AppColors.textMuted),
+              style: AppTextStyles.display(size: 12, weight: FontWeight.w700, color: c.textMuted),
             ),
           ),
         ],
@@ -139,26 +151,35 @@ class _PatientZeroDetectionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.bgSurface,
-        border: Border.all(color: AppColors.borderDefault),
-      ),
+      decoration: c.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("PATIENT ZERO DETECTIONS", style: AppTextStyles.sectionLabel),
+          Text(
+            "PATIENT ZERO DETECTIONS", 
+            style: AppTextStyles.display(
+              size: 13, 
+              weight: FontWeight.w700, 
+              color: c.textMuted, 
+              letterSpacing: 1.2,
+            ),
+          ),
           const SizedBox(height: 16),
           if (loading)
             Column(
-              children: List.generate(3, (index) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: const ShimmerBox(height: 48, width: double.infinity),
-              )),
+              children: List.generate(
+                  3,
+                  (index) => const Padding(
+                        padding: EdgeInsets.only(bottom: 12),
+                        child: ShimmerBox(height: 48, width: double.infinity),
+                      )),
             )
           else
-            ...DashboardMockData.recentDetections.map((detection) => _DetectionRow(detection: detection)).toList(),
+            ...DashboardMockData.recentDetections
+                .map((detection) => _DetectionRow(detection: detection)),
         ],
       ),
     );
@@ -172,10 +193,12 @@ class _DetectionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.borderDefault, width: 1)),
+      decoration: BoxDecoration(
+        border: Border(
+            bottom: BorderSide(color: c.borderDefault, width: 1)),
       ),
       child: Row(
         children: [
@@ -191,16 +214,17 @@ class _DetectionRow extends StatelessWidget {
               children: [
                 Text(
                   detection.partnerName,
-                  style: AppTextStyles.sans(
-                    size: 12,
-                    weight: FontWeight.w500,
-                    color: AppColors.textPrimary,
+                  style: AppTextStyles.body(
+                    size: 13,
+                    weight: FontWeight.w700,
+                    color: c.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   detection.assetName,
-                  style: AppTextStyles.mono(size: 10, color: AppColors.textMuted),
+                  style:
+                      AppTextStyles.body(size: 11, color: c.textMuted, weight: FontWeight.w500),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
