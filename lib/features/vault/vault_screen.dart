@@ -214,7 +214,7 @@ class _VaultScreenState extends State<VaultScreen> {
                       crossAxisCount: crossAxisCount,
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
-                      childAspectRatio: 0.78,
+                      childAspectRatio: 0.88, // Increased from 0.78 for better vertical fit
                     ),
                     itemCount: 6,
                     itemBuilder: (context, index) => const ShimmerBox(height: 300, width: double.infinity),
@@ -257,7 +257,7 @@ class _VaultScreenState extends State<VaultScreen> {
                     crossAxisCount: crossAxisCount,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio: 0.78,
+                    childAspectRatio: 0.98, // Safe balance between compaction and overflow prevention
                   ),
                   itemCount: filteredAssets.length,
                   itemBuilder: (context, index) {

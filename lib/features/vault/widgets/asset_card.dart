@@ -157,7 +157,7 @@ class _AssetCardState extends State<AssetCard> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -177,8 +177,7 @@ class _AssetCardState extends State<AssetCard> {
                     widget.asset.fileSize,
                     style: AppTextStyles.mono(size: 10, color: c.textMuted),
                   ),
-                  
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   
                   // DISTRIBUTION TARGET
                   Container(
@@ -211,10 +210,9 @@ class _AssetCardState extends State<AssetCard> {
                       ],
                     ),
                   ),
-                  
-                  const SizedBox(height: 12),
-                  Divider(color: c.borderDefault, height: 1),
                   const SizedBox(height: 8),
+                  Divider(color: c.borderDefault, height: 1),
+                  const SizedBox(height: 4),
                   
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -222,10 +220,12 @@ class _AssetCardState extends State<AssetCard> {
                       _IconTextButton(
                         icon: PhosphorIcons.eye(),
                         label: "Details",
+                        assetName: widget.asset.name,
                       ),
                       _IconTextButton(
                         icon: PhosphorIcons.fileText(),
                         label: "DMCA",
+                        assetName: widget.asset.name,
                       ),
                     ],
                   ),
@@ -284,10 +284,12 @@ class _CardBadge extends StatelessWidget {
 class _IconTextButton extends StatefulWidget {
   final IconData icon;
   final String label;
+  final String assetName;
 
   const _IconTextButton({
     required this.icon,
     required this.label,
+    required this.assetName,
   });
 
   @override
@@ -303,7 +305,18 @@ class _IconTextButtonState extends State<_IconTextButton> {
     final color = _isHovered ? AppColors.accentAmber : c.textMuted;
 
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: c.bgSecondary,
+            content: Text(
+              "ACCESSING ${widget.label.toUpperCase()} FOR: ${widget.assetName}",
+              style: AppTextStyles.mono(size: 11, color: AppColors.accentAmber),
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
       onHover: (hovering) => setState(() => _isHovered = hovering),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),

@@ -1,118 +1,118 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_theme_colors.dart';
 
 class AstraLogo extends StatelessWidget {
-  final bool isLarge;
+  final double size;
+  final bool showText;
+  final bool isLight;
 
-  const AstraLogo({super.key, this.isLarge = false});
+  const AstraLogo({
+    super.key, 
+    this.size = 24, 
+    this.showText = true,
+    this.isLight = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final double mainFontSize = isLarge ? 32 : 16;
-    final double subFontSize = isLarge ? 11 : 8;
-    final double markSize = isLarge ? 48 : 24;
-
+    final color = isLight ? Colors.white : AppColors.accentAmber;
+    
     return Row(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // THE ASTRA MARK (Geometric A-Shield)
-        _AstraMark(size: markSize, color: AppColors.accentAmber),
-        SizedBox(width: isLarge ? 14 : 10),
-        Flexible(
-          child: Column(
+        SizedBox(
+          width: size,
+          height: size,
+          child: CustomPaint(
+            painter: _LogoPainter(fillColor: color),
+          ),
+        ),
+        if (showText) ...[
+          const SizedBox(width: 12),
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 "ASTRA",
                 style: AppTextStyles.display(
-                  size: mainFontSize,
-                  weight: FontWeight.w800,
-                  color: c.textPrimary,
-                  letterSpacing: 1.5,
+                  size: size * 0.95, // Massive scale for Hero prominence
+                  weight: FontWeight.w900,
+                  color: isLight ? Colors.white : c.textPrimary,
+                  letterSpacing: 2,
                 ),
               ),
               Text(
-                "MEDIA PROTECTION",
+                "MEDIA PROTECTION LTD",
                 style: AppTextStyles.display(
-                  size: subFontSize,
-                  weight: FontWeight.w600,
-                  color: c.textMuted,
-                  letterSpacing: 1.2,
+                  size: size * 0.28, // Boosted
+                  weight: FontWeight.w700,
+                  color: isLight ? Colors.white.withValues(alpha: 0.7) : c.textMuted,
+                  letterSpacing: 1,
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
-        ),
+        ],
       ],
     );
   }
 }
 
-class _AstraMark extends StatelessWidget {
-  final double size;
-  final Color color;
-
-  const _AstraMark({required this.size, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Outer Tactical Ring
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
-            ),
-          ),
-          // Geometric Triangle (The 'A' Core)
-          CustomPaint(
-            size: Size(size * 0.7, size * 0.7),
-            painter: _AstraPainter(color: color),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AstraPainter extends CustomPainter {
-  final Color color;
-  _AstraPainter({required this.color});
+class _LogoPainter extends CustomPainter {
+  final Color fillColor;
+  const _LogoPainter({required this.fillColor});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color..style = PaintingStyle.fill;
-    final borderPaint = Paint()..color = Colors.white.withValues(alpha: 0.5)..style = PaintingStyle.stroke..strokeWidth = 1.5;
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    final radius = size.width / 2;
 
+    final paint = Paint()
+      ..color = fillColor
+      ..style = PaintingStyle.fill;
+
+    // Draw Hexagon
     final path = Path();
-    // A-Shield Triangle
-    path.moveTo(size.width / 2, 0);
-    path.lineTo(size.width, size.height);
-    path.lineTo(size.width * 0.8, size.height);
-    path.lineTo(size.width / 2, size.height * 0.4);
-    path.lineTo(size.width * 0.2, size.height);
-    path.lineTo(0, size.height);
+    for (int i = 0; i < 6; i++) {
+      final angle = (i * 60 - 90) * math.pi / 180;
+      final x = centerX + radius * math.cos(angle);
+      final y = centerY + radius * math.sin(angle);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
     path.close();
-
     canvas.drawPath(path, paint);
-    canvas.drawPath(path, borderPaint);
 
-    // Tactical crossbar
-    final barRect = Rect.fromCenter(center: Offset(size.width / 2, size.height * 0.75), width: size.width * 0.4, height: 2);
-    canvas.drawRect(barRect, Paint()..color = Colors.white);
+    // Bullseye design
+    final bgPaint = Paint()
+      ..color = const Color(0xFF0A0C10)
+      ..style = PaintingStyle.fill;
+    
+    // Rings
+    canvas.drawCircle(Offset(centerX, centerY), radius * 0.7, bgPaint);
+    
+    final ringPaint = Paint()
+      ..color = fillColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.05;
+    
+    canvas.drawCircle(Offset(centerX, centerY), radius * 0.45, ringPaint);
+    
+    final corePaint = Paint()
+      ..color = fillColor
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(centerX, centerY), radius * 0.18, corePaint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

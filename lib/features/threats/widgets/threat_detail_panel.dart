@@ -257,8 +257,8 @@ class ThreatDetailPanel extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.accentCrimsonDim.withAlpha(c.isDark ? 255 : 50),
-                border: Border.all(color: AppColors.accentCrimson, width: 2),
+                color: c.bgTertiary,
+                border: Border.all(color: AppColors.accentCrimson, width: 1.5),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,18 +331,17 @@ class ThreatDetailPanel extends StatelessWidget {
                 Expanded(
                   child: ScaleButton(
                     onTap: () => onUpdateStatus('DISMISSED'),
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: c.borderDefault),
-                        shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.zero),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Container(
+                      height: 52,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: c.borderDefault),
+                        color: Colors.transparent,
                       ),
-                      onPressed: () {}, 
                       child: Text(
                         "DISMISS AS FAIR USE",
                         style: AppTextStyles.mono(
-                            size: 12,
+                            size: 11,
                             weight: FontWeight.w700,
                             color: c.textSecondary,
                             letterSpacing: 1),
@@ -354,19 +353,19 @@ class ThreatDetailPanel extends StatelessWidget {
                 Expanded(
                   child: ScaleButton(
                     onTap: () => _showDMCAConfirmation(context, threat, onUpdateStatus),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accentAmber,
-                        foregroundColor: AppColors.textOnAmber,
-                        elevation: 0,
-                        shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.zero),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Container(
+                      height: 52,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        color: AppColors.accentAmber,
                       ),
-                      onPressed: () {}, 
                       child: Text(
                         "GENERATE & SUBMIT DMCA  →",
-                        style: AppTextStyles.buttonLabel,
+                        style: AppTextStyles.mono(
+                            size: 11,
+                            weight: FontWeight.w700,
+                            color: AppColors.textOnAmber,
+                            letterSpacing: 1),
                       ),
                     ),
                   ),
@@ -416,14 +415,16 @@ class ThreatDetailPanel extends StatelessWidget {
                 children: [
                   ScaleButton(
                     onTap: () => Navigator.pop(context),
-                    child: OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: c.borderDefault),
-                        shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.zero),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: c.borderDefault),
+                        borderRadius: BorderRadius.zero,
                       ),
-                      child: Text("CANCEL", style: AppTextStyles.mono(size: 12, color: c.textPrimary, weight: FontWeight.w700)),
+                      child: Text(
+                        "CANCEL", 
+                        style: AppTextStyles.mono(size: 11, color: c.textPrimary, weight: FontWeight.w700, letterSpacing: 1)
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -432,14 +433,15 @@ class ThreatDetailPanel extends StatelessWidget {
                       Navigator.pop(context);
                       onUpdateStatus('DMCA_FILED');
                     },
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accentCrimson,
-                        shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.zero),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      decoration: const BoxDecoration(
+                        color: AppColors.accentCrimson,
                       ),
-                      child: Text("CONFIRM & FILE", style: AppTextStyles.mono(size: 12, color: Colors.white, weight: FontWeight.w700)),
+                      child: Text(
+                        "CONFIRM & FILE", 
+                        style: AppTextStyles.mono(size: 11, color: Colors.white, weight: FontWeight.w700, letterSpacing: 1)
+                      ),
                     ),
                   ),
                 ],

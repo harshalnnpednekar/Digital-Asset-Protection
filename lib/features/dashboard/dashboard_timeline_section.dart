@@ -24,11 +24,12 @@ class DashboardTimelineSection extends StatelessWidget {
             child: Row(
               children: [
                 Text(
-                  "Threat Activity", 
-                  style: AppTextStyles.display(
-                    size: 16, 
+                  "THREAT ACTIVITY", 
+                  style: AppTextStyles.mono(
+                    size: 13, 
                     weight: FontWeight.w700, 
-                    color: c.textPrimary,
+                    color: c.textMuted,
+                    letterSpacing: 1.5,
                   ),
                 ),
                 const Spacer(),

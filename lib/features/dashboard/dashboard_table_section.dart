@@ -18,11 +18,12 @@ class DashboardTableSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Source Identification",
-          style: AppTextStyles.display(
-            size: 16, 
+          "SOURCE IDENTIFICATION",
+          style: AppTextStyles.mono(
+            size: 13, 
             weight: FontWeight.w700, 
-            color: c.textPrimary,
+            color: c.textMuted,
+            letterSpacing: 1.5,
           ),
         ),
         const SizedBox(height: 12),
@@ -65,7 +66,7 @@ class _TableHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.colors;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
       decoration: BoxDecoration(
         color: c.bgSecondary,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
@@ -82,7 +83,7 @@ class _TableHeader extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 3,
+            flex: 4,
             child: Text(
               "IDENTIFIED SOURCE",
               style: AppTextStyles.display(
@@ -90,7 +91,7 @@ class _TableHeader extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 2,
+            flex: 5, // Ample space for Vector chips
             child: Text(
               "VECTOR",
               style: AppTextStyles.display(
@@ -98,7 +99,7 @@ class _TableHeader extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 2,
+            flex: 5, // Ample space for Time
             child: Text(
               "DETECTION TIME",
               style: AppTextStyles.display(
@@ -156,7 +157,7 @@ class _TableRowState extends State<_TableRow> {
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         decoration: BoxDecoration(
           color: _isHovered ? c.bgTertiary : Colors.transparent,
           border: Border(
@@ -171,7 +172,7 @@ class _TableRowState extends State<_TableRow> {
               flex: 4,
               child: Row(
                 children: [
-                  Icon(PhosphorIcons.monitor(), size: 16, color: c.textSecondary),
+                   Icon(PhosphorIcons.monitor(), size: 16, color: c.textSecondary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -184,7 +185,7 @@ class _TableRowState extends State<_TableRow> {
               ),
             ),
             Expanded(
-              flex: 3,
+              flex: 4,
               child: Row(
                 children: [
                   Icon(
@@ -205,25 +206,27 @@ class _TableRowState extends State<_TableRow> {
               ),
             ),
             Expanded(
-              flex: 2,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: c.bgPrimary,
-                  border: Border.all(color: c.borderDefault, width: 1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Center(
-                  child: Text(
-                    widget.record.platform.toUpperCase(),
-                    style: AppTextStyles.display(
-                        size: 9, color: c.textMuted, weight: FontWeight.w800, letterSpacing: 1),
+              flex: 5, // Match Header
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: c.bgPrimary,
+                      border: Border.all(color: c.borderDefault, width: 1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      widget.record.platform.toUpperCase(),
+                      style: AppTextStyles.display(
+                          size: 9, color: c.textMuted, weight: FontWeight.w800, letterSpacing: 1),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
             Expanded(
-              flex: 2,
+              flex: 5, // Match Header
               child: Text(
                 widget.record.timestamp,
                 style: AppTextStyles.mono(size: 11, color: c.textMuted, weight: FontWeight.w500),

@@ -38,64 +38,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: "GENERAL SETTINGS",
               subtitle: "Manage your organizational security posture and workspace configurations.",
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 24),
+            
+            // HORIZONTAL NAV
+            Container(
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: c.borderDefault)),
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(_categories.length, (index) {
+                    final cat = _categories[index];
+                    final isSelected = _activeCategory == index;
+                    return _HorizontalTabItem(
+                      title: cat['title'],
+                      icon: cat['icon'],
+                      isSelected: isSelected,
+                      onTap: () => setState(() => _activeCategory = index),
+                    );
+                  }),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 32),
+
+            // CONTENT AREA
             Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // SIDE NAV
-                  Container(
-                    width: 240,
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Column(
-                      children: List.generate(_categories.length, (index) {
-                        final cat = _categories[index];
-                        final isSelected = _activeCategory == index;
-                        return _SidebarItem(
-                          title: cat['title'],
-                          icon: cat['icon'],
-                          isSelected: isSelected,
-                          onTap: () => setState(() => _activeCategory = index),
-                        );
-                      }),
-                    ),
-                  ),
-
-                  const SizedBox(width: 48),
-
-                  // CONTENT AREA
-                  Expanded(
-                    child: Container(
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        color: c.bgSecondary,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: c.borderDefault),
-                        boxShadow: !c.isDark
-                            ? [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.03),
-                                  blurRadius: 30,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ]
-                            : [],
-                      ),
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.all(40),
-                              physics: const BouncingScrollPhysics(),
-                              child: _buildActiveCategory(c),
-                            ),
-                          ),
-                          _SaveBar(c: c),
-                        ],
+              child: Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: c.bgSecondary,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: c.borderDefault),
+                ),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(40),
+                        physics: const BouncingScrollPhysics(),
+                        child: _buildActiveCategory(c),
                       ),
                     ),
-                  ),
-                ],
+                    _SaveBar(c: c),
+                  ],
+                ),
               ),
             ),
           ],
@@ -133,13 +122,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
-class _SidebarItem extends StatelessWidget {
+class _HorizontalTabItem extends StatelessWidget {
   final String title;
   final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _SidebarItem({
+  const _HorizontalTabItem({
     required this.title,
     required this.icon,
     required this.isSelected,
@@ -149,37 +138,37 @@ class _SidebarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: ScaleButton(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? c.accentBlue.withValues(alpha: c.isDark ? 0.15 : 0.08)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isSelected
-                  ? c.accentBlue.withValues(alpha: 0.3)
-                  : Colors.transparent,
+    return ScaleButton(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? AppColors.accentAmber : Colors.transparent,
+              width: 2,
             ),
           ),
-          child: Row(
-            children: [
-              Icon(icon,
-                  size: 18, color: isSelected ? c.accentBlue : c.textMuted),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: AppTextStyles.navLabel.copyWith(
-                  color: isSelected ? c.textPrimary : c.textMuted,
-                  letterSpacing: 0.5,
-                ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected ? AppColors.accentAmber : c.textMuted,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              title.toUpperCase(),
+              style: AppTextStyles.mono(
+                size: 11,
+                weight: FontWeight.w700,
+                color: isSelected ? c.textPrimary : c.textMuted,
+                letterSpacing: 1,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -475,42 +464,80 @@ class _SettingsDropdown extends StatelessWidget {
   }
 }
 
-class _SaveBar extends StatelessWidget {
+class _SaveBar extends StatefulWidget {
   final AppThemeColors c;
   const _SaveBar({required this.c});
+
+  @override
+  State<_SaveBar> createState() => _SaveBarState();
+}
+
+class _SaveBarState extends State<_SaveBar> {
+  bool _isSaving = false;
+
+  void _handleSave() async {
+    setState(() => _isSaving = true);
+    await Future.delayed(const Duration(milliseconds: 1200));
+    if (mounted) {
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("SYSTEM CONFIGURATION UPDATED", 
+            style: AppTextStyles.mono(size: 12, color: Colors.white, weight: FontWeight.w700)),
+          backgroundColor: AppColors.accentGreen,
+          behavior: SnackBarBehavior.floating,
+          width: 400,
+        ),
+      );
+    }
+  }
+
+  void _handleReset() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("PARAMETERS REVERTED TO DEFAULT", 
+          style: AppTextStyles.mono(size: 12, color: Colors.white, weight: FontWeight.w700)),
+        backgroundColor: widget.c.textMuted,
+        behavior: SnackBarBehavior.floating,
+        width: 400,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       decoration: BoxDecoration(
-        color: c.bgPrimary.withValues(alpha: 0.3),
-        border: Border(top: BorderSide(color: c.borderDefault)),
+        color: widget.c.bgPrimary.withValues(alpha: 0.3),
+        border: Border(top: BorderSide(color: widget.c.borderDefault)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           TextButton(
-            onPressed: () {},
+            onPressed: _isSaving ? null : _handleReset,
             child: Text("Reset to default",
-                style: AppTextStyles.buttonLabel.copyWith(color: c.textMuted)),
+                style: AppTextStyles.buttonLabel.copyWith(color: widget.c.textMuted)),
           ),
           const SizedBox(width: 16),
           ScaleButton(
-            onTap: () {},
+            onTap: _isSaving ? null : _handleSave,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: c.accentBlue,
+                backgroundColor: widget.c.accentBlue,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8)),
                 elevation: 0,
               ),
-              onPressed: () {},
-              child: Text("Save Changes",
-                  style:
-                      AppTextStyles.buttonLabel.copyWith(color: Colors.white)),
+              onPressed: _isSaving ? null : _handleSave,
+              child: _isSaving 
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : Text("Save Changes",
+                    style:
+                        AppTextStyles.buttonLabel.copyWith(color: Colors.white)),
             ),
           ),
         ],

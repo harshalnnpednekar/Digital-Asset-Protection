@@ -197,11 +197,15 @@ class AppShell extends ConsumerWidget {
       color: c.bgSecondary,
       child: Column(
         children: [
-           Padding(
-            padding: EdgeInsets.symmetric(vertical: 24, horizontal: isCollapsed ? 0 : 20),
-            child: isCollapsed 
-              ? Text("A", style: AppTextStyles.display(size: 24, weight: FontWeight.w800, color: AppColors.accentAmber))
-              : const AstraLogo(),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: isCollapsed ? 24 : 32,
+              horizontal: isCollapsed ? 0 : 16,
+            ),
+            child: AstraLogo(
+              size: isCollapsed ? 28 : 36,
+              showText: !isCollapsed,
+            ),
           ),
           const SizedBox(height: 12),
           Divider(color: c.borderDefault, height: 1),
@@ -214,7 +218,7 @@ class AppShell extends ConsumerWidget {
                 _NavItem(icon: PhosphorIcons.chartBar(), label: "Dashboard", route: '/dashboard', isCollapsed: isCollapsed),
                 _NavItem(icon: PhosphorIcons.shieldCheck(), label: "Asset Vault", route: '/vault', isCollapsed: isCollapsed),
                 _NavItem(icon: PhosphorIcons.waveform(), label: "Threat Radar", route: '/threats', isCollapsed: isCollapsed),
-                _NavItem(icon: PhosphorIcons.gitBranch(), label: "Contagion Map", route: '/contagion', isCollapsed: isCollapsed),
+                _NavItem(icon: PhosphorIcons.treeStructure(), label: "Propagation Flow", route: '/contagion', isCollapsed: isCollapsed),
               ],
             ),
           ),
@@ -224,16 +228,12 @@ class AppShell extends ConsumerWidget {
             padding: EdgeInsets.all(isCollapsed ? 8 : 16.0),
             child: Column(
               children: [
-                if (!isCollapsed) ...[
-                  const ThemeToggleButton(compact: false),
-                  const SizedBox(height: 12),
-                ],
                 Divider(color: c.borderDefault, height: 1),
                 const SizedBox(height: 12),
                 _NavItem(icon: PhosphorIcons.gear(), label: "Settings", route: '/settings', isCollapsed: isCollapsed),
                 const SizedBox(height: 16),
                 if (!isCollapsed)
-                  Row(
+                   Row(
                     children: [
                       CircleAvatar(
                         radius: 18,
@@ -246,7 +246,6 @@ class AppShell extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text("Admin User", style: AppTextStyles.body(size: 13, weight: FontWeight.w600, color: c.textPrimary)),
-                            Text("admin@astra.security", style: AppTextStyles.body(size: 11, color: c.textMuted), overflow: TextOverflow.ellipsis),
                           ],
                         ),
                       ),
@@ -261,7 +260,6 @@ class AppShell extends ConsumerWidget {
                     ],
                   )
                 else ...[
-                  const ThemeToggleButton(compact: true),
                   const SizedBox(height: 8),
                   IconButton(
                     icon: Icon(PhosphorIcons.signOut(), size: 20),

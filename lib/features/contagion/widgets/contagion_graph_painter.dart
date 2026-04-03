@@ -1,19 +1,16 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme_colors.dart';
 import '../contagion_mock_data.dart';
 
-class ContagionGraphPainter extends CustomPainter {
+class PropagationFlowPainter extends CustomPainter {
   final List<ContagionNode> nodes;
   final String? selectedNodeId;
   final double animationValue;
   final AppThemeColors colors;
-  
-  // Callback to return calculated positions to the parent for tap detection
   final Function(Map<String, Offset>)? onPositionsCalculated;
 
-  ContagionGraphPainter({
+  PropagationFlowPainter({
     required this.nodes,
     this.selectedNodeId,
     required this.animationValue,
@@ -23,40 +20,35 @@ class ContagionGraphPainter extends CustomPainter {
 
   final Map<String, Offset> nodePositions = {};
 
+  // STAGE DEFINITIONS (Linear Forensics)
+  // S1: SOURCE (Origin Core)
+  // S2: VECTOR (Extraction point)
+  // S3: HUB (Primary distribution node)
+  // S4: ENDPOINTS (Marketplaces/Platforms)
+  
   void _calculatePositions(Size size) {
     nodePositions.clear();
-
     final double w = size.width;
     final double h = size.height;
 
-    // ROOT
-    nodePositions["N0"] = Offset(w / 2, h * 0.12);
+    // S1: SOURCE (Left center)
+    nodePositions["N0"] = Offset(w * 0.12, h * 0.5);
 
-    // TIER 1
-    nodePositions["N1"] = Offset(w * 0.18, h * 0.35);
-    nodePositions["N2"] = Offset(w * 0.50, h * 0.35);
-    nodePositions["N3"] = Offset(w * 0.82, h * 0.35);
+    // S2: VECTOR (Step 2)
+    nodePositions["N1"] = Offset(w * 0.35, h * 0.25);
+    nodePositions["N2"] = Offset(w * 0.35, h * 0.50);
+    nodePositions["N3"] = Offset(w * 0.35, h * 0.75);
 
-    // TIER 2
-    nodePositions["N4"] = Offset(w * 0.08, h * 0.60);
-    nodePositions["N5"] = Offset(w * 0.22, h * 0.60);
-    nodePositions["N6"] = Offset(w * 0.40, h * 0.60);
-    nodePositions["N7"] = Offset(w * 0.58, h * 0.60);
-    nodePositions["N8"] = Offset(w * 0.74, h * 0.60);
-    nodePositions["N9"] = Offset(w * 0.90, h * 0.60);
+    // S3: HUB (Step 3)
+    nodePositions["N4"] = Offset(w * 0.60, h * 0.35);
+    nodePositions["N5"] = Offset(w * 0.60, h * 0.65);
+    
+    // S4: ENDPOINTS (Step 4)
+    final double step4X = w * 0.88;
+    for (int i = 6; i <= 17; i++) {
+       nodePositions["N$i"] = Offset(step4X, h * (0.08 + (i - 6) * 0.08));
+    }
 
-    // TIER 3
-    nodePositions["N10"] = Offset(w * 0.04, h * 0.85);
-    nodePositions["N11"] = Offset(w * 0.13, h * 0.85);
-    nodePositions["N12"] = Offset(w * 0.25, h * 0.85);
-    nodePositions["N13"] = Offset(w * 0.38, h * 0.85);
-    nodePositions["N14"] = Offset(w * 0.50, h * 0.85);
-    nodePositions["N15"] = Offset(w * 0.66, h * 0.85);
-    nodePositions["N16"] = Offset(w * 0.80, h * 0.85);
-    nodePositions["N17"] = Offset(w * 0.94, h * 0.85);
-
-    // Notify parent if needed (using postFrameCallback or similar mechanism usually, 
-    // but here we just need them for hit testing in the GestureDetector)
     if (onPositionsCalculated != null) {
       onPositionsCalculated!(Map.from(nodePositions));
     }
@@ -65,150 +57,128 @@ class ContagionGraphPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     _calculatePositions(size);
+    _drawForegroundGrid(canvas, size);
 
-    _drawDotGrid(canvas, size);
-
-    // 1. Draw Edges (Background)
+    // 1. Draw Forensic Connections (Orthogonal)
     for (final node in nodes) {
       if (node.parentId != null && nodePositions.containsKey(node.parentId)) {
-        _drawEdge(canvas, nodePositions[node.parentId]!, nodePositions[node.id]!, node.tier);
+        _drawOrthogonalEdge(canvas, nodePositions[node.parentId]!, nodePositions[node.id]!, node.tier);
       }
     }
 
-    // 2. Draw Moving Pulses (Flow)
+    // 2. Draw Forensic Data Nodes
     for (final node in nodes) {
-      if (node.parentId != null && nodePositions.containsKey(node.parentId)) {
-        _drawPulse(canvas, nodePositions[node.parentId]!, nodePositions[node.id]!, node.tier);
-      }
-    }
-
-    // 3. Draw Nodes (Top Layer)
-    for (final node in nodes) {
-      _drawNode(canvas, nodePositions[node.id]!, node);
+      _drawStageNode(canvas, nodePositions[node.id]!, node);
     }
   }
 
-  void _drawDotGrid(Canvas canvas, Size size) {
+  void _drawForegroundGrid(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = colors.textMuted.withValues(alpha: 0.05)
-      ..strokeWidth = 1;
+      ..color = colors.textMuted.withValues(alpha: 0.1)
+      ..strokeWidth = 0.5;
     
-    const spacing = 40.0;
+    const spacing = 100.0;
     for (double x = 0; x < size.width; x += spacing) {
-      for (double y = 0; y < size.height; y += spacing) {
-        canvas.drawCircle(Offset(x, y), 0.5, paint);
-      }
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += spacing) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
   }
 
-  void _drawEdge(Canvas canvas, Offset start, Offset end, String tier) {
+  void _drawOrthogonalEdge(Canvas canvas, Offset start, Offset end, String tier) {
     final path = Path()..moveTo(start.dx, start.dy);
-    final cp1 = Offset(start.dx, start.dy + (end.dy - start.dy) * 0.4);
-    final cp2 = Offset(end.dx, start.dy + (end.dy - start.dy) * 0.6);
-    path.cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, end.dx, end.dy);
+    
+    // Linear orthogonal connection
+    final midX = start.dx + (end.dx - start.dx) / 2;
+    path.lineTo(midX, start.dy);
+    path.lineTo(midX, end.dy);
+    path.lineTo(end.dx, end.dy);
 
-    final color = _getTierColor(tier).withValues(alpha: 0.25);
+    final color = _getTierColor(tier).withValues(alpha: 0.4);
     canvas.drawPath(path, Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = (tier == "T1" ? 2.5 : 1.5));
+      ..strokeWidth = 1.0);
+      
+    // Signal Pulse along Orthogonal Path
+    _drawSignalPulse(canvas, start, midX, end, tier);
   }
 
-  void _drawPulse(Canvas canvas, Offset start, Offset end, String tier) {
-    final path = Path()..moveTo(start.dx, start.dy);
-    final cp1 = Offset(start.dx, start.dy + (end.dy - start.dy) * 0.4);
-    final cp2 = Offset(end.dx, start.dy + (end.dy - start.dy) * 0.6);
-    path.cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, end.dx, end.dy);
+  void _drawSignalPulse(Canvas canvas, Offset start, double midX, Offset end, String tier) {
+     final totalLen = (midX - start.dx).abs() + (end.dy - start.dy).abs() + (end.dx - midX).abs();
+     final d1 = (midX - start.dx).abs();
+     final d2 = (end.dy - start.dy).abs();
+     
+     final travel = totalLen * animationValue;
+     Offset pos;
+     
+     if (travel < d1) {
+       pos = Offset(start.dx + travel, start.dy);
+     } else if (travel < d1 + d2) {
+       pos = Offset(midX, start.dy + (travel - d1) * (end.dy > start.dy ? 1 : -1));
+     } else {
+       pos = Offset(midX + (travel - d1 - d2), end.dy);
+     }
 
-    final metrics = path.computeMetrics();
-    if (metrics.isEmpty) return;
-    final metric = metrics.first;
-    
-    // Draw two pulses for continuity
-    _drawPulseAt(canvas, metric, animationValue, tier);
-    _drawPulseAt(canvas, metric, (animationValue + 0.5) % 1.0, tier);
+     final color = _getTierColor(tier);
+     canvas.drawCircle(pos, 3, Paint()..color = color);
+     canvas.drawCircle(pos, 6, Paint()..color = color.withValues(alpha: 0.2));
   }
 
-  void _drawPulseAt(Canvas canvas, PathMetric metric, double val, String tier) {
-    final tangent = metric.getTangentForOffset(metric.length * val);
-    if (tangent == null) return;
-
-    final color = _getTierColor(tier);
-    canvas.drawCircle(tangent.position, 3.5, Paint()..color = color);
-    canvas.drawCircle(tangent.position, 8, Paint()..color = color.withValues(alpha: 0.15));
-  }
-
-  void _drawNode(Canvas canvas, Offset pos, ContagionNode node) {
+  void _drawStageNode(Canvas canvas, Offset pos, ContagionNode node) {
     final isSelected = node.id == selectedNodeId;
-    final isRoot = node.tier == "ROOT";
     final nodeColor = _getTierColor(node.tier);
-    final radius = isRoot ? 24.0 : (node.tier == "T1" ? 18.0 : 14.0);
-
-    // 1. Glow effect
-    canvas.drawCircle(pos, radius * 2, Paint()
-      ..shader = RadialGradient(
-        colors: [nodeColor.withValues(alpha: 0.2), Colors.transparent],
-      ).createShader(Rect.fromCircle(center: pos, radius: radius * 2)));
-
-    // 2. Selection indicator
-    if (isSelected) {
-      canvas.drawCircle(pos, radius + 10, Paint()
-        ..color = AppColors.accentAmber
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2);
-    }
-
-    // 3. Main Node Circle
-    canvas.drawCircle(pos, radius, Paint()..color = colors.bgPrimary);
-    canvas.drawCircle(pos, radius, Paint()
-      ..color = nodeColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3);
+    final bool isEndpoint = node.tier == "T2";
     
-    // Core solid dot for root and T1
-    if (isRoot || node.tier == "T1") {
-       canvas.drawCircle(pos, radius * 0.4, Paint()..color = nodeColor);
+    final width = isEndpoint ? 90.0 : 110.0;
+    final height = isEndpoint ? 24.0 : 36.0;
+    
+    final rect = Rect.fromCenter(center: pos, width: width, height: height);
+    // Corporate sharp edges
+
+    // Selection Glow
+    if (isSelected) {
+      canvas.drawRect(rect.inflate(4), Paint()..color = AppColors.accentAmber.withValues(alpha: 0.15));
+      canvas.drawRect(rect.inflate(1), Paint()..color = AppColors.accentAmber..style = PaintingStyle.stroke..strokeWidth = 2);
     }
 
-    // 4. FORENSIC LABELS (The "Info" requested)
-    _drawLabels(canvas, pos, radius, node, nodeColor);
+    // Node Body
+    canvas.drawRect(rect, Paint()..color = colors.bgPrimary);
+    canvas.drawRect(rect, Paint()
+      ..color = nodeColor.withValues(alpha: 0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1);
+
+    // Left Accent Bar
+    canvas.drawRect(Rect.fromLTWH(rect.left, rect.top, 3, rect.height), Paint()..color = nodeColor);
+
+    // Node Details
+    _drawForensicData(canvas, rect, node, nodeColor, isEndpoint);
   }
 
-  void _drawLabels(Canvas canvas, Offset pos, double radius, ContagionNode node, Color nodeColor) {
-    // A. PLATFORM BADGE
-    final platformTp = _createTextPainter(
-      node.platform.toUpperCase(),
-      fontSize: 9,
-      fontWeight: FontWeight.w900,
-      color: colors.bgPrimary,
-    );
-    
-    final badgeWidth = platformTp.width + 12;
-    final badgeRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(center: Offset(pos.dx, pos.dy - radius - 12), width: badgeWidth, height: 16),
-      const Radius.circular(2),
-    );
-    canvas.drawRRect(badgeRect, Paint()..color = nodeColor);
-    platformTp.paint(canvas, Offset(pos.dx - platformTp.width / 2, pos.dy - radius - 19));
-
-    // B. IP ADDRESS (Forensic ID)
-    final ipTp = _createTextPainter(
-      node.ipAddress,
-      fontSize: 10,
-      fontWeight: FontWeight.w700,
-      color: nodeColor,
+  void _drawForensicData(Canvas canvas, Rect rect, ContagionNode node, Color color, bool isEndpoint) {
+    // A. TITLE / ID
+    final titleTp = _createTextPainter(
+      isEndpoint ? node.platform.toUpperCase() : node.id.toUpperCase(),
+      fontSize: isEndpoint ? 8 : 9,
+      fontWeight: FontWeight.w800,
+      color: colors.textPrimary,
       isMono: true,
     );
-    ipTp.paint(canvas, Offset(pos.dx - ipTp.width / 2, pos.dy + radius + 8));
+    titleTp.paint(canvas, Offset(rect.left + 10, rect.top + (isEndpoint ? 7 : 8)));
 
-    // C. REACH/STRENGTH
-    final reachTp = _createTextPainter(
-      node.estimatedReach,
-      fontSize: 8,
-      fontWeight: FontWeight.w600,
-      color: colors.textMuted,
-    );
-    reachTp.paint(canvas, Offset(pos.dx - reachTp.width / 2, pos.dy + radius + 22));
+    if (!isEndpoint) {
+       // B. SUBTITLE (IP or Stage)
+      final subTp = _createTextPainter(
+        node.ipAddress,
+        fontSize: 7,
+        fontWeight: FontWeight.w600,
+        color: colors.textMuted,
+        isMono: true,
+      );
+      subTp.paint(canvas, Offset(rect.left + 10, rect.top + 20));
+    }
   }
 
   TextPainter _createTextPainter(String text, {
@@ -224,8 +194,8 @@ class ContagionGraphPainter extends CustomPainter {
           color: color,
           fontSize: fontSize,
           fontWeight: fontWeight,
-          fontFamily: isMono ? 'IBM Plex Mono' : 'Inter',
-          letterSpacing: 0.5,
+          fontFamily: isMono ? 'IBM Plex Mono' : 'Outfit',
+          letterSpacing: 1.0,
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -241,13 +211,12 @@ class ContagionGraphPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant ContagionGraphPainter oldDelegate) => true;
+  bool shouldRepaint(covariant PropagationFlowPainter oldDelegate) => true;
 
-  // Manual hit testing helper
   String? findNodeAt(Offset localPosition, Map<String, Offset> positions) {
     for (final entry in positions.entries) {
-      final dist = (localPosition - entry.value).distance;
-      if (dist < 35) return entry.key;
+      final rect = Rect.fromCenter(center: entry.value, width: 140, height: 50);
+      if (rect.contains(localPosition)) return entry.key;
     }
     return null;
   }

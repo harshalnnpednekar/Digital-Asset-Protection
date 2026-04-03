@@ -70,7 +70,7 @@ class JudgeGuideModal extends StatelessWidget {
                       icon: PhosphorIcons.sparkle(),
                       title: "The Value Proposition",
                       content:
-                          "Sentinel AI provides institutional-grade digital asset protection for sports media. We combine C2PA cryptographic manifests with invisible steganographic watermarking to ensure every frame of your content is authenticated and traceable, even after aggressive re-distribution.",
+                          "ASTRA provides institutional-grade digital asset protection for sports media. We combine C2PA cryptographic manifests with invisible steganographic watermarking to ensure every frame of your content is authenticated and traceable, even after aggressive re-distribution.",
                     ),
                     const SizedBox(height: 32),
                     _GuideSection(

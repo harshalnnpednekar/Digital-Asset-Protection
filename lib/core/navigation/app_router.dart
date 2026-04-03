@@ -6,6 +6,7 @@ import '../../features/vault/vault_screen.dart';
 import '../../features/threats/threats_screen.dart';
 import '../../features/contagion/contagion_screen.dart';
 import '../../features/settings/settings_screen.dart';
+import '../../features/landing/landing_screen.dart';
 import 'app_shell.dart';
 
 class AppRouter {
@@ -19,14 +20,24 @@ class AppRouter {
 
   static final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: '/login',
+    initialLocation: '/',
     redirect: (context, state) {
-      final isLoggingIn = state.uri.path == '/login';
-      if (!isAuthenticated && !isLoggingIn) return '/login';
-      if (isAuthenticated && isLoggingIn) return '/dashboard';
+      final path = state.uri.path;
+      final isPublic = path == '/' || path == '/login';
+      if (!isAuthenticated && !isPublic) return '/login';
+      if (isAuthenticated && path == '/login') return '/dashboard';
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const LandingScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      ),
       GoRoute(
         path: '/login',
         pageBuilder: (context, state) => CustomTransitionPage(
@@ -71,7 +82,7 @@ class AppRouter {
             path: '/contagion',
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
-              child: const ContagionScreen(),
+              child: const PropagationFlowScreen(),
               transitionsBuilder: (context, animation, secondaryAnimation, child) =>
                   FadeTransition(opacity: animation, child: child),
             ),

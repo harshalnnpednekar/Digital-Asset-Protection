@@ -109,9 +109,6 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
             ),
 
             const SizedBox(height: 16),
-            const _ThreatStatusBar(),
-            const SizedBox(height: 16),
-
             // MAIN PANELS
             Expanded(
               child: Row(
@@ -248,52 +245,6 @@ class _StatusCountChip extends StatelessWidget {
   }
 }
 
-class _ThreatStatusBar extends StatelessWidget {
-  const _ThreatStatusBar();
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
-    return Container(
-      height: 40,
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: c.bgSecondary,
-        border: Border.all(color: c.borderDefault),
-      ),
-      child: Row(
-        children: [
-          Text(
-            "THREAT INTELLIGENCE FEED", 
-            style: AppTextStyles.mono(
-              size: 11, 
-              weight: FontWeight.w600, 
-              color: c.textMuted, 
-              letterSpacing: 2.5,
-            ),
-          ),
-          const Spacer(),
-          Row(
-            children: [
-              const StatusDot(color: AppColors.accentGreen, size: 6),
-              const SizedBox(width: 6),
-              Text(
-                "LIVE — Last scan completed 14 seconds ago",
-                style: AppTextStyles.mono(size: 10, color: AppColors.accentGreen, letterSpacing: 0.5),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Text(
-            "SCAN INTERVAL: 30s  //  THRESHOLD: 85%  //  ENGINE: CLIP + GEMINI 1.5",
-            style: AppTextStyles.mono(size: 10, color: c.textMuted, letterSpacing: 0.5),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _PanelHeader extends StatelessWidget {
   final String title;

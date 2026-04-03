@@ -39,11 +39,11 @@ class _ThreatOriginPlatformsCard extends StatelessWidget {
         children: [
           Text(
             "THREAT ORIGIN PLATFORMS", 
-            style: AppTextStyles.display(
+            style: AppTextStyles.mono(
               size: 13, 
               weight: FontWeight.w700, 
               color: c.textMuted, 
-              letterSpacing: 1.2,
+              letterSpacing: 1.5,
             ),
           ),
           const SizedBox(height: 16),
@@ -159,12 +159,12 @@ class _PatientZeroDetectionsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "PATIENT ZERO DETECTIONS", 
-            style: AppTextStyles.display(
+            "ORIGIN SOURCE DETECTIONS", 
+            style: AppTextStyles.mono(
               size: 13, 
               weight: FontWeight.w700, 
               color: c.textMuted, 
-              letterSpacing: 1.2,
+              letterSpacing: 1.5,
             ),
           ),
           const SizedBox(height: 16),

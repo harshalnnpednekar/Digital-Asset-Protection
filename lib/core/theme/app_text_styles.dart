@@ -13,6 +13,7 @@ class AppTextStyles {
     double? height,
     FontStyle? fontStyle,
     List<Shadow>? shadows,
+    TextDecoration? decoration,
   }) => GoogleFonts.outfit(
     fontSize: size,
     fontWeight: weight,
@@ -21,6 +22,7 @@ class AppTextStyles {
     height: height,
     fontStyle: fontStyle,
     shadows: shadows,
+    decoration: decoration,
   );
 
   // INTER — For UI labels, body text, and general navigation
@@ -32,6 +34,7 @@ class AppTextStyles {
     double? height,
     FontStyle? fontStyle,
     List<Shadow>? shadows,
+    TextDecoration? decoration,
   }) => GoogleFonts.inter(
     fontSize: size,
     fontWeight: weight,
@@ -40,6 +43,7 @@ class AppTextStyles {
     height: height,
     fontStyle: fontStyle,
     shadows: shadows,
+    decoration: decoration,
   );
 
   // Corporate Mono/Technical — Consistently using Inter/Outfit for all UI
@@ -51,6 +55,7 @@ class AppTextStyles {
     double? height,
     FontStyle? fontStyle,
     List<Shadow>? shadows,
+    TextDecoration? decoration,
   }) => GoogleFonts.inter(
     fontSize: size,
     fontWeight: weight,
@@ -59,6 +64,7 @@ class AppTextStyles {
     height: height,
     fontStyle: fontStyle,
     shadows: shadows,
+    decoration: decoration,
   );
 
   // New Standardized Styles

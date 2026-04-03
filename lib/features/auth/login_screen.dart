@@ -1,9 +1,9 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_text_styles.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/widgets/astra_logo.dart';
 import '../../core/navigation/app_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme_colors.dart';
@@ -105,27 +105,10 @@ class _LeftPanel extends StatelessWidget {
         // RELOCATED BRANDING
         Padding(
           padding: const EdgeInsets.fromLTRB(48, 48, 48, 0),
-          child: Row(
-            children: [
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CustomPaint(
-                  painter: _MiniShieldPainter(coreColor: AppColors.accentAmber),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                "ASTRA",
-                style: AppTextStyles.display(
-                  size: 16,
-                  weight: FontWeight.w800,
-                  color: c.textPrimary,
-                  letterSpacing: 4,
-                ),
-              ),
-            ],
-          ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.1, end: 0),
+          child: const AstraLogo(size: 24)
+              .animate()
+              .fadeIn(duration: 400.ms)
+              .slideX(begin: -0.1, end: 0),
         ),
 
         // MAIN CONTENT
@@ -152,7 +135,7 @@ class _LeftPanel extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "ZERO\nTRUST.",
+                            "ZERO\nTRUST",
                             style: AppTextStyles.display(
                               size: availableHeight < 700 ? 56 : 80,
                               weight: FontWeight.w900,
@@ -175,7 +158,7 @@ class _LeftPanel extends StatelessWidget {
                               .slideX(begin: -0.05, end: 0),
                           const SizedBox(height: 8),
                           Text(
-                            "TOTAL\nCUSTODY.",
+                            "TOTAL\nCUSTODY",
                             style: AppTextStyles.display(
                               size: availableHeight < 700 ? 56 : 80,
                               weight: FontWeight.w900,
@@ -274,6 +257,15 @@ class _RightPanel extends StatelessWidget {
 
           Column(
             children: [
+              // ZONE A: HEADER BAR
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                child: Row(
+                  children: [
+                    _HomeLink(),
+                  ],
+                ),
+              ),
               Expanded(
                 child: Center(
                   child: SingleChildScrollView(
@@ -335,7 +327,7 @@ class _RightPanel extends StatelessWidget {
                               ),
                               const SizedBox(height: 24),
                               Text(
-                                "Restricted to verified organizational identities. Secure connection active.",
+                                "Restricted to verified organizational identities Secure connection active",
                                 style: AppTextStyles.body(
                                   size: 14,
                                   color: c.textSecondary,
@@ -343,9 +335,13 @@ class _RightPanel extends StatelessWidget {
                                 ),
                               ),
                               SizedBox(height: availableHeight < 600 ? 32 : 48),
-                              const _FormLabel(label: "IDENTITY", color: AppColors.accentAmber),
-                              const SizedBox(height: 8),
-                              const _StyledTextField(hint: "admin@organization.com"),
+                                const _FormLabel(label: "ORGANIZATION ID", color: AppColors.accentAmber),
+                                const SizedBox(height: 8),
+                                const _StyledTextField(hint: "e.g. SENTINEL-01"),
+                                const SizedBox(height: 24),
+                                const _FormLabel(label: "IDENTITY", color: AppColors.accentAmber),
+                                const SizedBox(height: 8),
+                                const _StyledTextField(hint: "admin@organization.com"),
                               const SizedBox(height: 24),
                               const _FormLabel(label: "CREDENTIAL", color: AppColors.accentAmber),
                               const SizedBox(height: 8),
@@ -358,17 +354,37 @@ class _RightPanel extends StatelessWidget {
                               const SizedBox(height: 32),
                               const _AuthButton(),
                               const SizedBox(height: 24),
-                              const _SecurityStatusBar(),
-                              const SizedBox(height: 32),
-                              Text(
-                                "SYSTEM NOTICE: Unauthorized access is a violation of organizational policy. All terminal sessions are encrypted and logged.",
-                                style: AppTextStyles.body(
-                                  size: 12,
-                                  color: c.textMuted,
-                                  height: 1.5,
-                                  weight: FontWeight.w500,
+                                const _SecurityStatusBar(),
+                                const SizedBox(height: 24),
+                                Center(
+                                  child: OutlinedButton(
+                                    onPressed: () => _showSignUpDialog(context),
+                                    style: OutlinedButton.styleFrom(
+                                      side: BorderSide(color: c.borderDefault),
+                                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                    ),
+                                    child: Text(
+                                      "REGISTER YOUR ORGANIZATION",
+                                      style: AppTextStyles.display(
+                                        size: 11,
+                                        weight: FontWeight.w700,
+                                        color: c.textSecondary,
+                                        letterSpacing: 1.5,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              const SizedBox(height: 32),
+                                Text(
+                                  "SYSTEM NOTICE: Unauthorized access is a violation of organizational policy All terminal sessions are encrypted and logged",
+                                  style: AppTextStyles.body(
+                                    size: 12,
+                                    color: c.textMuted,
+                                    height: 1.5,
+                                    weight: FontWeight.w500,
+                                  ),
+                                ),
                             ],
                           ),
                         ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.05, end: 0),
@@ -410,27 +426,7 @@ class _MobileView extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CustomPaint(
-                          painter: _MiniShieldPainter(coreColor: AppColors.accentAmber),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        "ASTRA",
-                        style: AppTextStyles.display(
-                          size: 14,
-                          weight: FontWeight.w800,
-                          color: c.textPrimary,
-                          letterSpacing: 4,
-                        ),
-                      ),
-                    ],
-                  ),
+                  const AstraLogo(size: 20),
                   const SizedBox(height: 12),
                   Text(
                     "ADMIN TERMINAL",
@@ -442,13 +438,11 @@ class _MobileView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  const _FormLabel(
-                      label: "IDENTITY", color: AppColors.accentAmber),
+                  const _FormLabel(label: "IDENTITY", color: AppColors.accentAmber),
                   const SizedBox(height: 8),
                   const _StyledTextField(hint: "admin@organization.com"),
                   const SizedBox(height: 20),
-                  const _FormLabel(
-                      label: "CREDENTIAL", color: AppColors.accentAmber),
+                  const _FormLabel(label: "CREDENTIAL", color: AppColors.accentAmber),
                   const SizedBox(height: 8),
                   _StyledTextField(
                     hint: "••••••••••••",
@@ -470,52 +464,7 @@ class _MobileView extends StatelessWidget {
   }
 }
 
-class _MiniShieldPainter extends CustomPainter {
-  final Color coreColor;
-  const _MiniShieldPainter({required this.coreColor});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF0A0C10)
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-    final centerX = size.width / 2;
-    final centerY = size.height / 2;
-    final radius = size.width / 2;
-
-    // Draw Hexagon
-    for (int i = 0; i < 6; i++) {
-      final angle = (i * 60 - 90) * math.pi / 180;
-      final x = centerX + radius * math.cos(angle);
-      final y = centerY + radius * math.sin(angle);
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    path.close();
-    canvas.drawPath(path, paint);
-
-    // Inner detail
-    final detailPaint = Paint()
-      ..color = coreColor.withValues(alpha: 0.9)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-
-    canvas.drawCircle(Offset(centerX, centerY), radius * 0.4, detailPaint);
-
-    final corePaint = Paint()
-      ..color = coreColor
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(centerX, centerY), radius * 0.15, corePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
+// Redundant painters removed.
 
 class _MetricsDashboard extends StatelessWidget {
   const _MetricsDashboard();
@@ -552,20 +501,6 @@ class _MetricsDashboard extends StatelessWidget {
                             letterSpacing: 2,
                           ),
                         ),
-                        Row(
-                          children: [
-                            const _PulsingStatusDot(),
-                            const SizedBox(width: 8),
-                            Text(
-                              "SYSTEM ACTIVE",
-                              style: AppTextStyles.mono(
-                                size: 12,
-                                weight: FontWeight.w700,
-                                color: AppColors.accentGreen,
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                     Icon(PhosphorIcons.pulse(), color: c.accentBlue, size: 24),
@@ -589,8 +524,7 @@ class _MetricsDashboard extends StatelessWidget {
                         height: 40,
                         color: c.borderDefault.withValues(alpha: 0.5)),
                     const Expanded(
-                        child: _LiveStat(
-                            "LATENCY", "12ms", AppColors.accentGreen)),
+                        child: _LiveStat("LATENCY", "12ms", AppColors.accentGreen)),
                   ],
                 ),
               ],
@@ -822,51 +756,6 @@ class _SecurityStatusBar extends StatelessWidget {
   }
 }
 
-class _PulsingStatusDot extends StatefulWidget {
-  const _PulsingStatusDot();
-  @override
-  State<_PulsingStatusDot> createState() => _PulsingStatusDotState();
-}
-
-class _PulsingStatusDotState extends State<_PulsingStatusDot>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(vsync: this, duration: 1.seconds)
-      ..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (context, _) => Container(
-        width: 8,
-        height: 8,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.accentGreen,
-          boxShadow: [
-            BoxShadow(
-                color:
-                    AppColors.accentGreen.withValues(alpha: 0.4 * _ctrl.value),
-                blurRadius: 8,
-                spreadRadius: 2),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _SimpleStatusDot extends StatelessWidget {
   final Color color;
   final double size;
@@ -877,4 +766,301 @@ class _SimpleStatusDot extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       );
+}
+
+class _HomeLink extends StatefulWidget {
+  @override
+  State<_HomeLink> createState() => _HomeLinkState();
+}
+
+class _HomeLinkState extends State<_HomeLink> {
+  bool _isHovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return GestureDetector(
+      onTap: () => context.go('/'),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovering = true),
+        onExit: (_) => setState(() => _isHovering = false),
+        cursor: SystemMouseCursors.click,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              PhosphorIcons.arrowLeft(),
+              size: 12,
+              color: _isHovering ? c.textSecondary : c.textMuted,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              "HOME",
+              style: AppTextStyles.mono(
+                size: 9,
+                weight: FontWeight.w600,
+                color: _isHovering ? c.textSecondary : c.textMuted,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+void _showSignUpDialog(BuildContext context) {
+  final c = context.colors;
+  showDialog(
+    context: context,
+    barrierColor: Colors.black.withValues(alpha: 0.6),
+    builder: (context) => StatefulBuilder(
+      builder: (context, setState) {
+        bool termsAccepted = false; // Note: local state for simplicity in modal
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Container(
+            width: 520,
+            decoration: BoxDecoration(
+              color: c.bgSecondary,
+              border: Border.all(color: c.borderDefault),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // MODAL HEADER
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: c.bgTertiary,
+                    border: Border(bottom: BorderSide(color: c.borderDefault)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "REGISTER ORGANIZATION",
+                            style: AppTextStyles.mono(
+                              size: 14,
+                              weight: FontWeight.w700,
+                              color: c.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Create your Sentinel AI administrator account",
+                            style: AppTextStyles.body(
+                              size: 12,
+                              color: c.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: Icon(PhosphorIcons.x(), size: 20),
+                        color: c.textMuted,
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // MODAL BODY
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      const Row(
+                        children: [
+                          Expanded(child: _SignUpField(label: "ORGANIZATION NAME", hint: "e.g. BCCI — Board of Control")),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: _SignUpField(
+                              label: "ORG TYPE",
+                              hint: "",
+                              isDropdown: true,
+                              items: ["Cricket Board", "Football League", "Esports Org", "Basketball League", "Other"],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const Row(
+                        children: [
+                          Expanded(child: _SignUpField(label: "ADMIN FULL NAME", hint: "e.g. Rahul Sharma")),
+                          SizedBox(width: 16),
+                          Expanded(child: _SignUpField(label: "ADMIN EMAIL", hint: "admin@organization.com")),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const Row(
+                        children: [
+                          Expanded(child: _SignUpField(label: "PASSWORD", hint: "Min 12 characters", isPassword: true)),
+                          SizedBox(width: 16),
+                          Expanded(child: _SignUpField(label: "CONFIRM PASSWORD", hint: "Repeat password", isPassword: true)),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: Checkbox(
+                              value: termsAccepted,
+                              onChanged: (v) => setState(() => termsAccepted = v ?? false),
+                              fillColor: WidgetStateProperty.resolveWith((s) =>
+                                  s.contains(WidgetState.selected) ? AppColors.accentAmber : Colors.transparent),
+                              checkColor: AppColors.textOnAmber,
+                              side: BorderSide(color: c.borderDefault),
+                              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: "I agree to the ",
+                                    style: AppTextStyles.body(size: 12, color: c.textSecondary),
+                                  ),
+                                  TextSpan(
+                                    text: "Terms of Service",
+                                    style: AppTextStyles.body(
+                                      size: 12,
+                                      color: AppColors.accentAmber,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: " and ",
+                                    style: AppTextStyles.body(size: 12, color: c.textSecondary),
+                                  ),
+                                  TextSpan(
+                                    text: "Privacy Policy",
+                                    style: AppTextStyles.body(
+                                      size: 12,
+                                      color: AppColors.accentAmber,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+
+                // MODAL FOOTER
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: c.borderDefault)),
+                  ),
+                  child: Row(
+                    children: [
+                      OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: c.borderDefault),
+                          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                        ),
+                        child: Text(
+                          "CANCEL",
+                          style: AppTextStyles.mono(size: 12, weight: FontWeight.w700, color: c.textSecondary),
+                        ),
+                      ),
+                      const Spacer(),
+                      Opacity(
+                        opacity: termsAccepted ? 1.0 : 0.4,
+                        child: ElevatedButton(
+                          onPressed: termsAccepted ? () => Navigator.of(context).pop() : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.accentAmber,
+                            foregroundColor: AppColors.textOnAmber,
+                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                          ),
+                          child: Text(
+                            "CREATE ORGANIZATION ACCOUNT →",
+                            style: AppTextStyles.display(size: 12, weight: FontWeight.w900, color: AppColors.textOnAmber),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ),
+  );
+}
+
+class _SignUpField extends StatelessWidget {
+  final String label;
+  final String hint;
+  final bool isPassword;
+  final bool isDropdown;
+  final List<String>? items;
+
+  const _SignUpField({
+    required this.label,
+    required this.hint,
+    this.isPassword = false,
+    this.isDropdown = false,
+    this.items,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.mono(
+            size: 9,
+            weight: FontWeight.w600,
+            color: c.textMuted,
+            letterSpacing: 2.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (isDropdown)
+          DropdownButtonFormField<String>(
+            dropdownColor: c.bgSecondary,
+            style: AppTextStyles.body(color: c.textPrimary, size: 14),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: c.bgSurface,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: c.borderDefault)),
+              focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppColors.accentAmber)),
+            ),
+            items: items!.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+            onChanged: (v) {},
+            hint: Text("Select...", style: AppTextStyles.body(color: c.textMuted, size: 14)),
+          )
+        else
+          _StyledTextField(hint: hint, isPassword: isPassword),
+      ],
+    );
+  }
 }

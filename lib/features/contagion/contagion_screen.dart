@@ -5,22 +5,22 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_theme_colors.dart';
 import 'contagion_mock_data.dart';
-import 'widgets/contagion_graph_painter.dart';
+import 'widgets/contagion_graph_painter.dart'; // This file was renamed class-wise to PropagationFlowPainter
 import 'widgets/node_detail_sidebar.dart';
 
-class ContagionScreen extends StatefulWidget {
-  const ContagionScreen({super.key});
+class PropagationFlowScreen extends StatefulWidget {
+  const PropagationFlowScreen({super.key});
 
   @override
-  State<ContagionScreen> createState() => _ContagionScreenState();
+  State<PropagationFlowScreen> createState() => _PropagationFlowScreenState();
 }
 
-class _ContagionScreenState extends State<ContagionScreen>
+class _PropagationFlowScreenState extends State<PropagationFlowScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   String? _selectedNodeId;
   bool _isLoading = true;
-  
+
   // Tracking node positions for tap detection
   Map<String, Offset> _nodePositions = {};
 
@@ -59,9 +59,10 @@ class _ContagionScreenState extends State<ContagionScreen>
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    
+
     // Derived Data
-    final activeNodes = ContagionMockData.nodes; // In real app, filter by _selectedAsset
+    const activeNodes =
+        ContagionMockData.nodes; // In real app, filter by _selectedAsset
     final selectedNode = _selectedNodeId != null
         ? activeNodes.firstWhere((n) => n.id == _selectedNodeId)
         : null;
@@ -89,7 +90,7 @@ class _ContagionScreenState extends State<ContagionScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "PROPAGATION ANALYSIS",
+                        "PROPAGATION FLOW",
                         style: AppTextStyles.display(
                           size: 18,
                           weight: FontWeight.w800,
@@ -99,7 +100,7 @@ class _ContagionScreenState extends State<ContagionScreen>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "Tracing unauthorized asset distribution across decentralized vectors.",
+                        "Corporate forensic trace of unauthorized media distribution.",
                         style: AppTextStyles.body(size: 12, color: c.textMuted),
                       ),
                     ],
@@ -110,15 +111,27 @@ class _ContagionScreenState extends State<ContagionScreen>
                   children: [
                     _dot(AppColors.accentCrimson),
                     const SizedBox(width: 8),
-                    Text("Source", style: AppTextStyles.mono(size: 10, color: c.textMuted, weight: FontWeight.w700)),
+                    Text("Origin",
+                        style: AppTextStyles.mono(
+                            size: 10,
+                            color: c.textMuted,
+                            weight: FontWeight.w700)),
                     const SizedBox(width: 20),
                     _dot(AppColors.accentAmber),
                     const SizedBox(width: 8),
-                    Text("Hub", style: AppTextStyles.mono(size: 10, color: c.textMuted, weight: FontWeight.w700)),
+                    Text("Vector",
+                        style: AppTextStyles.mono(
+                            size: 10,
+                            color: c.textMuted,
+                            weight: FontWeight.w700)),
                     const SizedBox(width: 20),
                     _dot(c.accentBlue),
                     const SizedBox(width: 8),
-                    Text("Endpoint", style: AppTextStyles.mono(size: 10, color: c.textMuted, weight: FontWeight.w700)),
+                    Text("Target",
+                        style: AppTextStyles.mono(
+                            size: 10,
+                            color: c.textMuted,
+                            weight: FontWeight.w700)),
                   ],
                 ),
               ],
@@ -157,7 +170,11 @@ class _ContagionScreenState extends State<ContagionScreen>
                         parentNode: parentNode,
                         childCount: childCount,
                         onClose: () => setState(() => _selectedNodeId = null),
-                      ).animate().slideX(begin: 1, end: 0, duration: 250.ms, curve: Curves.easeOutCubic),
+                      ).animate().slideX(
+                          begin: 1,
+                          end: 0,
+                          duration: 250.ms,
+                          curve: Curves.easeOutCubic),
                     ),
                 ],
               ),
@@ -182,7 +199,10 @@ class _ContagionScreenState extends State<ContagionScreen>
           const SizedBox(width: 12),
           Text("MONITORING:",
               style: AppTextStyles.mono(
-                  size: 10, color: c.textMuted, weight: FontWeight.w700, letterSpacing: 1)),
+                  size: 10,
+                  color: c.textMuted,
+                  weight: FontWeight.w700,
+                  letterSpacing: 1)),
           const SizedBox(width: 12),
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -219,71 +239,134 @@ class _ContagionScreenState extends State<ContagionScreen>
             itemBuilder: (context) => _assets
                 .map((a) => PopupMenuItem(
                       value: a,
-                      child: Text(a, style: AppTextStyles.mono(size: 12, color: c.textPrimary)),
+                      child: Text(a,
+                          style: AppTextStyles.mono(
+                              size: 12, color: c.textPrimary)),
                     ))
                 .toList(),
           ),
           const Spacer(),
-          _InlineStatLabel(value: "17", label: "NODES"),
+          const _InlineStatLabel(value: "17", label: "NODES"),
           const SizedBox(width: 24),
-          _InlineStatLabel(value: "4", label: "PLATFORMS"),
+          const _InlineStatLabel(value: "4", label: "PLATFORMS"),
           const SizedBox(width: 24),
-          _InlineStatLabel(value: "2.4M", label: "REACH"),
+          const _InlineStatLabel(value: "2.4M", label: "REACH"),
           const SizedBox(width: 24),
-          _InlineStatLabel(value: "2h 17m", label: "LATENCY"),
+          const _InlineStatLabel(value: "2h 17m", label: "LATENCY"),
         ],
       ),
     );
   }
 
   static Widget _dot(Color color) => Container(
-    width: 6, height: 6,
-    decoration: BoxDecoration(
-      color: color, 
-      shape: BoxShape.circle,
-      boxShadow: [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 4)],
-    ),
-  );
+        width: 6,
+        height: 6,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 4)
+          ],
+        ),
+      );
 
-  Widget _buildGraphView(BuildContext context, AppThemeColors c, List<ContagionNode> nodes) {
+  Widget _buildGraphView(
+      BuildContext context, AppThemeColors c, List<ContagionNode> nodes) {
     if (_isLoading) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: AppColors.accentAmber, strokeWidth: 2),
+            const CircularProgressIndicator(
+                color: AppColors.accentAmber, strokeWidth: 2),
             const SizedBox(height: 16),
-            Text("SCANNING DECENTRALIZED VECTORS...", style: AppTextStyles.mono(size: 10, color: c.textMuted)),
+            Text("GENERATING FORENSIC PROPAGATION FLOW...",
+                style: AppTextStyles.mono(size: 10, color: c.textMuted)),
           ],
         ),
       );
     }
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (details) {
-        final hitId = ContagionGraphPainter(
-          nodes: nodes,
-          animationValue: 0,
-          colors: c,
-        ).findNodeAt(details.localPosition, _nodePositions);
-        
-        setState(() => _selectedNodeId = hitId);
-      },
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return CustomPaint(
-            size: Size.infinite,
-            painter: ContagionGraphPainter(
-              nodes: nodes,
-              selectedNodeId: _selectedNodeId,
-              animationValue: _controller.value,
-              colors: c,
-              onPositionsCalculated: (pos) => _nodePositions = pos,
+    return Column(
+      children: [
+        // STAGE HEADERS (Aligned to node columns)
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: const Stack(
+            children: [
+              Align(alignment: Alignment(-0.76, 0), child: _StageHeader(label: "ORIGIN")),
+              Align(alignment: Alignment(-0.3, 0), child: _StageHeader(label: "VECTORS")),
+              Align(alignment: Alignment(0.2, 0), child: _StageHeader(label: "HUBS")),
+              Align(alignment: Alignment(0.76, 0), child: _StageHeader(label: "ENDPOINTS")),
+            ],
+          ),
+        ),
+        Expanded(
+          child: InteractiveViewer(
+            minScale: 0.4,
+            maxScale: 2.5,
+            boundaryMargin: const EdgeInsets.all(200),
+            child: Center(
+              child: SizedBox(
+                width: 1400,
+                height: 800,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (details) {
+                    final hitId = PropagationFlowPainter(
+                      nodes: nodes,
+                      animationValue: 0,
+                      colors: c,
+                    ).findNodeAt(details.localPosition, _nodePositions);
+
+                    setState(() => _selectedNodeId = hitId);
+                  },
+                  child: AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, child) {
+                      return CustomPaint(
+                        size: Size.infinite,
+                        painter: PropagationFlowPainter(
+                          nodes: nodes,
+                          selectedNodeId: _selectedNodeId,
+                          animationValue: _controller.value,
+                          colors: c,
+                          onPositionsCalculated: (pos) => _nodePositions = pos,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
             ),
-          );
-        },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StageHeader extends StatelessWidget {
+  final String label;
+  const _StageHeader({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: context.colors.bgSecondary,
+        border: Border.all(color: context.colors.borderDefault),
+        borderRadius: BorderRadius.circular(2),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.mono(
+          size: 10,
+          weight: FontWeight.w700,
+          color: context.colors.textMuted,
+          letterSpacing: 2,
+        ),
       ),
     );
   }
@@ -308,7 +391,10 @@ class _InlineStatLabel extends StatelessWidget {
                 color: AppColors.accentAmber)),
         Text(label,
             style: AppTextStyles.mono(
-                size: 8, color: c.textMuted, weight: FontWeight.w700, letterSpacing: 1)),
+                size: 8,
+                color: c.textMuted,
+                weight: FontWeight.w700,
+                letterSpacing: 1)),
       ],
     );
   }
