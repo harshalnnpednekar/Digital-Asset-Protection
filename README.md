@@ -1,88 +1,133 @@
-# ASTRA — Digital Asset Protection Console
+# ASTRA - Digital Asset Protection Console
 
-> **Institutional-grade media provenance and real-time piracy enforcement for the next generation of sports broadcasting.**
+Institutional-grade media provenance and real-time piracy enforcement for sports broadcasting and premium digital media.
 
-ASTRA is a high-stakes, enterprise-grade cybersecurity dashboard designed for sports organizations and leagues (e.g., IPL, ISL). It provides a unified "Command & Control" interface to authenticate, monitor, and protect high-value digital assets using cutting-edge cryptographic and neural technologies.
+ASTRA (app package name: `sentinel_ai`) is a Flutter-based command dashboard that helps teams authenticate assets, monitor unauthorized redistribution, and track threat propagation.
 
----
+## Overview
 
-## 🛡️ Core Technical Pillars
+This project combines:
 
-ASTRA operates on a multi-layered security architecture that ensures content integrity from ingest to delivery.
+- A Flutter web interface for operational monitoring and reporting.
+- Firebase services for authentication, storage, and data operations.
+- A small Python Firebase Admin helper under `astra_backend/`.
 
-### 1. Cryptographic Authenticity (C2PA)
-Leveraging **C2PA (Coalition for Content Provenance and Authenticity)** protocols, ASTRA attaches tamper-proof cryptographic manifests to every high-value master. This ensures that the history of an asset is verifiable and transparent to all stakeholders.
+## Core Pillars
 
-### 2. Steganographic Watermarking
-Invisible, redundant steganographic markers are embedded deep within the pixel data of every asset. Unlike traditional watermarks, these survive aggressive cropping, transcoding, and illegal re-recording, allowing for precise **"Patient Zero"** leak detection.
+1. Cryptographic authenticity (C2PA-style provenance workflows).
+2. Robust watermarking concepts for leak attribution.
+3. AI-assisted threat detection and triage workflows.
 
-### 3. Neural Enforcement Engine
-Powered by **Gemini AI**, our neural engine differentiates between legitimate fair-use and unauthorized piracy in real-time. It uses semantic matching (Neural CLIP Embeddings) to identify leaked content even when metadata has been stripped.
+## Product Modules
 
----
+- Asset Vault: inspect protected digital masters and related metadata.
+- Live Threat Radar: monitor active threats and queue enforcement actions.
+- Contagion Analysis: visualize spread patterns from origin to downstream nodes.
+- Dashboard: KPIs, platform breakdowns, timelines, and incident tables.
 
-## 🕹️ Operational Interface Modes
+## Tech Stack
 
-ASTRA adapts to the environment of the operator with two distinct visual identities.
+- Flutter / Dart (`>=3.0.0 <4.0.0`)
+- `flutter_riverpod` for state management
+- `go_router` for routing and shell navigation
+- Firebase (`firebase_core`, `firebase_auth`, `cloud_firestore`, `firebase_storage`)
+- `dio`, `file_picker`, `intl`, `uuid`
+- Python `firebase-admin` helper script (`astra_backend/main.py`)
 
-### 🌑 Ops Center (Dark Mode)
-**Designed for Tactical Monitoring.** High-contrast, monospace-focused interface optimized for low-light "War Room" environments. Focuses on real-time threat detection and active mitigation.
+## Repository Layout
 
-### 📄 Briefing Document (Light Mode)
-**Designed for Institutional Reporting.** A "paper-white" sleek corporate aesthetic using cool slate tones and soft diffuse shadows. Optimized for high-level executive review and data analysis.
+```text
+lib/
+   core/
+      navigation/
+      services/
+      theme/
+      widgets/
+   features/
+      auth/
+      dashboard/
+      threats/
+      vault/
+      contagion/
+      settings/
+astra_backend/
+   main.py
+   requirements.txt
+   config/
+      serviceAccountKey.json
+```
 
----
+## Getting Started (Flutter App)
 
-## 📟 Command Modules
+### 1. Prerequisites
 
-### 🏛️ Asset Vault
-The primary repository for authenticated masters. View detailed C2PA manifests, technical specifications, and cryptographic health reports for every league asset.
+- Flutter SDK installed
+- Chrome (or another web target) for local runs
+- Firebase project configured for your environment
 
-### 📡 Live Threat Radar
-A tactical monitoring screen visualizing real-time neural-engine matches across global decentralized vectors. It identifies unauthorized streams and provides one-click enforcement options.
+Check Flutter setup:
 
-### 📈 Propagation Analysis (Contagion Map)
-A graph-theory-based visualization that traces the "Ripple Effect" of unauthorized distribution. It identifies the origin of a leak and maps its viral spread across platforms.
+```bash
+flutter doctor
+```
 
----
+### 2. Install Dependencies
 
-## ⚙️ Technical Architecture
+```bash
+flutter pub get
+```
 
-- **Core Framework**: Flutter Web (Canvaskit / HTML Renderer optimized)
-- **State Management**: `flutter_riverpod` (Reactive infrastructure)
-- **Navigation**: `go_router` with `ShellRoute` nested navigation.
-- **Animations**: `flutter_animate` for high-impact micro-interactions.
-- **Iconography**: `phosphor_flutter` (Institutional/Technical aesthetic).
-- **Typography**:
-  - **Outfit**: Brand elements and headings.
-  - **Inter**: Body text and technical UI elements.
+### 3. Configure Environment Files
 
----
+The app loads env values from `astra_backend/config/.env` at startup.
 
-## 🚀 Getting Started
+- Create `astra_backend/config/.env` if it does not exist.
+- Add any variables your local setup requires.
 
-### Prerequisites
-- Flutter SDK (>=3.0.0)
-- Dart SDK (>=3.0.0)
+Also ensure Firebase options are present in:
 
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-org/Digital-Asset-Protection.git
-   ```
-2. Fetch dependencies:
-   ```bash
-   flutter pub get
-   ```
-3. Run the application:
-   ```bash
-   flutter run -d chrome
-   ```
+- `lib/config/firebase_options.dart`
+- `lib/firebase_options.dart` (if your flow uses both)
 
-### Operational Modes
-The application currently operates in **Demo Mode**. Live backend connectors can be configured in `lib/core/config/demo_config.dart`.
+### 4. Run the App
 
----
+```bash
+flutter run -d chrome
+```
 
-## ⚖️ License
-Internal Use Only. Copyright © 2026 ASTRA. All Rights Reserved.
+For release-style web build:
+
+```bash
+flutter build web
+```
+
+## Backend Helper (Python Firebase Admin)
+
+The `astra_backend/main.py` script initializes Firebase Admin SDK and creates collection references used by backend workflows.
+
+### Setup
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r astra_backend/requirements.txt
+```
+
+### Run
+
+```bash
+python astra_backend/main.py
+```
+
+Before running, place your Firebase service account key at:
+
+`astra_backend/config/serviceAccountKey.json`
+
+## Notes
+
+- Current UI includes demo-oriented screens and mock data sources in multiple features.
+- Keep credentials and key files out of version control.
+
+## License
+
+Internal use only. Copyright (c) 2026 ASTRA. All rights reserved.

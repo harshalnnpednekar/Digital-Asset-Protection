@@ -17,6 +17,8 @@ class AppRouter {
 
   // Use a simple boolean flag for authentication state
   static bool isAuthenticated = false;
+  static String currentAdminName = "Admin User";
+  static String currentOrganizationId = "ORG-ID N/A";
 
   static final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
@@ -56,8 +58,9 @@ class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const DashboardScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-                  FadeTransition(opacity: animation, child: child),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) =>
+                      FadeTransition(opacity: animation, child: child),
             ),
           ),
           GoRoute(
@@ -65,8 +68,9 @@ class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const VaultScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-                  FadeTransition(opacity: animation, child: child),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) =>
+                      FadeTransition(opacity: animation, child: child),
             ),
           ),
           GoRoute(
@@ -74,8 +78,9 @@ class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const ThreatsScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-                  FadeTransition(opacity: animation, child: child),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) =>
+                      FadeTransition(opacity: animation, child: child),
             ),
           ),
           GoRoute(
@@ -83,8 +88,9 @@ class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const PropagationFlowScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-                  FadeTransition(opacity: animation, child: child),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) =>
+                      FadeTransition(opacity: animation, child: child),
             ),
           ),
           GoRoute(
@@ -92,8 +98,9 @@ class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const SettingsScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-                  FadeTransition(opacity: animation, child: child),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) =>
+                      FadeTransition(opacity: animation, child: child),
             ),
           ),
         ],

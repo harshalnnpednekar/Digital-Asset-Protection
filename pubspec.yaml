@@ -35,6 +35,15 @@ dependencies:
   intl: ^0.19.0
   uuid: ^4.3.3
 
+  # Firebase
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.17.9
+  cloud_firestore: ^4.15.9
+  firebase_storage: ^11.6.10
+
+  # Environment variables
+  flutter_dotenv: ^5.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -42,3 +51,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - astra_backend/config/.env

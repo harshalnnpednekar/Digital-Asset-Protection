@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -21,12 +23,18 @@ class AppShell extends ConsumerWidget {
   String _getCurrentScreenName(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     switch (location) {
-      case '/dashboard':   return 'Dashboard';
-      case '/vault':       return 'Asset Vault';
-      case '/threats':     return 'Threat Radar';
-      case '/contagion':   return 'Contagion Map';
-      case '/settings':    return 'Settings';
-      default:             return 'ASTRA';
+      case '/dashboard':
+        return 'Dashboard';
+      case '/vault':
+        return 'Asset Vault';
+      case '/threats':
+        return 'Threat Radar';
+      case '/contagion':
+        return 'Contagion Map';
+      case '/settings':
+        return 'Settings';
+      default:
+        return 'ASTRA';
     }
   }
 
@@ -38,15 +46,15 @@ class AppShell extends ConsumerWidget {
       autofocus: true,
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent) {
-          final isCtrlOrCmd = HardwareKeyboard.instance.isControlPressed || 
-                               HardwareKeyboard.instance.isMetaPressed;
+          final isCtrlOrCmd = HardwareKeyboard.instance.isControlPressed ||
+              HardwareKeyboard.instance.isMetaPressed;
           final isShift = HardwareKeyboard.instance.isShiftPressed;
           final isL = event.logicalKey == LogicalKeyboardKey.keyL;
 
           if (isCtrlOrCmd && isShift && isL) {
             final isDark = ref.read(isDarkProvider);
             ref.read(themeModeProvider.notifier).state =
-              isDark ? ThemeMode.light : ThemeMode.dark;
+                isDark ? ThemeMode.light : ThemeMode.dark;
             return KeyEventResult.handled;
           }
         }
@@ -74,15 +82,17 @@ class AppShell extends ConsumerWidget {
                               bottom: 24,
                               right: 24,
                               child: ScaleButton(
-                              child: FloatingActionButton(
-                                onPressed: () => JudgeGuideModal.show(context),
-                                backgroundColor: c.accentBlue,
-                                foregroundColor: Colors.white,
-                                elevation: 8,
-                                shape: const CircleBorder(),
-                                child: Icon(PhosphorIcons.bookOpen(), size: 24),
+                                child: FloatingActionButton(
+                                  onPressed: () =>
+                                      JudgeGuideModal.show(context),
+                                  backgroundColor: c.accentBlue,
+                                  foregroundColor: Colors.white,
+                                  elevation: 8,
+                                  shape: const CircleBorder(),
+                                  child:
+                                      Icon(PhosphorIcons.bookOpen(), size: 24),
+                                ),
                               ),
-                            ),
                             ),
                           ],
                         ),
@@ -130,6 +140,8 @@ class AppShell extends ConsumerWidget {
           // RIGHT: Bell + Toggle + User
           Row(
             children: [
+              const _TopBarOrgId(),
+              const SizedBox(width: 10),
               PopupMenuButton<String>(
                 offset: const Offset(0, 45),
                 color: c.bgSecondary,
@@ -141,12 +153,14 @@ class AppShell extends ConsumerWidget {
                 ),
                 icon: Stack(
                   children: [
-                    Icon(PhosphorIcons.bell(), size: 18, color: c.textSecondary),
+                    Icon(PhosphorIcons.bell(),
+                        size: 18, color: c.textSecondary),
                     Positioned(
                       top: 0,
                       right: 0,
                       child: Container(
-                        width: 8, height: 8,
+                        width: 8,
+                        height: 8,
                         decoration: BoxDecoration(
                           color: AppColors.accentCrimson,
                           shape: BoxShape.circle,
@@ -158,9 +172,18 @@ class AppShell extends ConsumerWidget {
                 ),
                 onSelected: (value) {},
                 itemBuilder: (context) => [
-                  _buildNotificationItem(context, "New Leak Detected", "IPL Highlights found on Telegram", AppColors.accentCrimson),
-                  _buildNotificationItem(context, "System Update", "Vulnerability scanner updated to v2.4", c.accentBlue),
-                  _buildNotificationItem(context, "Report Ready", "Weekly threat analysis is available", AppColors.accentGreen),
+                  _buildNotificationItem(
+                      context,
+                      "New Leak Detected",
+                      "IPL Highlights found on Telegram",
+                      AppColors.accentCrimson),
+                  _buildNotificationItem(context, "System Update",
+                      "Vulnerability scanner updated to v2.4", c.accentBlue),
+                  _buildNotificationItem(
+                      context,
+                      "Report Ready",
+                      "Weekly threat analysis is available",
+                      AppColors.accentGreen),
                 ],
               ),
               const SizedBox(width: 8),
@@ -169,16 +192,23 @@ class AppShell extends ConsumerWidget {
               Container(width: 1, height: 20, color: c.borderDefault),
               const SizedBox(width: 12),
               Container(
-                width: 32, height: 32,
+                width: 32,
+                height: 32,
                 color: c.bgTertiary,
                 child: Center(
-                  child: Text(
-                    "SA",
-                    style: AppTextStyles.display(
-                      size: 12,
-                      weight: FontWeight.w700,
-                      color: AppColors.accentAmber,
-                    ),
+                  child: StreamBuilder<User?>(
+                    stream: FirebaseAuth.instance.authStateChanges(),
+                    builder: (context, snapshot) {
+                      final initials = _resolveInitials(snapshot.data);
+                      return Text(
+                        initials,
+                        style: AppTextStyles.display(
+                          size: 12,
+                          weight: FontWeight.w700,
+                          color: AppColors.accentAmber,
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -189,7 +219,8 @@ class AppShell extends ConsumerWidget {
     );
   }
 
-  Widget _buildSidebar(BuildContext context, bool isCollapsed, AppThemeColors c) {
+  Widget _buildSidebar(
+      BuildContext context, bool isCollapsed, AppThemeColors c) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -209,20 +240,37 @@ class AppShell extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Divider(color: c.borderDefault, height: 1),
-          
+
           // NAV ITEMS
           Expanded(
             child: ListView(
-              padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 8 : 12, vertical: 12),
+              padding: EdgeInsets.symmetric(
+                  horizontal: isCollapsed ? 8 : 12, vertical: 12),
               children: [
-                _NavItem(icon: PhosphorIcons.chartBar(), label: "Dashboard", route: '/dashboard', isCollapsed: isCollapsed),
-                _NavItem(icon: PhosphorIcons.shieldCheck(), label: "Asset Vault", route: '/vault', isCollapsed: isCollapsed),
-                _NavItem(icon: PhosphorIcons.waveform(), label: "Threat Radar", route: '/threats', isCollapsed: isCollapsed),
-                _NavItem(icon: PhosphorIcons.treeStructure(), label: "Propagation Flow", route: '/contagion', isCollapsed: isCollapsed),
+                _NavItem(
+                    icon: PhosphorIcons.chartBar(),
+                    label: "Dashboard",
+                    route: '/dashboard',
+                    isCollapsed: isCollapsed),
+                _NavItem(
+                    icon: PhosphorIcons.shieldCheck(),
+                    label: "Asset Vault",
+                    route: '/vault',
+                    isCollapsed: isCollapsed),
+                _NavItem(
+                    icon: PhosphorIcons.waveform(),
+                    label: "Threat Radar",
+                    route: '/threats',
+                    isCollapsed: isCollapsed),
+                _NavItem(
+                    icon: PhosphorIcons.treeStructure(),
+                    label: "Propagation Flow",
+                    route: '/contagion',
+                    isCollapsed: isCollapsed),
               ],
             ),
           ),
-          
+
           // BOTTOM
           Padding(
             padding: EdgeInsets.all(isCollapsed ? 8 : 16.0),
@@ -230,30 +278,101 @@ class AppShell extends ConsumerWidget {
               children: [
                 Divider(color: c.borderDefault, height: 1),
                 const SizedBox(height: 12),
-                _NavItem(icon: PhosphorIcons.gear(), label: "Settings", route: '/settings', isCollapsed: isCollapsed),
+                _NavItem(
+                    icon: PhosphorIcons.gear(),
+                    label: "Settings",
+                    route: '/settings',
+                    isCollapsed: isCollapsed),
                 const SizedBox(height: 16),
                 if (!isCollapsed)
-                   Row(
+                  Row(
                     children: [
                       CircleAvatar(
                         radius: 18,
                         backgroundColor: c.bgTertiary,
-                        child: Text("SA", style: AppTextStyles.display(size: 14, color: AppColors.accentAmber)),
+                        child: StreamBuilder<User?>(
+                          stream: FirebaseAuth.instance.authStateChanges(),
+                          builder: (context, snapshot) {
+                            return Text(
+                              _resolveInitials(snapshot.data),
+                              style: AppTextStyles.display(
+                                  size: 14, color: AppColors.accentAmber),
+                            );
+                          },
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Admin User", style: AppTextStyles.body(size: 13, weight: FontWeight.w600, color: c.textPrimary)),
-                          ],
+                        child: StreamBuilder<User?>(
+                          stream: FirebaseAuth.instance.authStateChanges(),
+                          builder: (context, authSnapshot) {
+                            final user = authSnapshot.data;
+                            if (user == null) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(AppRouter.currentAdminName,
+                                      style: AppTextStyles.body(
+                                          size: 13,
+                                          weight: FontWeight.w600,
+                                          color: c.textPrimary)),
+                                  const SizedBox(height: 2),
+                                  Text('ID: ${AppRouter.currentOrganizationId}',
+                                      style: AppTextStyles.mono(
+                                          size: 11,
+                                          weight: FontWeight.w600,
+                                          color: AppColors.accentAmber)),
+                                ],
+                              );
+                            }
+
+                            return FutureBuilder<
+                                DocumentSnapshot<Map<String, dynamic>>>(
+                              future: FirebaseFirestore.instance
+                                  .collection('organizations')
+                                  .doc(user.uid)
+                                  .get(),
+                              builder: (context, orgSnapshot) {
+                                final data = orgSnapshot.data?.data();
+                                final adminName =
+                                    (data?['adminFullName'] as String?) ??
+                                        user.displayName ??
+                                        "Admin User";
+                                final orgId =
+                                    (data?['organizationId'] as String?) ??
+                                        "ORG-ID N/A";
+                                AppRouter.currentAdminName = adminName;
+                                AppRouter.currentOrganizationId = orgId;
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(adminName,
+                                        style: AppTextStyles.body(
+                                            size: 13,
+                                            weight: FontWeight.w600,
+                                            color: c.textPrimary)),
+                                    const SizedBox(height: 2),
+                                    Text('ID: $orgId',
+                                        style: AppTextStyles.mono(
+                                            size: 11,
+                                            weight: FontWeight.w600,
+                                            color: AppColors.accentAmber)),
+                                  ],
+                                );
+                              },
+                            );
+                          },
                         ),
                       ),
                       IconButton(
                         icon: Icon(PhosphorIcons.signOut(), size: 18),
                         color: c.textMuted,
-                        onPressed: () {
+                        onPressed: () async {
+                          await FirebaseAuth.instance.signOut();
+                          if (!context.mounted) return;
                           AppRouter.isAuthenticated = false;
+                          AppRouter.currentAdminName = 'Admin User';
+                          AppRouter.currentOrganizationId = 'ORG-ID N/A';
                           context.go('/login');
                         },
                       ),
@@ -264,8 +383,12 @@ class AppShell extends ConsumerWidget {
                   IconButton(
                     icon: Icon(PhosphorIcons.signOut(), size: 20),
                     color: c.textMuted,
-                    onPressed: () {
+                    onPressed: () async {
+                      await FirebaseAuth.instance.signOut();
+                      if (!context.mounted) return;
                       AppRouter.isAuthenticated = false;
+                      AppRouter.currentAdminName = 'Admin User';
+                      AppRouter.currentOrganizationId = 'ORG-ID N/A';
                       context.go('/login');
                     },
                   ),
@@ -277,6 +400,85 @@ class AppShell extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _TopBarOrgId extends StatelessWidget {
+  const _TopBarOrgId();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, authSnapshot) {
+        final user = authSnapshot.data;
+        if (user == null) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: c.bgTertiary,
+              border: Border.all(color: c.borderDefault),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              'ID: ${AppRouter.currentOrganizationId}',
+              style: AppTextStyles.mono(
+                size: 10,
+                weight: FontWeight.w700,
+                color: AppColors.accentAmber,
+              ),
+            ),
+          );
+        }
+
+        return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          future: FirebaseFirestore.instance
+              .collection('organizations')
+              .doc(user.uid)
+              .get(),
+          builder: (context, orgSnapshot) {
+            final data = orgSnapshot.data?.data();
+            final orgId = (data?['organizationId'] as String?) ?? 'ORG-ID N/A';
+            AppRouter.currentOrganizationId = orgId;
+
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: c.bgTertiary,
+                border: Border.all(color: c.borderDefault),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'ID: $orgId',
+                style: AppTextStyles.mono(
+                  size: 10,
+                  weight: FontWeight.w700,
+                  color: AppColors.accentAmber,
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+String _resolveInitials(User? user) {
+  const fallback = 'SA';
+  if (user == null) return fallback;
+
+  final name = (user.displayName ?? '').trim();
+  if (name.isEmpty) return fallback;
+
+  final parts = name.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+  if (parts.isEmpty) return fallback;
+  if (parts.length == 1) {
+    return parts.first.substring(0, 1).toUpperCase();
+  }
+
+  return (parts.first.substring(0, 1) + parts.last.substring(0, 1))
+      .toUpperCase();
 }
 
 class _NavItem extends StatefulWidget {
@@ -312,7 +514,9 @@ class _NavItemState extends State<_NavItem> {
       height: 40,
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
-        color: isSelected ? c.bgTertiary : (_isHovering ? c.bgOverlay : Colors.transparent),
+        color: isSelected
+            ? c.bgTertiary
+            : (_isHovering ? c.bgOverlay : Colors.transparent),
         border: Border(
           left: BorderSide(
             color: isSelected ? AppColors.accentAmber : Colors.transparent,
@@ -323,12 +527,16 @@ class _NavItemState extends State<_NavItem> {
       child: Padding(
         padding: EdgeInsets.only(left: isSelected ? 9.0 : 12.0, right: 12.0),
         child: Row(
-          mainAxisAlignment: widget.isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+          mainAxisAlignment: widget.isCollapsed
+              ? MainAxisAlignment.center
+              : MainAxisAlignment.start,
           children: [
             Icon(
               widget.icon,
               size: 18,
-              color: isSelected ? AppColors.accentAmber : (_isHovering ? c.textSecondary : c.textMuted),
+              color: isSelected
+                  ? AppColors.accentAmber
+                  : (_isHovering ? c.textSecondary : c.textMuted),
             ),
             if (!widget.isCollapsed) ...[
               const SizedBox(width: 10),
@@ -336,7 +544,9 @@ class _NavItemState extends State<_NavItem> {
                 widget.label,
                 style: AppTextStyles.navLabel.copyWith(
                   fontSize: 14,
-                  color: isSelected ? AppColors.accentAmber : (_isHovering ? c.textPrimary : c.textSecondary),
+                  color: isSelected
+                      ? AppColors.accentAmber
+                      : (_isHovering ? c.textPrimary : c.textSecondary),
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
@@ -365,7 +575,8 @@ class _NavItemState extends State<_NavItem> {
           color: c.bgSurface,
           border: Border.all(color: c.borderDefault),
         ),
-        textStyle: AppTextStyles.body(size: 12, color: c.textPrimary, weight: FontWeight.w600),
+        textStyle: AppTextStyles.body(
+            size: 12, color: c.textPrimary, weight: FontWeight.w600),
         child: item,
       );
     }
@@ -373,7 +584,9 @@ class _NavItemState extends State<_NavItem> {
     return item;
   }
 }
-PopupMenuItem<String> _buildNotificationItem(BuildContext context, String title, String sub, Color color) {
+
+PopupMenuItem<String> _buildNotificationItem(
+    BuildContext context, String title, String sub, Color color) {
   final c = context.colors;
   return PopupMenuItem<String>(
     enabled: false,
@@ -382,9 +595,15 @@ PopupMenuItem<String> _buildNotificationItem(BuildContext context, String title,
       children: [
         Row(
           children: [
-            Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+            Container(
+                width: 6,
+                height: 6,
+                decoration:
+                    BoxDecoration(color: color, shape: BoxShape.circle)),
             const SizedBox(width: 8),
-            Text(title, style: AppTextStyles.body(size: 13, weight: FontWeight.w700, color: c.textPrimary)),
+            Text(title,
+                style: AppTextStyles.body(
+                    size: 13, weight: FontWeight.w700, color: c.textPrimary)),
           ],
         ),
         const SizedBox(height: 4),

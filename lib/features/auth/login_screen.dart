@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -19,6 +21,18 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
+  final TextEditingController _organizationIdController =
+      TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _organizationIdController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +60,9 @@ class _LoginScreenState extends State<LoginScreen> {
               child: isMobile
                   ? _MobileView(
                       obscurePassword: _obscurePassword,
+                      organizationIdController: _organizationIdController,
+                      emailController: _emailController,
+                      passwordController: _passwordController,
                       onToggleObscure: () =>
                           setState(() => _obscurePassword = !_obscurePassword),
                     )
@@ -69,6 +86,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           flex: 45,
                           child: _RightPanel(
                             obscurePassword: _obscurePassword,
+                            organizationIdController: _organizationIdController,
+                            emailController: _emailController,
+                            passwordController: _passwordController,
                             onToggleObscure: () => setState(
                                 () => _obscurePassword = !_obscurePassword),
                             availableHeight: availableHeight,
@@ -129,7 +149,6 @@ class _LeftPanel extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-
                       // HEADLINE BLOCK
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,11 +237,17 @@ class _LeftPanel extends StatelessWidget {
 
 class _RightPanel extends StatelessWidget {
   final bool obscurePassword;
+  final TextEditingController organizationIdController;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
   final VoidCallback onToggleObscure;
   final double availableHeight;
 
   const _RightPanel({
     required this.obscurePassword,
+    required this.organizationIdController,
+    required this.emailController,
+    required this.passwordController,
     required this.onToggleObscure,
     required this.availableHeight,
   });
@@ -275,7 +300,8 @@ class _RightPanel extends StatelessWidget {
                         padding: const EdgeInsets.all(32),
                         child: AnimatedContainer(
                           duration: 400.ms,
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 48),
                           decoration: BoxDecoration(
                             color: c.bgSecondary.withValues(alpha: 0.4),
                             borderRadius: BorderRadius.circular(16),
@@ -320,7 +346,10 @@ class _RightPanel extends StatelessWidget {
                                 height: 3,
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [AppColors.accentAmber, c.accentBlue],
+                                    colors: [
+                                      AppColors.accentAmber,
+                                      c.accentBlue
+                                    ],
                                   ),
                                   borderRadius: BorderRadius.circular(2),
                                 ),
@@ -335,59 +364,82 @@ class _RightPanel extends StatelessWidget {
                                 ),
                               ),
                               SizedBox(height: availableHeight < 600 ? 32 : 48),
-                                const _FormLabel(label: "ORGANIZATION ID", color: AppColors.accentAmber),
-                                const SizedBox(height: 8),
-                                const _StyledTextField(hint: "e.g. SENTINEL-01"),
-                                const SizedBox(height: 24),
-                                const _FormLabel(label: "IDENTITY", color: AppColors.accentAmber),
-                                const SizedBox(height: 8),
-                                const _StyledTextField(hint: "admin@organization.com"),
+                              const _FormLabel(
+                                  label: "ORGANIZATION ID",
+                                  color: AppColors.accentAmber),
+                              const SizedBox(height: 8),
+                              _StyledTextField(
+                                hint: "e.g. ASTRA-7XK29P",
+                                controller: organizationIdController,
+                              ),
                               const SizedBox(height: 24),
-                              const _FormLabel(label: "CREDENTIAL", color: AppColors.accentAmber),
+                              const _FormLabel(
+                                  label: "IDENTITY",
+                                  color: AppColors.accentAmber),
+                              const SizedBox(height: 8),
+                              _StyledTextField(
+                                hint: "admin@organization.com",
+                                controller: emailController,
+                              ),
+                              const SizedBox(height: 24),
+                              const _FormLabel(
+                                  label: "CREDENTIAL",
+                                  color: AppColors.accentAmber),
                               const SizedBox(height: 8),
                               _StyledTextField(
                                 hint: "••••••••••••",
                                 isPassword: true,
                                 obscureText: obscurePassword,
+                                controller: passwordController,
                                 onToggle: onToggleObscure,
                               ),
                               const SizedBox(height: 32),
-                              const _AuthButton(),
+                              _AuthButton(
+                                organizationIdController:
+                                    organizationIdController,
+                                emailController: emailController,
+                                passwordController: passwordController,
+                              ),
                               const SizedBox(height: 24),
-                                const _SecurityStatusBar(),
-                                const SizedBox(height: 24),
-                                Center(
-                                  child: OutlinedButton(
-                                    onPressed: () => _showSignUpDialog(context),
-                                    style: OutlinedButton.styleFrom(
-                                      side: BorderSide(color: c.borderDefault),
-                                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                                    ),
-                                    child: Text(
-                                      "REGISTER YOUR ORGANIZATION",
-                                      style: AppTextStyles.display(
-                                        size: 11,
-                                        weight: FontWeight.w700,
-                                        color: c.textSecondary,
-                                        letterSpacing: 1.5,
-                                      ),
+                              const _SecurityStatusBar(),
+                              const SizedBox(height: 24),
+                              Center(
+                                child: OutlinedButton(
+                                  onPressed: () => _showSignUpDialog(context),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: c.borderDefault),
+                                    shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.zero),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 24, vertical: 16),
+                                  ),
+                                  child: Text(
+                                    "REGISTER YOUR ORGANIZATION",
+                                    style: AppTextStyles.display(
+                                      size: 11,
+                                      weight: FontWeight.w700,
+                                      color: c.textSecondary,
+                                      letterSpacing: 1.5,
                                     ),
                                   ),
                                 ),
+                              ),
                               const SizedBox(height: 32),
-                                Text(
-                                  "SYSTEM NOTICE: Unauthorized access is a violation of organizational policy All terminal sessions are encrypted and logged",
-                                  style: AppTextStyles.body(
-                                    size: 12,
-                                    color: c.textMuted,
-                                    height: 1.5,
-                                    weight: FontWeight.w500,
-                                  ),
+                              Text(
+                                "SYSTEM NOTICE: Unauthorized access is a violation of organizational policy All terminal sessions are encrypted and logged",
+                                style: AppTextStyles.body(
+                                  size: 12,
+                                  color: c.textMuted,
+                                  height: 1.5,
+                                  weight: FontWeight.w500,
                                 ),
+                              ),
                             ],
                           ),
-                        ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.05, end: 0),
+                        )
+                            .animate()
+                            .fadeIn(duration: 600.ms)
+                            .slideY(begin: 0.05, end: 0),
                       ),
                     ),
                   ),
@@ -403,10 +455,16 @@ class _RightPanel extends StatelessWidget {
 
 class _MobileView extends StatelessWidget {
   final bool obscurePassword;
+  final TextEditingController organizationIdController;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
   final VoidCallback onToggleObscure;
 
   const _MobileView({
     required this.obscurePassword,
+    required this.organizationIdController,
+    required this.emailController,
+    required this.passwordController,
     required this.onToggleObscure,
   });
 
@@ -438,20 +496,38 @@ class _MobileView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  const _FormLabel(label: "IDENTITY", color: AppColors.accentAmber),
+                  const _FormLabel(
+                      label: "ORGANIZATION ID", color: AppColors.accentAmber),
                   const SizedBox(height: 8),
-                  const _StyledTextField(hint: "admin@organization.com"),
+                  _StyledTextField(
+                    hint: "e.g. ASTRA-7XK29P",
+                    controller: organizationIdController,
+                  ),
                   const SizedBox(height: 20),
-                  const _FormLabel(label: "CREDENTIAL", color: AppColors.accentAmber),
+                  const _FormLabel(
+                      label: "IDENTITY", color: AppColors.accentAmber),
+                  const SizedBox(height: 8),
+                  _StyledTextField(
+                    hint: "admin@organization.com",
+                    controller: emailController,
+                  ),
+                  const SizedBox(height: 20),
+                  const _FormLabel(
+                      label: "CREDENTIAL", color: AppColors.accentAmber),
                   const SizedBox(height: 8),
                   _StyledTextField(
                     hint: "••••••••••••",
                     isPassword: true,
                     obscureText: obscurePassword,
+                    controller: passwordController,
                     onToggle: onToggleObscure,
                   ),
                   const SizedBox(height: 32),
-                  const _AuthButton(),
+                  _AuthButton(
+                    organizationIdController: organizationIdController,
+                    emailController: emailController,
+                    passwordController: passwordController,
+                  ),
                   const SizedBox(height: 24),
                   const _SecurityStatusBar(),
                 ],
@@ -476,7 +552,8 @@ class _MetricsDashboard extends StatelessWidget {
       duration: 300.ms,
       decoration: BoxDecoration(
         color: c.bgSecondary.withValues(alpha: 0.5),
-        border: Border.all(color: c.borderDefault.withValues(alpha: 0.5), width: 1),
+        border:
+            Border.all(color: c.borderDefault.withValues(alpha: 0.5), width: 1),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Column(
@@ -524,7 +601,8 @@ class _MetricsDashboard extends StatelessWidget {
                         height: 40,
                         color: c.borderDefault.withValues(alpha: 0.5)),
                     const Expanded(
-                        child: _LiveStat("LATENCY", "12ms", AppColors.accentGreen)),
+                        child: _LiveStat(
+                            "LATENCY", "12ms", AppColors.accentGreen)),
                   ],
                 ),
               ],
@@ -598,12 +676,14 @@ class _StyledTextField extends StatelessWidget {
   final String hint;
   final bool isPassword;
   final bool obscureText;
+  final TextEditingController? controller;
   final VoidCallback? onToggle;
 
   const _StyledTextField({
     required this.hint,
     this.isPassword = false,
     this.obscureText = false,
+    this.controller,
     this.onToggle,
   });
 
@@ -617,6 +697,7 @@ class _StyledTextField extends StatelessWidget {
             left: BorderSide(color: AppColors.accentAmber, width: 3)),
       ),
       child: TextField(
+        controller: controller,
         obscureText: obscureText,
         style: AppTextStyles.body(color: c.textPrimary, size: 15),
         decoration: InputDecoration(
@@ -639,7 +720,15 @@ class _StyledTextField extends StatelessWidget {
 }
 
 class _AuthButton extends StatefulWidget {
-  const _AuthButton();
+  final TextEditingController organizationIdController;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+
+  const _AuthButton({
+    required this.organizationIdController,
+    required this.emailController,
+    required this.passwordController,
+  });
 
   @override
   State<_AuthButton> createState() => _AuthButtonState();
@@ -654,9 +743,77 @@ class _AuthButtonState extends State<_AuthButton> {
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: ScaleButton(
-        onTap: () {
-          AppRouter.isAuthenticated = true;
-          context.go('/dashboard');
+        onTap: () async {
+          final organizationId =
+              widget.organizationIdController.text.trim().toUpperCase();
+          final email = widget.emailController.text.trim();
+          final password = widget.passwordController.text;
+
+          if (organizationId.isEmpty || email.isEmpty || password.isEmpty) {
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('Enter organization ID, email and password')),
+            );
+            return;
+          }
+
+          try {
+            await FirebaseAuth.instance.signInWithEmailAndPassword(
+              email: email,
+              password: password,
+            );
+
+            final user = FirebaseAuth.instance.currentUser;
+            if (user == null) {
+              AppRouter.isAuthenticated = false;
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Authentication failed')),
+              );
+              return;
+            }
+
+            final orgDoc = await FirebaseFirestore.instance
+                .collection('organizations')
+                .doc(user.uid)
+                .get();
+
+            final storedOrgId = (orgDoc.data()?['organizationId'] ?? '')
+                .toString()
+                .trim()
+                .toUpperCase();
+            final storedAdminName =
+                (orgDoc.data()?['adminFullName'] ?? '').toString().trim();
+
+            if (storedOrgId.isEmpty || storedOrgId != organizationId) {
+              await FirebaseAuth.instance.signOut();
+              AppRouter.isAuthenticated = false;
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Invalid organization ID')),
+              );
+              return;
+            }
+
+            AppRouter.isAuthenticated = true;
+            AppRouter.currentOrganizationId = storedOrgId;
+            AppRouter.currentAdminName = storedAdminName.isEmpty
+                ? (user.displayName ?? 'Admin User')
+                : storedAdminName;
+          } on FirebaseAuthException catch (e) {
+            AppRouter.isAuthenticated = false;
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(e.message ?? 'Authentication failed')),
+            );
+          } catch (_) {
+            AppRouter.isAuthenticated = false;
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Authentication failed')),
+            );
+          }
         },
         child: AnimatedContainer(
           duration: 200.ms,
@@ -665,8 +822,12 @@ class _AuthButtonState extends State<_AuthButton> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                _isHovering ? AppColors.accentAmber : AppColors.accentAmber.withValues(alpha: 0.9),
-                _isHovering ? AppColors.accentAmber.withValues(alpha: 0.9) : AppColors.accentAmber.withValues(alpha: 0.8),
+                _isHovering
+                    ? AppColors.accentAmber
+                    : AppColors.accentAmber.withValues(alpha: 0.9),
+                _isHovering
+                    ? AppColors.accentAmber.withValues(alpha: 0.9)
+                    : AppColors.accentAmber.withValues(alpha: 0.8),
               ],
             ),
             borderRadius: BorderRadius.circular(4),
@@ -812,13 +973,26 @@ class _HomeLinkState extends State<_HomeLink> {
 
 void _showSignUpDialog(BuildContext context) {
   final c = context.colors;
+  final organizationNameController = TextEditingController();
+  final adminFullNameController = TextEditingController();
+  final adminEmailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+  bool termsAccepted = false;
+  String? selectedOrgType;
+
+  String generateOrganizationId() {
+    final raw =
+        DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase();
+    final suffix = raw.length > 6 ? raw.substring(raw.length - 6) : raw;
+    return 'ASTRA-$suffix';
+  }
+
   showDialog(
     context: context,
     barrierColor: Colors.black.withValues(alpha: 0.6),
     builder: (context) => StatefulBuilder(
       builder: (context, setState) {
-        bool termsAccepted = false; // Note: local state for simplicity in modal
-
         return Dialog(
           backgroundColor: Colors.transparent,
           insetPadding: const EdgeInsets.symmetric(horizontal: 20),
@@ -876,87 +1050,140 @@ void _showSignUpDialog(BuildContext context) {
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     children: [
-                      const Row(
+                      Row(
                         children: [
-                          Expanded(child: _SignUpField(label: "ORGANIZATION NAME", hint: "e.g. BCCI — Board of Control")),
-                          SizedBox(width: 16),
+                          Expanded(
+                            child: _SignUpField(
+                              label: "ORGANIZATION NAME",
+                              hint: "e.g. BCCI — Board of Control",
+                              controller: organizationNameController,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: _SignUpField(
                               label: "ORG TYPE",
                               hint: "",
                               isDropdown: true,
-                              items: ["Cricket Board", "Football League", "Esports Org", "Basketball League", "Other"],
+                              dropdownValue: selectedOrgType,
+                              onDropdownChanged: (value) {
+                                setState(() => selectedOrgType = value);
+                              },
+                              items: const [
+                                "Cricket Board",
+                                "Football League",
+                                "Esports Org",
+                                "Basketball League",
+                                "Other"
+                              ],
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      const Row(
+                      Row(
                         children: [
-                          Expanded(child: _SignUpField(label: "ADMIN FULL NAME", hint: "e.g. Rahul Sharma")),
-                          SizedBox(width: 16),
-                          Expanded(child: _SignUpField(label: "ADMIN EMAIL", hint: "admin@organization.com")),
+                          Expanded(
+                            child: _SignUpField(
+                              label: "ADMIN FULL NAME",
+                              hint: "e.g. Rahul Sharma",
+                              controller: adminFullNameController,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _SignUpField(
+                              label: "ADMIN EMAIL",
+                              hint: "admin@organization.com",
+                              controller: adminEmailController,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      const Row(
+                      Row(
                         children: [
-                          Expanded(child: _SignUpField(label: "PASSWORD", hint: "Min 12 characters", isPassword: true)),
-                          SizedBox(width: 16),
-                          Expanded(child: _SignUpField(label: "CONFIRM PASSWORD", hint: "Repeat password", isPassword: true)),
+                          Expanded(
+                            child: _SignUpField(
+                              label: "PASSWORD",
+                              hint: "Min 12 characters",
+                              isPassword: true,
+                              controller: passwordController,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _SignUpField(
+                              label: "CONFIRM PASSWORD",
+                              hint: "Repeat password",
+                              isPassword: true,
+                              controller: confirmPasswordController,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 24),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: Checkbox(
-                              value: termsAccepted,
-                              onChanged: (v) => setState(() => termsAccepted = v ?? false),
-                              fillColor: WidgetStateProperty.resolveWith((s) =>
-                                  s.contains(WidgetState.selected) ? AppColors.accentAmber : Colors.transparent),
-                              checkColor: AppColors.textOnAmber,
-                              side: BorderSide(color: c.borderDefault),
-                              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: "I agree to the ",
-                                    style: AppTextStyles.body(size: 12, color: c.textSecondary),
-                                  ),
-                                  TextSpan(
-                                    text: "Terms of Service",
-                                    style: AppTextStyles.body(
-                                      size: 12,
-                                      color: AppColors.accentAmber,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: " and ",
-                                    style: AppTextStyles.body(size: 12, color: c.textSecondary),
-                                  ),
-                                  TextSpan(
-                                    text: "Privacy Policy",
-                                    style: AppTextStyles.body(
-                                      size: 12,
-                                      color: AppColors.accentAmber,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                ],
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () =>
+                            setState(() => termsAccepted = !termsAccepted),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: Checkbox(
+                                value: termsAccepted,
+                                onChanged: (v) =>
+                                    setState(() => termsAccepted = v ?? false),
+                                fillColor: WidgetStateProperty.resolveWith(
+                                    (s) => s.contains(WidgetState.selected)
+                                        ? AppColors.accentAmber
+                                        : Colors.transparent),
+                                checkColor: AppColors.textOnAmber,
+                                side: BorderSide(color: c.borderDefault),
+                                shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.zero),
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: "I agree to the ",
+                                      style: AppTextStyles.body(
+                                          size: 12, color: c.textSecondary),
+                                    ),
+                                    TextSpan(
+                                      text: "Terms of Service",
+                                      style: AppTextStyles.body(
+                                        size: 12,
+                                        color: AppColors.accentAmber,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: " and ",
+                                      style: AppTextStyles.body(
+                                          size: 12, color: c.textSecondary),
+                                    ),
+                                    TextSpan(
+                                      text: "Privacy Policy",
+                                      style: AppTextStyles.body(
+                                        size: 12,
+                                        color: AppColors.accentAmber,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 24),
                     ],
@@ -965,7 +1192,8 @@ void _showSignUpDialog(BuildContext context) {
 
                 // MODAL FOOTER
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   decoration: BoxDecoration(
                     border: Border(top: BorderSide(color: c.borderDefault)),
                   ),
@@ -975,28 +1203,136 @@ void _showSignUpDialog(BuildContext context) {
                         onPressed: () => Navigator.of(context).pop(),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: c.borderDefault),
-                          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                          shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.zero),
                         ),
                         child: Text(
                           "CANCEL",
-                          style: AppTextStyles.mono(size: 12, weight: FontWeight.w700, color: c.textSecondary),
+                          style: AppTextStyles.mono(
+                              size: 12,
+                              weight: FontWeight.w700,
+                              color: c.textSecondary),
                         ),
                       ),
                       const Spacer(),
                       Opacity(
                         opacity: termsAccepted ? 1.0 : 0.4,
                         child: ElevatedButton(
-                          onPressed: termsAccepted ? () => Navigator.of(context).pop() : null,
+                          onPressed: termsAccepted
+                              ? () async {
+                                  final orgName =
+                                      organizationNameController.text.trim();
+                                  final fullName =
+                                      adminFullNameController.text.trim();
+                                  final email =
+                                      adminEmailController.text.trim();
+                                  final password = passwordController.text;
+                                  final confirmPassword =
+                                      confirmPasswordController.text;
+                                  final organizationId =
+                                      generateOrganizationId();
+
+                                  if (orgName.isEmpty ||
+                                      fullName.isEmpty ||
+                                      email.isEmpty ||
+                                      password.isEmpty ||
+                                      selectedOrgType == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Please fill all fields and select org type')),
+                                    );
+                                    return;
+                                  }
+
+                                  if (!termsAccepted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Accept Terms of Service to continue')),
+                                    );
+                                    return;
+                                  }
+
+                                  if (password != confirmPassword) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content:
+                                              Text('Passwords do not match')),
+                                    );
+                                    return;
+                                  }
+
+                                  try {
+                                    final credential = await FirebaseAuth
+                                        .instance
+                                        .createUserWithEmailAndPassword(
+                                      email: email,
+                                      password: password,
+                                    );
+
+                                    final user = credential.user;
+                                    if (user != null) {
+                                      await user.updateDisplayName(fullName);
+
+                                      await FirebaseFirestore.instance
+                                          .collection('organizations')
+                                          .doc(user.uid)
+                                          .set({
+                                        'organizationId': organizationId,
+                                        'organizationName': orgName,
+                                        'organizationType': selectedOrgType,
+                                        'adminFullName': fullName,
+                                        'adminEmail': email,
+                                        'createdAt':
+                                            FieldValue.serverTimestamp(),
+                                      });
+                                    }
+
+                                    AppRouter.isAuthenticated = true;
+                                    AppRouter.currentOrganizationId =
+                                        organizationId;
+                                    AppRouter.currentAdminName = fullName;
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Account created. Organization ID: $organizationId',
+                                        ),
+                                      ),
+                                    );
+                                    Navigator.of(context).pop();
+                                  } on FirebaseAuthException catch (e) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text(e.message ??
+                                              'Registration failed')),
+                                    );
+                                  } catch (_) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text('Registration failed')),
+                                    );
+                                  }
+                                }
+                              : null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.accentAmber,
                             foregroundColor: AppColors.textOnAmber,
-                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                            shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.zero),
                             elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 14),
                           ),
                           child: Text(
                             "CREATE ORGANIZATION ACCOUNT →",
-                            style: AppTextStyles.display(size: 12, weight: FontWeight.w900, color: AppColors.textOnAmber),
+                            style: AppTextStyles.display(
+                                size: 12,
+                                weight: FontWeight.w900,
+                                color: AppColors.textOnAmber),
                           ),
                         ),
                       ),
@@ -1009,7 +1345,13 @@ void _showSignUpDialog(BuildContext context) {
         );
       },
     ),
-  );
+  ).whenComplete(() {
+    organizationNameController.dispose();
+    adminFullNameController.dispose();
+    adminEmailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+  });
 }
 
 class _SignUpField extends StatelessWidget {
@@ -1018,6 +1360,9 @@ class _SignUpField extends StatelessWidget {
   final bool isPassword;
   final bool isDropdown;
   final List<String>? items;
+  final TextEditingController? controller;
+  final String? dropdownValue;
+  final ValueChanged<String?>? onDropdownChanged;
 
   const _SignUpField({
     required this.label,
@@ -1025,6 +1370,9 @@ class _SignUpField extends StatelessWidget {
     this.isPassword = false,
     this.isDropdown = false,
     this.items,
+    this.controller,
+    this.dropdownValue,
+    this.onDropdownChanged,
   });
 
   @override
@@ -1045,21 +1393,31 @@ class _SignUpField extends StatelessWidget {
         const SizedBox(height: 8),
         if (isDropdown)
           DropdownButtonFormField<String>(
+            initialValue: dropdownValue,
             dropdownColor: c.bgSecondary,
             style: AppTextStyles.body(color: c.textPrimary, size: 14),
             decoration: InputDecoration(
               filled: true,
               fillColor: c.bgSurface,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: c.borderDefault)),
-              focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppColors.accentAmber)),
+              enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: c.borderDefault)),
+              focusedBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.accentAmber)),
             ),
-            items: items!.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-            onChanged: (v) {},
-            hint: Text("Select...", style: AppTextStyles.body(color: c.textMuted, size: 14)),
+            items: items!
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .toList(),
+            onChanged: onDropdownChanged,
+            hint: Text("Select...",
+                style: AppTextStyles.body(color: c.textMuted, size: 14)),
           )
         else
-          _StyledTextField(hint: hint, isPassword: isPassword),
+          _StyledTextField(
+            hint: hint,
+            isPassword: isPassword,
+            controller: controller,
+          ),
       ],
     );
   }
