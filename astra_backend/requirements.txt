@@ -1,8 +1,14 @@
+fastapi
+uvicorn
+python-multipart
 firebase-admin==6.2.0
-ffmpeg-python
-numpy
 requests
-python-dotenv
 Pillow
+scipy
+numpy
+python-dotenv
+ffmpeg-python
+cryptography
+stegano
 torch
 transformers
