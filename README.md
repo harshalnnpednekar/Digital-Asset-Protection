@@ -123,6 +123,13 @@ Before running, place your Firebase service account key at:
 
 `astra_backend/config/serviceAccountKey.json`
 
+## Prerequisites: (Video Processing Pipeline)
+- Python 3.x
+- FFmpeg installed on system (brew install ffmpeg)
+
+## Setup:
+pip install -r requirements.txt
+
 ## Notes
 
 - Current UI includes demo-oriented screens and mock data sources in multiple features.

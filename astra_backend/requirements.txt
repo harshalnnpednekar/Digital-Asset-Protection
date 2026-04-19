@@ -1,1 +1,8 @@
 firebase-admin==6.2.0
+ffmpeg-python
+numpy
+requests
+python-dotenv
+Pillow
+torch
+transformers
