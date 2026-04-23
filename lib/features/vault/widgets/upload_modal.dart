@@ -19,7 +19,7 @@ class UploadModal extends StatefulWidget {
 }
 
 class _UploadModalState extends State<UploadModal> {
-  bool _showProgress = false;
+  final bool _showProgress = false;
   bool _isUploading = false;
   String _assetName = "";
   PlatformFile? _selectedFile;
@@ -35,7 +35,7 @@ class _UploadModalState extends State<UploadModal> {
   }
 
   // Progress state
-  int _currentStep = 0; // 0 to 5
+  final int _currentStep = 0; // 0 to 5
   final List<String> _steps = [
     "UPLOADING TO SECURE STORAGE",
     "INJECTING C2PA MANIFEST + AES-256 WATERMARK",

@@ -26,6 +26,7 @@ from dotenv import load_dotenv
 from scanner_pipeline import process_scraped_video
 from media_processor import extract_frames
 from vectorizer import generate_video_vector
+from watermark import inject_watermark
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -42,6 +43,12 @@ load_dotenv()  # Reads .env file in the current working directory
 # ----------------------------------------------------------
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import base64
+import ffmpeg
+from fastapi.responses import JSONResponse
+from cryptography.fernet import Fernet
+from stegano import lsb
 
 # ----------------------------------------------------------
 # STEP 3: Import Firebase Admin SDK
@@ -240,6 +247,21 @@ async def process_asset(
         if vector is None:
             raise Exception("Failed to generate AI fingerprint (vector returned None)")
             
+        # --- NEW SUB-STEP: Inject Cryptographic Watermark ---
+        status_ref.set({"current_step": 3.5, "step_label": "Injecting cryptographic watermark"})
+        asset_id = str(uuid.uuid4())
+        
+        watermark_result = await asyncio.to_thread(
+            inject_watermark, temp_video_path, distribution_target, asset_id
+        )
+        
+        watermark_key = None
+        if watermark_result is not None:
+            temp_video_path = watermark_result["watermarked_video_path"]
+            watermark_key = watermark_result["encryption_key"]
+        else:
+            logging.warning("Watermark injection failed. Continuing with original unwatermarked video.")
+            
         # Step 4 of 5: Upload the video file to Firebase Cloud Storage
         status_ref.set({"current_step": 4, "step_label": "Uploading to secure vault"})
         unique_filename = f"{uuid.uuid4()}_{video_file.filename}"
@@ -250,14 +272,14 @@ async def process_asset(
         # Step 5 of 5: Write a new document to the Firestore vaulted_assets collection
         status_ref.set({"current_step": 5, "step_label": "Secured and vaulted"})
         
-        asset_id = str(uuid.uuid4())
         db.collection("vaulted_assets").document(asset_id).set({
             "asset_name": video_file.filename,
             "distribution_target": distribution_target,
             "vector": vector,
             "storage_path": f"vault/{unique_filename}",
             "status": "VAULTED",
-            "created_at": firestore.SERVER_TIMESTAMP
+            "created_at": firestore.SERVER_TIMESTAMP,
+            "watermark_key": watermark_key
         })
         
         return {
@@ -276,3 +298,73 @@ async def process_asset(
         if 'temp_dir' in locals():
             shutil.rmtree(temp_dir, ignore_errors=True)
 
+class DecryptRequest(BaseModel):
+    asset_id: str
+
+@app.post("/decrypt-watermark")
+async def decrypt_watermark(req: DecryptRequest):
+    try:
+        db = firestore.client()
+        doc_ref = db.collection("vaulted_assets").document(req.asset_id)
+        doc = await asyncio.to_thread(doc_ref.get)
+        if not doc.exists:
+            from fastapi.responses import JSONResponse
+            return JSONResponse(status_code=404, content={"success": False, "error": "Asset not found"})
+        
+        data = doc.to_dict()
+        watermark_key = data.get("watermark_key")
+        if not watermark_key:
+            return {"success": False, "message": "Watermark not available for this asset"}
+            
+        storage_path = data.get("storage_path")
+        if not storage_path:
+            from fastapi.responses import JSONResponse
+            return JSONResponse(status_code=500, content={"success": False, "error": "Storage path missing"})
+            
+        bucket = storage.bucket()
+        blob = bucket.blob(storage_path)
+        
+        temp_dir = tempfile.mkdtemp(prefix="astra_decrypt_")
+        temp_video_path = os.path.join(temp_dir, "video.mp4")
+        temp_image_path = os.path.join(temp_dir, "frame.png")
+        
+        await asyncio.to_thread(blob.download_to_filename, temp_video_path)
+        
+        import ffmpeg
+        (
+            ffmpeg
+            .input(temp_video_path)
+            .filter('select', 'eq(n,0)')
+            .output(temp_image_path, vframes=1, format='image2', vcodec='png')
+            .overwrite_output()
+            .run(capture_stdout=True, capture_stderr=True)
+        )
+        
+        from stegano import lsb
+        base64_str = await asyncio.to_thread(lsb.reveal, temp_image_path)
+        if not base64_str:
+            raise Exception("No watermark found in image")
+             
+        import base64
+        import json
+        from cryptography.fernet import Fernet
+        
+        ciphertext_bytes = base64.b64decode(base64_str)
+        f = Fernet(watermark_key.encode('utf-8'))
+        decrypted_bytes = f.decrypt(ciphertext_bytes)
+        payload = json.loads(decrypted_bytes.decode('utf-8'))
+        
+        return {
+            "success": True,
+            "patient_zero": payload.get("distribution_target", "Unknown"),
+            "asset_id": payload.get("asset_id", "Unknown")
+        }
+        
+    except Exception as e:
+        logging.error(f"Error in /decrypt-watermark: {e}")
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+    finally:
+        if 'temp_dir' in locals():
+            import shutil
+            shutil.rmtree(temp_dir, ignore_errors=True)

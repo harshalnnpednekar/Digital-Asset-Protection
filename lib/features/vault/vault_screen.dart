@@ -73,7 +73,7 @@ class _VaultScreenState extends State<VaultScreen> {
               }
 
               final stepLabel =
-                  (data?['step_label'] as String?) ?? 'Processing';
+                  (data['step_label'] as String?) ?? 'Processing';
 
               return Container(
                 width: double.infinity,

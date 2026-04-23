@@ -32,7 +32,9 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
 
   void _updateStatus(String status) {
     if (_selectedThreatId == null ||
-        !_liveThreatIds.contains(_selectedThreatId)) return;
+        !_liveThreatIds.contains(_selectedThreatId)) {
+      return;
+    }
     FirebaseFirestore.instance
         .collection('threat_alerts')
         .doc(_selectedThreatId)

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
+import '../../../core/config/api_config.dart';
+import '../../../core/services/dio_client.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/app_theme_colors.dart';
@@ -253,72 +257,7 @@ class ThreatDetailPanel extends StatelessWidget {
           ),
 
           // E: PATIENT ZERO
-          _SectionWrapper(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: c.bgTertiary,
-                border: Border.all(color: AppColors.accentCrimson, width: 1.5),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(PhosphorIcons.dna(),
-                              size: 16, color: AppColors.accentCrimson),
-                          const SizedBox(width: 8),
-                          Text(
-                            "PATIENT ZERO IDENTIFIED",
-                            style: AppTextStyles.mono(
-                                size: 13,
-                                weight: FontWeight.w700,
-                                color: AppColors.accentCrimson,
-                                letterSpacing: 0.5),
-                          ),
-                        ],
-                      ),
-                      const CustomChip(
-                          label: "DECRYPTED", color: AppColors.accentCrimson),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _DataRow(
-                      label: "LEAK SOURCE",
-                      value: threat.decryptedLeakSource,
-                      valueColor: AppColors.accentAmber),
-                  _DataRow(
-                      label: "DISTRIBUTION MARKER",
-                      value:
-                          "[AES-256 Payload: ${threat.threatId.hashCode.toRadixString(16).toUpperCase()}]",
-                      valueColor: c.textSecondary),
-                  _DataRow(
-                      label: "MARKER ASSIGNED ON",
-                      value: threat.patientZeroTimestamp,
-                      valueColor: c.textSecondary),
-                  _DataRow(
-                      label: "BREACH TYPE",
-                      value: "Unauthorized External Distribution",
-                      valueColor: c.textSecondary),
-                  _DataRow(
-                      label: "FIRST DETECTED",
-                      value: threat.detectionTime,
-                      valueColor: c.textSecondary),
-                  const SizedBox(height: 12),
-                  Text(
-                    "Steganographic payload decrypted from media bitstream — admissible as digital forensic evidence",
-                    style: AppTextStyles.mono(
-                        size: 9,
-                        color: c.textMuted,
-                        letterSpacing: 0.5),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _PatientZeroSection(threat: threat),
 
           // F: ACTION BUTTONS
           Container(
@@ -656,6 +595,239 @@ class _PlatformBadge extends StatelessWidget {
         platform.toUpperCase(),
         style: AppTextStyles.mono(
             size: 8, weight: FontWeight.w600, color: c.textSecondary),
+      ),
+    );
+  }
+}
+
+class _PatientZeroSection extends StatefulWidget {
+  final ThreatAlert threat;
+  const _PatientZeroSection({required this.threat});
+  @override
+  State<_PatientZeroSection> createState() => _PatientZeroSectionState();
+}
+
+class _PatientZeroSectionState extends State<_PatientZeroSection> {
+  bool _isLoading = false;
+  bool _isRevealed = false;
+  String? _patientZero;
+  String? _error;
+
+  void _reveal() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      String assetId = "";
+      if (widget.threat.isLive) {
+        final doc = await FirebaseFirestore.instance
+            .collection('threat_alerts')
+            .doc(widget.threat.threatId)
+            .get();
+        assetId = doc.data()?['matched_asset_id'] ?? widget.threat.threatId;
+      } else {
+        assetId = widget.threat.threatId; 
+      }
+      
+      final response = await dioClient.post(
+        '${ApiConfig.backendBaseUrl}/decrypt-watermark',
+        data: {'asset_id': assetId},
+      );
+      
+      final data = response.data;
+      if (data != null && data['success'] == true) {
+        setState(() {
+          _isRevealed = true;
+          _patientZero = data['patient_zero'];
+        });
+      } else {
+        setState(() {
+          _error = data?['message'] ?? data?['error'] ?? 'Unknown error';
+        });
+      }
+    } catch (e) {
+      final errorMessage = e is DioException
+          ? (e.response?.data is Map<String, dynamic>
+              ? ((e.response!.data['error'] ??
+                      e.response!.data['message'] ??
+                      e.message ??
+                      'Decryption failed')
+                  .toString())
+              : (e.message ?? e.toString()))
+          : e.toString();
+          
+      setState(() {
+        _error = errorMessage;
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return _SectionWrapper(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: c.bgTertiary,
+          border: Border.all(color: AppColors.accentCrimson, width: 1.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(PhosphorIcons.dna(), size: 16, color: AppColors.accentCrimson),
+                    const SizedBox(width: 8),
+                    Text(
+                      _isRevealed ? "PATIENT ZERO IDENTIFIED" : "PATIENT ZERO TRACING",
+                      style: AppTextStyles.mono(
+                          size: 13,
+                          weight: FontWeight.w700,
+                          color: AppColors.accentCrimson,
+                          letterSpacing: 0.5),
+                    ),
+                  ],
+                ),
+                if (_isRevealed || (!widget.threat.isLive && _error == null))
+                  const CustomChip(label: "DECRYPTED", color: AppColors.accentCrimson)
+                else if (_isLoading)
+                  const CustomChip(label: "DECRYPTING...", color: AppColors.accentAmber)
+                else if (_error != null)
+                  const CustomChip(label: "FAILED", color: AppColors.accentCrimson)
+                else
+                  const CustomChip(label: "ENCRYPTED", color: AppColors.accentAmber),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (!_isRevealed && _error == null && !_isLoading && !widget.threat.isLive) ...[
+              _DataRow(
+                  label: "LEAK SOURCE",
+                  value: widget.threat.decryptedLeakSource,
+                  valueColor: AppColors.accentAmber),
+              _DataRow(
+                  label: "DISTRIBUTION MARKER",
+                  value: "[AES-256 Payload: ${widget.threat.threatId.hashCode.toRadixString(16).toUpperCase()}]",
+                  valueColor: c.textSecondary),
+              _DataRow(
+                  label: "MARKER ASSIGNED ON",
+                  value: widget.threat.patientZeroTimestamp,
+                  valueColor: c.textSecondary),
+              _DataRow(
+                  label: "BREACH TYPE",
+                  value: "Unauthorized External Distribution",
+                  valueColor: c.textSecondary),
+              _DataRow(
+                  label: "FIRST DETECTED",
+                  value: widget.threat.detectionTime,
+                  valueColor: c.textSecondary),
+              const SizedBox(height: 12),
+              Text(
+                "Steganographic payload decrypted from media bitstream — admissible as digital forensic evidence",
+                style: AppTextStyles.mono(size: 9, color: c.textMuted, letterSpacing: 0.5),
+              ),
+            ] else if (!_isRevealed && _error == null) ...[
+              Text(
+                "Encrypted steganographic marker detected in the media stream.",
+                style: AppTextStyles.mono(size: 11, color: c.textSecondary),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ScaleButton(
+                  onTap: _isLoading ? () {} : _reveal,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accentCrimson,
+                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () {},
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                            ),
+                          )
+                        : Text(
+                            "DECRYPT MARKER & REVEAL PATIENT ZERO",
+                            style: AppTextStyles.buttonLabel,
+                          ),
+                  ),
+                ),
+              ),
+            ] else if (_error != null) ...[
+              Row(
+                children: [
+                  Icon(PhosphorIcons.warning(PhosphorIconsStyle.fill), color: AppColors.accentAmber),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _error!,
+                      style: AppTextStyles.mono(size: 12, color: AppColors.accentAmber),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ScaleButton(
+                  onTap: _reveal,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.accentAmber),
+                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () {},
+                    child: Text(
+                      "RETRY DECRYPTION",
+                      style: AppTextStyles.mono(size: 11, weight: FontWeight.w700, color: AppColors.accentAmber),
+                    ),
+                  ),
+                ),
+              ),
+            ] else ...[
+              _DataRow(
+                  label: "LEAK SOURCE",
+                  value: _patientZero ?? widget.threat.decryptedLeakSource,
+                  valueColor: AppColors.accentAmber),
+              _DataRow(
+                  label: "DISTRIBUTION MARKER",
+                  value: "[AES-256 Payload: ${widget.threat.threatId.hashCode.toRadixString(16).toUpperCase()}]",
+                  valueColor: c.textSecondary),
+              _DataRow(
+                  label: "MARKER ASSIGNED ON",
+                  value: widget.threat.patientZeroTimestamp,
+                  valueColor: c.textSecondary),
+              _DataRow(
+                  label: "BREACH TYPE",
+                  value: "Unauthorized External Distribution",
+                  valueColor: c.textSecondary),
+              _DataRow(
+                  label: "FIRST DETECTED",
+                  value: widget.threat.detectionTime,
+                  valueColor: c.textSecondary),
+              const SizedBox(height: 12),
+              Text(
+                "Steganographic payload decrypted from media bitstream — admissible as digital forensic evidence",
+                style: AppTextStyles.mono(size: 9, color: c.textMuted, letterSpacing: 0.5),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
