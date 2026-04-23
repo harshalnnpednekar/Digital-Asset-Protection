@@ -67,12 +67,12 @@ class _ThreatQueueItemState extends State<ThreatQueueItem> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           decoration: BoxDecoration(
-            color: widget.isSelected 
-                ? c.bgTertiary 
+            color: widget.isSelected
+                ? c.bgTertiary
                 : (_isHovered ? c.bgOverlay : Colors.transparent),
             border: Border(
               bottom: BorderSide(color: c.borderDefault),
-              right: widget.isSelected 
+              right: widget.isSelected
                   ? const BorderSide(color: AppColors.accentAmber, width: 3)
                   : BorderSide.none,
               left: BorderSide(color: c.borderDefault),
@@ -86,7 +86,7 @@ class _ThreatQueueItemState extends State<ThreatQueueItem> {
                   width: 3,
                   color: statusBarColor,
                 ),
-                
+
                 // MAIN CONTENT
                 Expanded(
                   child: Padding(
@@ -108,7 +108,7 @@ class _ThreatQueueItemState extends State<ThreatQueueItem> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        
+
                         // DETAILS
                         Expanded(
                           child: Column(
@@ -143,11 +143,13 @@ class _ThreatQueueItemState extends State<ThreatQueueItem> {
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  _PlatformBadge(platform: widget.threat.platform),
+                                  _PlatformBadge(
+                                      platform: widget.threat.platform),
                                   const SizedBox(width: 8),
                                   Text(
                                     widget.threat.detectionTime,
-                                    style: AppTextStyles.mono(size: 10, color: c.textMuted),
+                                    style: AppTextStyles.mono(
+                                        size: 10, color: c.textMuted),
                                   ),
                                 ],
                               ),
@@ -156,12 +158,28 @@ class _ThreatQueueItemState extends State<ThreatQueueItem> {
                                 children: [
                                   Text(
                                     "${(widget.threat.visualSimilarity * 100).toStringAsFixed(1)}% VISUAL",
-                                    style: AppTextStyles.mono(size: 10, weight: FontWeight.w700, color: matchColor),
+                                    style: AppTextStyles.mono(
+                                        size: 10,
+                                        weight: FontWeight.w700,
+                                        color: matchColor),
                                   ),
                                   const SizedBox(width: 10),
                                   CustomChip(
                                     label: widget.threat.geminiIntent,
-                                    color: statusBarColor,
+                                    color: widget.threat.isLive &&
+                                            (widget.threat.geminiIntent ==
+                                                    'PIRACY' ||
+                                                widget.threat.geminiIntent ==
+                                                    'FAIR_USE')
+                                        ? Colors.white
+                                        : statusBarColor,
+                                    backgroundColor: widget.threat.isLive &&
+                                            (widget.threat.geminiIntent ==
+                                                    'PIRACY' ||
+                                                widget.threat.geminiIntent ==
+                                                    'FAIR_USE')
+                                        ? statusBarColor
+                                        : null,
                                   ),
                                 ],
                               ),
@@ -197,7 +215,8 @@ class _PlatformBadge extends StatelessWidget {
       ),
       child: Text(
         platform.toUpperCase(),
-        style: AppTextStyles.mono(size: 8, weight: FontWeight.w600, color: c.textSecondary),
+        style: AppTextStyles.mono(
+            size: 8, weight: FontWeight.w600, color: c.textSecondary),
       ),
     );
   }

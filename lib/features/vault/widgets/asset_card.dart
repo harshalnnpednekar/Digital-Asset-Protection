@@ -41,22 +41,37 @@ class _AssetCardState extends State<AssetCard> {
         categoryColor = c.textMuted;
     }
 
+    final statusBadgeLabel =
+        widget.asset.status == 'VAULTED' ? 'VAULTED' : 'PROCESSING';
+    final statusBadgeColor = widget.asset.status == 'VAULTED'
+        ? AppColors.accentGreen
+        : AppColors.accentAmber;
+    final topRightBadgeLabel =
+        widget.asset.isLive ? statusBadgeLabel : widget.asset.category;
+    final topRightBadgeColor =
+        widget.asset.isLive ? statusBadgeColor : categoryColor;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        decoration: c.cardDecoration(
-          borderColor: _isHovered ? c.accentBlue.withAlpha(204) : c.borderDefault,
-        ).copyWith(
-          boxShadow: _isHovered ? [
-            BoxShadow(
-              color: c.accentBlue.withAlpha(20),
-              blurRadius: 16,
-              spreadRadius: 0,
+        decoration: c
+            .cardDecoration(
+              borderColor:
+                  _isHovered ? c.accentBlue.withAlpha(204) : c.borderDefault,
             )
-          ] : c.cardShadow,
-        ),
+            .copyWith(
+              boxShadow: _isHovered
+                  ? [
+                      BoxShadow(
+                        color: c.accentBlue.withAlpha(20),
+                        blurRadius: 16,
+                        spreadRadius: 0,
+                      )
+                    ]
+                  : c.cardShadow,
+            ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -91,7 +106,7 @@ class _AssetCardState extends State<AssetCard> {
                       ),
                     ),
                   ),
-                  
+
                   // TOP-LEFT: C2PA
                   if (widget.asset.c2paSecured)
                     Positioned(
@@ -107,17 +122,17 @@ class _AssetCardState extends State<AssetCard> {
                         ),
                       ),
                     ),
-                  
+
                   // TOP-RIGHT: CATEGORY
                   Positioned(
                     top: 8,
                     right: 8,
                     child: _CardBadge(
-                      label: widget.asset.category,
-                      color: categoryColor,
+                      label: topRightBadgeLabel,
+                      color: topRightBadgeColor,
                     ),
                   ),
-                  
+
                   // BOTTOM INDICATOR
                   Align(
                     alignment: Alignment.bottomCenter,
@@ -127,20 +142,21 @@ class _AssetCardState extends State<AssetCard> {
                             child: LinearProgressIndicator(
                               value: widget.asset.vectorizationProgress,
                               backgroundColor: c.bgPrimary,
-                              valueColor: const AlwaysStoppedAnimation(AppColors.accentAmber),
+                              valueColor: const AlwaysStoppedAnimation(
+                                  AppColors.accentAmber),
                             ),
                           )
                         : Container(
                             height: 3,
-                            color: widget.asset.status == 'VAULTED' 
-                                ? AppColors.accentGreen 
+                            color: widget.asset.status == 'VAULTED'
+                                ? AppColors.accentGreen
                                 : AppColors.accentCrimson,
                           ),
                   ),
                 ],
               ),
             ),
-            
+
             // CARD BODY
             Padding(
               padding: const EdgeInsets.all(14.0),
@@ -158,7 +174,7 @@ class _AssetCardState extends State<AssetCard> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -178,14 +194,15 @@ class _AssetCardState extends State<AssetCard> {
                     style: AppTextStyles.mono(size: 10, color: c.textMuted),
                   ),
                   const SizedBox(height: 8),
-                  
+
                   // DISTRIBUTION TARGET
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.accentCrimson.withAlpha(13), 
+                      color: AppColors.accentCrimson.withAlpha(13),
                       border: const Border(
-                        left: BorderSide(color: AppColors.accentCrimson, width: 3),
+                        left: BorderSide(
+                            color: AppColors.accentCrimson, width: 3),
                       ),
                     ),
                     child: Row(
@@ -213,7 +230,7 @@ class _AssetCardState extends State<AssetCard> {
                   const SizedBox(height: 8),
                   Divider(color: c.borderDefault, height: 1),
                   const SizedBox(height: 4),
-                  
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

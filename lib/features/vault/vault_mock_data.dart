@@ -9,6 +9,7 @@ class VaultedAsset {
   final String status; // VAULTED | PROCESSING | FAILED
   final bool c2paSecured;
   final double vectorizationProgress; // 0.0 to 1.0
+  final bool isLive;
 
   const VaultedAsset({
     required this.id,
@@ -21,6 +22,7 @@ class VaultedAsset {
     required this.status,
     required this.c2paSecured,
     required this.vectorizationProgress,
+    this.isLive = false,
   });
 }
 

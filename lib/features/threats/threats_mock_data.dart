@@ -2,17 +2,18 @@ class ThreatAlert {
   final String threatId;
   final String matchedAssetName;
   final String platform;
-  final double visualSimilarity;  // 0.0 to 1.0
-  final double audioSimilarity;   // 0.0 to 1.0
+  final double visualSimilarity; // 0.0 to 1.0
+  final double audioSimilarity; // 0.0 to 1.0
   final String scrapedCaption;
-  final String geminiIntent;      // 'PIRACY' | 'FAIR_USE' | 'REVIEWING'
-  final double geminiConfidence;  // 0.0 to 1.0
+  final String geminiIntent; // 'PIRACY' | 'FAIR_USE' | 'REVIEWING'
+  final double geminiConfidence; // 0.0 to 1.0
   final String geminiReasoning;
   final String detectionTime;
-  final String status;            // 'ACTIVE' | 'DISMISSED' | 'DMCA_FILED'
+  final String status; // 'ACTIVE' | 'DISMISSED' | 'DMCA_FILED'
   final String distributionTarget;
   final String decryptedLeakSource;
   final String patientZeroTimestamp;
+  final bool isLive;
 
   const ThreatAlert({
     required this.threatId,
@@ -29,6 +30,7 @@ class ThreatAlert {
     required this.distributionTarget,
     required this.decryptedLeakSource,
     required this.patientZeroTimestamp,
+    this.isLive = false,
   });
 
   ThreatAlert copyWith({
@@ -49,10 +51,10 @@ class ThreatAlert {
       distributionTarget: distributionTarget,
       decryptedLeakSource: decryptedLeakSource,
       patientZeroTimestamp: patientZeroTimestamp,
+      isLive: isLive,
     );
   }
 }
-
 
 class ThreatsMockData {
   ThreatsMockData._();
@@ -64,10 +66,12 @@ class ThreatsMockData {
       platform: "YouTube",
       visualSimilarity: 0.942,
       audioSimilarity: 0.887,
-      scrapedCaption: "Full match free HD download — no copyright @ipl_free_streams",
+      scrapedCaption:
+          "Full match free HD download — no copyright @ipl_free_streams",
       geminiIntent: "PIRACY",
       geminiConfidence: 0.961,
-      geminiReasoning: "Account has no official affiliation. Caption explicitly states 'no copyright' indicating unauthorized distribution intent. Video is 94.2% temporally aligned with vaulted master.",
+      geminiReasoning:
+          "Account has no official affiliation. Caption explicitly states 'no copyright' indicating unauthorized distribution intent. Video is 94.2% temporally aligned with vaulted master.",
       detectionTime: "2 min ago",
       status: "ACTIVE",
       distributionTarget: "Partner: StreamMax India",
@@ -83,7 +87,8 @@ class ThreatsMockData {
       scrapedCaption: "Watch the full press conf here — unofficial mirror link",
       geminiIntent: "PIRACY",
       geminiConfidence: 0.884,
-      geminiReasoning: "Telegram channel operates with no official press credentials. 'Unofficial mirror' language confirms deliberate redistribution of protected content.",
+      geminiReasoning:
+          "Telegram channel operates with no official press credentials. 'Unofficial mirror' language confirms deliberate redistribution of protected content.",
       detectionTime: "14 min ago",
       status: "ACTIVE",
       distributionTarget: "Broadcast: Sony LIV",
@@ -96,10 +101,12 @@ class ThreatsMockData {
       platform: "X (Twitter)",
       visualSimilarity: 0.673,
       audioSimilarity: 0.541,
-      scrapedCaption: "Amazing training session breakdown — fan analysis thread",
+      scrapedCaption:
+          "Amazing training session breakdown — fan analysis thread",
       geminiIntent: "FAIR_USE",
       geminiConfidence: 0.723,
-      geminiReasoning: "Account is a verified cricket analyst. Content is clearly commentary and analysis of publicly available information. No full video reproduction detected.",
+      geminiReasoning:
+          "Account is a verified cricket analyst. Content is clearly commentary and analysis of publicly available information. No full video reproduction detected.",
       detectionTime: "31 min ago",
       status: "DISMISSED",
       distributionTarget: "Employee: R. Mehta",
@@ -115,7 +122,8 @@ class ThreatsMockData {
       scrapedCaption: "Full highlights 1080p free — r/CricketLeaks",
       geminiIntent: "PIRACY",
       geminiConfidence: 0.941,
-      geminiReasoning: "Posted to a subreddit dedicated to unauthorized content. Video is complete, unmodified, and clearly the protected asset. High-confidence piracy.",
+      geminiReasoning:
+          "Posted to a subreddit dedicated to unauthorized content. Video is complete, unmodified, and clearly the protected asset. High-confidence piracy.",
       detectionTime: "1h 12m ago",
       status: "ACTIVE",
       distributionTarget: "Partner: DSport",
@@ -128,10 +136,12 @@ class ThreatsMockData {
       platform: "YouTube",
       visualSimilarity: 0.521,
       audioSimilarity: 0.489,
-      scrapedCaption: "IPL 2025 opening ceremony reaction and highlights discussion",
+      scrapedCaption:
+          "IPL 2025 opening ceremony reaction and highlights discussion",
       geminiIntent: "FAIR_USE",
       geminiConfidence: 0.812,
-      geminiReasoning: "Content is clearly a reaction video format with significant commentary overlay. Audio similarity below threshold. Qualifies as fair use under commentary exception.",
+      geminiReasoning:
+          "Content is clearly a reaction video format with significant commentary overlay. Audio similarity below threshold. Qualifies as fair use under commentary exception.",
       detectionTime: "2h 4m ago",
       status: "DISMISSED",
       distributionTarget: "Broadcast: JioCinema",
@@ -147,7 +157,8 @@ class ThreatsMockData {
       scrapedCaption: "Rohit interview full — download link in bio",
       geminiIntent: "PIRACY",
       geminiConfidence: 0.876,
-      geminiReasoning: "Download link in bio indicates active piracy distribution beyond platform. 83.4% visual match with explicit download facilitation.",
+      geminiReasoning:
+          "Download link in bio indicates active piracy distribution beyond platform. 83.4% visual match with explicit download facilitation.",
       detectionTime: "3h 17m ago",
       status: "DMCA_FILED",
       distributionTarget: "Partner: StreamMax India",
@@ -163,7 +174,8 @@ class ThreatsMockData {
       scrapedCaption: "This promo is incredible — sharing for all fans!",
       geminiIntent: "REVIEWING",
       geminiConfidence: 0.612,
-      geminiReasoning: "Content appears to be fan sharing of promotional material. Confidence level insufficient for automatic classification. Manual review recommended.",
+      geminiReasoning:
+          "Content appears to be fan sharing of promotional material. Confidence level insufficient for automatic classification. Manual review recommended.",
       detectionTime: "5h 2m ago",
       status: "ACTIVE",
       distributionTarget: "Partner: DSport",

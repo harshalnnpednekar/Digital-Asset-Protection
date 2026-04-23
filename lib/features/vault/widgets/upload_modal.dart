@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/config/api_config.dart';
+import '../../../core/services/dio_client.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/app_theme_colors.dart';
@@ -18,11 +20,12 @@ class UploadModal extends StatefulWidget {
 
 class _UploadModalState extends State<UploadModal> {
   bool _showProgress = false;
+  bool _isUploading = false;
   String _assetName = "";
   PlatformFile? _selectedFile;
   String _selectedCategory = "HIGHLIGHT";
   String _selectedDistribution = "Partner: StreamMax India";
-  
+
   StreamSubscription<DocumentSnapshot>? _statusSub;
 
   @override
@@ -42,47 +45,105 @@ class _UploadModalState extends State<UploadModal> {
   ];
 
   void _startUpload() async {
-    if (_selectedFile == null) return;
-    
-    setState(() {
-      _showProgress = true;
-      _currentStep = 0;
-    });
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.video,
+      withData: true,
+    );
 
-    _statusSub = FirebaseFirestore.instance.collection('system_state').doc('processing_status').snapshots().listen((snapshot) {
-      if (snapshot.exists) {
-        final data = snapshot.data();
-        if (data != null && data['current_step'] != null) {
-          setState(() {
-            _currentStep = data['current_step'] as int;
-          });
-          
-          if (_currentStep == 5) {
-            Future.delayed(const Duration(milliseconds: 1000), () {
-              if (mounted) setState(() => _currentStep = 6);
-            });
-          }
-        }
-      }
+    if (result == null || result.files.isEmpty) {
+      return;
+    }
+
+    final pickedFile = result.files.first;
+    setState(() {
+      _selectedFile = pickedFile;
+      _isUploading = true;
     });
 
     try {
-      final dio = Dio();
+      final multipartFile = pickedFile.path != null
+          ? await MultipartFile.fromFile(
+              pickedFile.path!,
+              filename: pickedFile.name,
+            )
+          : MultipartFile.fromBytes(
+              pickedFile.bytes ?? <int>[],
+              filename: pickedFile.name,
+            );
+
       final formData = FormData.fromMap({
         'distribution_target': _selectedDistribution,
-        'video_file': MultipartFile.fromBytes(_selectedFile!.bytes!, filename: _selectedFile!.name),
+        'video_file': multipartFile,
       });
 
-      await dio.post('http://127.0.0.1:8000/processasset', data: formData);
+      final response = await dioClient.post(
+        '${ApiConfig.backendBaseUrl}/process-asset',
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+
+      final data = response.data;
+      final success = data is Map<String, dynamic> && data['success'] == true;
+
+      if (success) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppColors.accentGreen,
+            content: Text(
+              'Asset secured successfully',
+              style: AppTextStyles.mono(size: 11, color: Colors.white),
+            ),
+          ),
+        );
+        return;
+      }
+
+      final errorMessage = data is Map<String, dynamic>
+          ? (data['error'] ?? data['message'] ?? 'Upload failed').toString()
+          : 'Upload failed';
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.accentCrimson,
+          content: Text(
+            errorMessage,
+            style: AppTextStyles.mono(size: 11, color: Colors.white),
+          ),
+        ),
+      );
     } catch (e) {
-      debugPrint("Upload failed: $e");
+      final errorMessage = e is DioException
+          ? (e.response?.data is Map<String, dynamic>
+              ? ((e.response!.data['error'] ??
+                      e.response!.data['message'] ??
+                      e.message ??
+                      'Upload failed')
+                  .toString())
+              : (e.message ?? e.toString()))
+          : e.toString();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.accentCrimson,
+          content: Text(
+            errorMessage,
+            style: AppTextStyles.mono(size: 11, color: Colors.white),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isUploading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    
+
     return Dialog(
       backgroundColor: c.bgSecondary,
       surfaceTintColor: Colors.transparent,
@@ -111,6 +172,7 @@ class _UploadModalState extends State<UploadModal> {
               _ModalFooter(
                 onCancel: () => Navigator.pop(context),
                 onStart: _startUpload,
+                isLoading: _isUploading,
               ),
           ],
         ),
@@ -137,8 +199,7 @@ class _UploadModalState extends State<UploadModal> {
             }
           },
           child: CustomPaint(
-            painter:
-                DashedBorderPainter(color: c.accentBlue.withAlpha(102)),
+            painter: DashedBorderPainter(color: c.accentBlue.withAlpha(102)),
             child: Container(
               height: 140,
               width: double.infinity,
@@ -148,14 +209,21 @@ class _UploadModalState extends State<UploadModal> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(PhosphorIcons.cloudArrowUp(),
-                        size: 32, color: _selectedFile != null ? AppColors.accentGreen : c.accentBlue),
+                        size: 32,
+                        color: _selectedFile != null
+                            ? AppColors.accentGreen
+                            : c.accentBlue),
                     const SizedBox(height: 10),
                     Text(
-                      _selectedFile != null ? _selectedFile!.name.toUpperCase() : "DRAG VIDEO FILE HERE",
+                      _selectedFile != null
+                          ? _selectedFile!.name.toUpperCase()
+                          : "DRAG VIDEO FILE HERE",
                       style: AppTextStyles.mono(
                         size: 13,
                         weight: FontWeight.w600,
-                        color: _selectedFile != null ? AppColors.accentGreen : c.textPrimary,
+                        color: _selectedFile != null
+                            ? AppColors.accentGreen
+                            : c.textPrimary,
                         letterSpacing: 1,
                       ),
                       textAlign: TextAlign.center,
@@ -163,14 +231,19 @@ class _UploadModalState extends State<UploadModal> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _selectedFile != null ? "${(_selectedFile!.size / (1024 * 1024)).toStringAsFixed(2)} MB" : "or click to browse — MP4, MOV, AVI",
-                      style: AppTextStyles.mono(
-                          size: 11, color: c.textMuted),
+                      _selectedFile != null
+                          ? "${(_selectedFile!.size / (1024 * 1024)).toStringAsFixed(2)} MB"
+                          : "or click to browse — MP4, MOV, AVI",
+                      style: AppTextStyles.mono(size: 11, color: c.textMuted),
                     ),
                     const SizedBox(height: 10),
                     _MiniChip(
-                        label: _selectedFile != null ? "READY TO INGEST" : "MAX FILE SIZE: 50GB",
-                        color: _selectedFile != null ? AppColors.accentGreen : c.textMuted),
+                        label: _selectedFile != null
+                            ? "READY TO INGEST"
+                            : "MAX FILE SIZE: 50GB",
+                        color: _selectedFile != null
+                            ? AppColors.accentGreen
+                            : c.textMuted),
                   ],
                 ),
               ),
@@ -181,11 +254,11 @@ class _UploadModalState extends State<UploadModal> {
         const SizedBox(height: 20),
 
         Text(
-          "ASSET NAME", 
+          "ASSET NAME",
           style: AppTextStyles.mono(
-            size: 11, 
-            weight: FontWeight.w600, 
-            color: c.textMuted, 
+            size: 11,
+            weight: FontWeight.w600,
+            color: c.textMuted,
             letterSpacing: 2.5,
           ),
         ),
@@ -199,11 +272,11 @@ class _UploadModalState extends State<UploadModal> {
         const SizedBox(height: 16),
 
         Text(
-          "ASSET CATEGORY", 
+          "ASSET CATEGORY",
           style: AppTextStyles.mono(
-            size: 11, 
-            weight: FontWeight.w600, 
-            color: c.textMuted, 
+            size: 11,
+            weight: FontWeight.w600,
+            color: c.textMuted,
             letterSpacing: 2.5,
           ),
         ),
@@ -239,11 +312,11 @@ class _UploadModalState extends State<UploadModal> {
         const SizedBox(height: 16),
 
         Text(
-          "INTERNAL DISTRIBUTION TARGET", 
+          "INTERNAL DISTRIBUTION TARGET",
           style: AppTextStyles.mono(
-            size: 11, 
-            weight: FontWeight.w600, 
-            color: c.textMuted, 
+            size: 11,
+            weight: FontWeight.w600,
+            color: c.textMuted,
             letterSpacing: 2.5,
           ),
         ),
@@ -390,9 +463,7 @@ class _ModalHeader extends StatelessWidget {
             children: [
               Text("INGEST NEW ASSET",
                   style: AppTextStyles.mono(
-                      size: 16,
-                      weight: FontWeight.w700,
-                      color: c.textPrimary)),
+                      size: 16, weight: FontWeight.w700, color: c.textPrimary)),
               const SizedBox(height: 4),
               Text(
                 "Asset will be cryptographically watermarked and AI-vectorized",
@@ -414,8 +485,13 @@ class _ModalHeader extends StatelessWidget {
 class _ModalFooter extends StatelessWidget {
   final VoidCallback onCancel;
   final VoidCallback onStart;
+  final bool isLoading;
 
-  const _ModalFooter({required this.onCancel, required this.onStart});
+  const _ModalFooter({
+    required this.onCancel,
+    required this.onStart,
+    required this.isLoading,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -437,7 +513,7 @@ class _ModalFooter extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               ),
-              onPressed: () {}, 
+              onPressed: () {},
               child: Text(
                 "CANCEL",
                 style: AppTextStyles.mono(
@@ -449,7 +525,7 @@ class _ModalFooter extends StatelessWidget {
           ),
           const Spacer(),
           ScaleButton(
-            onTap: onStart,
+            onTap: isLoading ? () {} : onStart,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accentAmber,
@@ -458,9 +534,23 @@ class _ModalFooter extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               ),
-              onPressed: () {}, 
-              child: Text("BEGIN CRYPTOGRAPHIC VAULTING  →",
-                  style: AppTextStyles.buttonLabel.copyWith(color: AppColors.textOnAmber)),
+              onPressed: () {},
+              child: isLoading
+                  ? SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor:
+                            const AlwaysStoppedAnimation(AppColors.textOnAmber),
+                        backgroundColor: AppColors.textOnAmber.withAlpha(77),
+                      ),
+                    )
+                  : Text(
+                      "BEGIN CRYPTOGRAPHIC VAULTING  →",
+                      style: AppTextStyles.buttonLabel
+                          .copyWith(color: AppColors.textOnAmber),
+                    ),
             ),
           ),
         ],
@@ -519,8 +609,7 @@ class _UploadStepRow extends StatelessWidget {
                   ),
                 ),
                 child: status == StepStatus.complete
-                    ? Icon(PhosphorIcons.check(),
-                        size: 12, color: Colors.white)
+                    ? Icon(PhosphorIcons.check(), size: 12, color: Colors.white)
                     : (status == StepStatus.active
                         ? const Center(
                             child: SizedBox(
@@ -550,8 +639,8 @@ class _UploadStepRow extends StatelessWidget {
                             size: 10, color: AppColors.accentGreen)),
                   if (status == StepStatus.pending)
                     Text("Queued",
-                        style: AppTextStyles.mono(
-                            size: 10, color: c.textMuted)),
+                        style:
+                            AppTextStyles.mono(size: 10, color: c.textMuted)),
                 ],
               ),
 
@@ -605,8 +694,7 @@ class _CategoryChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.accentAmber : Colors.transparent,
           border: Border.all(
-              color:
-                  isSelected ? AppColors.accentAmber : c.borderDefault),
+              color: isSelected ? AppColors.accentAmber : c.borderDefault),
         ),
         child: Text(
           label,

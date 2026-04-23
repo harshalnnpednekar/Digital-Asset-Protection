@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_theme_colors.dart';
@@ -45,229 +46,342 @@ class _VaultScreenState extends State<VaultScreen> {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final assets = kDemoMode ? VaultMockData.assets : <VaultedAsset>[]; 
-
-    final filteredAssets = assets.where((asset) {
-      final matchesFilter = _selectedFilter == "ALL" || asset.category == _selectedFilter;
-      final matchesSearch = asset.name.toLowerCase().contains(_searchQuery.toLowerCase());
-      return matchesFilter && matchesSearch;
-    }).toList();
+    final mockAssets = kDemoMode ? VaultMockData.assets : <VaultedAsset>[];
+    final processingStatusStream = FirebaseFirestore.instance
+        .collection('system_state')
+        .doc('processing_status')
+        .snapshots();
+    final vaultedAssetsStream = FirebaseFirestore.instance
+        .collection('vaulted_assets')
+        .orderBy('created_at', descending: true)
+        .snapshots();
 
     return Scaffold(
       backgroundColor: c.bgPrimary,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // HEADER
-            SectionHeader(
-              title: "ASSET VAULT",
-              subtitle: "Cryptographically secured media repository — C2PA manifest + AES-256 steganographic watermarking",
-              trailing: ScaleButton(
-                onTap: _showUploadModal,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accentAmber,
-                    foregroundColor: AppColors.textOnAmber,
-                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  ),
-                  onPressed: () {}, // Handled by ScaleButton
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+      body: Column(
+        children: [
+          StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+            stream: processingStatusStream,
+            builder: (context, statusSnapshot) {
+              final data = statusSnapshot.data?.data();
+              final currentStep = data?['current_step'];
+              final stepValue = currentStep is num ? currentStep.toInt() : 5;
+              final isProcessing =
+                  data != null && stepValue >= 1 && stepValue <= 4;
+              if (!isProcessing) {
+                return const SizedBox.shrink();
+              }
+
+              final stepLabel =
+                  (data?['step_label'] as String?) ?? 'Processing';
+
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(32, 12, 32, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    LinearProgressIndicator(value: stepValue / 5.0),
+                    const SizedBox(height: 6),
+                    Text(
+                      '$stepLabel...',
+                      style: AppTextStyles.mono(size: 10, color: c.textMuted),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: vaultedAssetsStream,
+              builder: (context, snapshot) {
+                final liveAssets = snapshot.data?.docs.map((doc) {
+                      final data = doc.data();
+                      final rawStatus =
+                          ((data['status'] as String?) ?? 'PROCESSING')
+                              .toUpperCase();
+                      final normalizedStatus =
+                          rawStatus == 'VAULTED' ? 'VAULTED' : 'PROCESSING';
+                      return VaultedAsset(
+                        id: doc.id,
+                        name:
+                            (data['asset_name'] as String?) ?? 'Untitled Asset',
+                        category: (data['category'] as String?) ?? 'HIGHLIGHT',
+                        distributionTarget:
+                            (data['distribution_target'] as String?) ??
+                                'Unknown distribution target',
+                        uploadDate: (data['upload_date'] as String?) ?? '--',
+                        duration: (data['duration'] as String?) ?? '--:--',
+                        fileSize: (data['file_size'] as String?) ?? '--',
+                        status: normalizedStatus,
+                        c2paSecured: true,
+                        vectorizationProgress:
+                            normalizedStatus == 'VAULTED' ? 1.0 : 0.5,
+                        isLive: true,
+                      );
+                    }).toList() ??
+                    <VaultedAsset>[];
+
+                final allAssets = <VaultedAsset>[...liveAssets, ...mockAssets];
+                final filteredAssets = allAssets.where((asset) {
+                  final matchesFilter = _selectedFilter == "ALL" ||
+                      asset.category == _selectedFilter;
+                  final matchesSearch = asset.name
+                      .toLowerCase()
+                      .contains(_searchQuery.toLowerCase());
+                  return matchesFilter && matchesSearch;
+                }).toList();
+
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(PhosphorIcons.plus(), size: 14),
-                      const SizedBox(width: 8),
-                      Text("ADD ASSET", style: AppTextStyles.buttonLabel),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // VAULT STATS STRIP
-            Container(
-              decoration: BoxDecoration(
-                color: c.bgSecondary,
-                border: Border.all(color: c.borderDefault),
-              ),
-              margin: const EdgeInsets.only(bottom: 24),
-              child: Row(
-                children: [
-                   Expanded(
-                    child: _StatCell(
-                      icon: PhosphorIcons.shieldCheck(),
-                      color: c.accentBlue,
-                      value: "247",
-                      label: "ASSETS VAULTED",
-                    ),
-                  ),
-                  _VerticalDivider(color: c.borderDefault),
-                  Expanded(
-                    child: _StatCell(
-                      icon: PhosphorIcons.database(),
-                      color: AppColors.accentAmber,
-                      value: "2.4 TB",
-                      label: "STORAGE USED",
-                    ),
-                  ),
-                  _VerticalDivider(color: c.borderDefault),
-                  Expanded(
-                    child: _StatCell(
-                      icon: PhosphorIcons.checkCircle(),
-                      color: AppColors.accentGreen,
-                      value: "100%",
-                      label: "C2PA INTEGRITY",
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // FILTER + SEARCH BAR
-            Row(
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: TextFormField(
-                    style: AppTextStyles.mono(size: 13, color: c.textPrimary),
-                    onChanged: (v) => setState(() => _searchQuery = v),
-                    decoration: InputDecoration(
-                      hintText: "SEARCH VAULT BY ASSET NAME OR TAG...",
-                      hintStyle: AppTextStyles.mono(size: 11, color: c.textMuted),
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Icon(PhosphorIcons.magnifyingGlass(), size: 16, color: c.textMuted),
-                      ),
-                      filled: true,
-                      fillColor: c.bgSecondary,
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(color: c.borderDefault),
-                        borderRadius: BorderRadius.zero,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: c.borderDefault),
-                        borderRadius: BorderRadius.zero,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: c.accentBlue),
-                        borderRadius: BorderRadius.zero,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 7,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _FilterChip(
-                          label: "ALL",
-                          isSelected: _selectedFilter == "ALL",
-                          onTap: () => setState(() => _selectedFilter = "ALL"),
-                        ),
-                        const SizedBox(width: 8),
-                        _FilterChip(
-                          label: "HIGHLIGHT",
-                          isSelected: _selectedFilter == "HIGHLIGHT",
-                          onTap: () => setState(() => _selectedFilter = "HIGHLIGHT"),
-                        ),
-                        const SizedBox(width: 8),
-                        _FilterChip(
-                          label: "PRESS CONF",
-                          isSelected: _selectedFilter == "PRESS_CONF",
-                          onTap: () => setState(() => _selectedFilter = "PRESS_CONF"),
-                        ),
-                        const SizedBox(width: 8),
-                        _FilterChip(
-                          label: "TRAINING",
-                          isSelected: _selectedFilter == "TRAINING",
-                          onTap: () => setState(() => _selectedFilter = "TRAINING"),
-                        ),
-                        const SizedBox(width: 8),
-                        _FilterChip(
-                          label: "PROMO",
-                          isSelected: _selectedFilter == "PROMO",
-                          onTap: () => setState(() => _selectedFilter = "PROMO"),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-
-            // ASSET GRID
-            LayoutBuilder(
-              builder: (context, constraints) {
-                if (_isLoading) {
-                  final crossAxisCount = constraints.maxWidth > 1200 ? 3 : 2;
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 0.88, // Increased from 0.78 for better vertical fit
-                    ),
-                    itemCount: 6,
-                    itemBuilder: (context, index) => const ShimmerBox(height: 300, width: double.infinity),
-                  );
-                }
-
-                if (filteredAssets.isEmpty) {
-                  return Container(
-                    height: 400,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: c.borderDefault, style: BorderStyle.none),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(PhosphorIcons.folderOpen(), size: 48, color: c.textMuted.withAlpha(51)),
-                          const SizedBox(height: 16),
-                          Text(
-                            "NO ASSETS FOUND",
-                            style: AppTextStyles.mono(size: 14, weight: FontWeight.w600, color: c.textMuted),
+                      // HEADER
+                      SectionHeader(
+                        title: "ASSET VAULT",
+                        subtitle:
+                            "Cryptographically secured media repository — C2PA manifest + AES-256 steganographic watermarking",
+                        trailing: ScaleButton(
+                          onTap: _showUploadModal,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.accentAmber,
+                              foregroundColor: AppColors.textOnAmber,
+                              shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.zero),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 14),
+                            ),
+                            onPressed: () {}, // Handled by ScaleButton
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(PhosphorIcons.plus(), size: 14),
+                                const SizedBox(width: 8),
+                                Text("ADD ASSET",
+                                    style: AppTextStyles.buttonLabel),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "Try adjusting your filters or search query.",
-                            style: AppTextStyles.mono(size: 11, color: c.textMuted),
+                        ),
+                      ),
+
+                      // VAULT STATS STRIP
+                      Container(
+                        decoration: BoxDecoration(
+                          color: c.bgSecondary,
+                          border: Border.all(color: c.borderDefault),
+                        ),
+                        margin: const EdgeInsets.only(bottom: 24),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _StatCell(
+                                icon: PhosphorIcons.shieldCheck(),
+                                color: c.accentBlue,
+                                value: "247",
+                                label: "ASSETS VAULTED",
+                              ),
+                            ),
+                            _VerticalDivider(color: c.borderDefault),
+                            Expanded(
+                              child: _StatCell(
+                                icon: PhosphorIcons.database(),
+                                color: AppColors.accentAmber,
+                                value: "2.4 TB",
+                                label: "STORAGE USED",
+                              ),
+                            ),
+                            _VerticalDivider(color: c.borderDefault),
+                            Expanded(
+                              child: _StatCell(
+                                icon: PhosphorIcons.checkCircle(),
+                                color: AppColors.accentGreen,
+                                value: "100%",
+                                label: "C2PA INTEGRITY",
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // FILTER + SEARCH BAR
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 5,
+                            child: TextFormField(
+                              style: AppTextStyles.mono(
+                                  size: 13, color: c.textPrimary),
+                              onChanged: (v) =>
+                                  setState(() => _searchQuery = v),
+                              decoration: InputDecoration(
+                                hintText:
+                                    "SEARCH VAULT BY ASSET NAME OR TAG...",
+                                hintStyle: AppTextStyles.mono(
+                                    size: 11, color: c.textMuted),
+                                prefixIcon: Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: Icon(PhosphorIcons.magnifyingGlass(),
+                                      size: 16, color: c.textMuted),
+                                ),
+                                filled: true,
+                                fillColor: c.bgSecondary,
+                                border: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: c.borderDefault),
+                                  borderRadius: BorderRadius.zero,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: c.borderDefault),
+                                  borderRadius: BorderRadius.zero,
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: c.accentBlue),
+                                  borderRadius: BorderRadius.zero,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            flex: 7,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  _FilterChip(
+                                    label: "ALL",
+                                    isSelected: _selectedFilter == "ALL",
+                                    onTap: () =>
+                                        setState(() => _selectedFilter = "ALL"),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _FilterChip(
+                                    label: "HIGHLIGHT",
+                                    isSelected: _selectedFilter == "HIGHLIGHT",
+                                    onTap: () => setState(
+                                        () => _selectedFilter = "HIGHLIGHT"),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _FilterChip(
+                                    label: "PRESS CONF",
+                                    isSelected: _selectedFilter == "PRESS_CONF",
+                                    onTap: () => setState(
+                                        () => _selectedFilter = "PRESS_CONF"),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _FilterChip(
+                                    label: "TRAINING",
+                                    isSelected: _selectedFilter == "TRAINING",
+                                    onTap: () => setState(
+                                        () => _selectedFilter = "TRAINING"),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _FilterChip(
+                                    label: "PROMO",
+                                    isSelected: _selectedFilter == "PROMO",
+                                    onTap: () => setState(
+                                        () => _selectedFilter = "PROMO"),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  );
-                }
 
-                final crossAxisCount = constraints.maxWidth > 1200 ? 3 : 2;
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.98, // Safe balance between compaction and overflow prevention
+                      const SizedBox(height: 24),
+
+                      // ASSET GRID
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          if (_isLoading) {
+                            final crossAxisCount =
+                                constraints.maxWidth > 1200 ? 3 : 2;
+                            return GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                                childAspectRatio:
+                                    0.88, // Increased from 0.78 for better vertical fit
+                              ),
+                              itemCount: 6,
+                              itemBuilder: (context, index) => const ShimmerBox(
+                                  height: 300, width: double.infinity),
+                            );
+                          }
+
+                          if (filteredAssets.isEmpty) {
+                            return Container(
+                              height: 400,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    color: c.borderDefault,
+                                    style: BorderStyle.none),
+                              ),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(PhosphorIcons.folderOpen(),
+                                        size: 48,
+                                        color: c.textMuted.withAlpha(51)),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      "NO ASSETS FOUND",
+                                      style: AppTextStyles.mono(
+                                          size: 14,
+                                          weight: FontWeight.w600,
+                                          color: c.textMuted),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "Try adjusting your filters or search query.",
+                                      style: AppTextStyles.mono(
+                                          size: 11, color: c.textMuted),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+
+                          final crossAxisCount =
+                              constraints.maxWidth > 1200 ? 3 : 2;
+                          return GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: crossAxisCount,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio:
+                                  0.98, // Safe balance between compaction and overflow prevention
+                            ),
+                            itemCount: filteredAssets.length,
+                            itemBuilder: (context, index) {
+                              return AssetCard(asset: filteredAssets[index]);
+                            },
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                  itemCount: filteredAssets.length,
-                  itemBuilder: (context, index) {
-                    return AssetCard(asset: filteredAssets[index]);
-                  },
                 );
               },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -300,11 +414,13 @@ class _StatCell extends StatelessWidget {
             children: [
               Text(
                 value,
-                style: AppTextStyles.mono(size: 20, weight: FontWeight.w700, color: c.textPrimary),
+                style: AppTextStyles.mono(
+                    size: 20, weight: FontWeight.w700, color: c.textPrimary),
               ),
               Text(
                 label,
-                style: AppTextStyles.mono(size: 10, color: c.textMuted, letterSpacing: 2),
+                style: AppTextStyles.mono(
+                    size: 10, color: c.textMuted, letterSpacing: 2),
               ),
             ],
           ),
