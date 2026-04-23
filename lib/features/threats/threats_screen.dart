@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_theme_colors.dart';
-import '../../core/config/demo_config.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/status_dot.dart';
 import '../../core/widgets/scale_button.dart';
@@ -12,6 +11,7 @@ import 'threats_mock_data.dart';
 import 'widgets/threat_queue_item.dart';
 import 'widgets/threat_detail_panel.dart';
 import '../../core/widgets/shimmer_box.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ThreatsScreen extends StatefulWidget {
   const ThreatsScreen({super.key});
@@ -21,56 +21,73 @@ class ThreatsScreen extends StatefulWidget {
 }
 
 class _ThreatsScreenState extends State<ThreatsScreen> {
-  late List<ThreatAlert> _alerts;
+  List<ThreatAlert> _alerts = [];
   String? _selectedThreatId;
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    // DEMO MODE: using mock data. Set kDemoMode = false to use Firestore.
-    _alerts = kDemoMode ? List.from(ThreatsMockData.alerts) : [];
-    
-    if (_alerts.isNotEmpty) {
-      _selectedThreatId = _alerts.first.threatId;
-    }
-    _simulateLoading();
-  }
-
-  void _simulateLoading() async {
-    await Future.delayed(const Duration(milliseconds: 1000));
-    if (mounted) setState(() => _isLoading = false);
   }
 
 
   void _updateStatus(String status) {
     if (_selectedThreatId == null) return;
-    setState(() {
-      final index = _alerts.indexWhere((a) => a.threatId == _selectedThreatId);
-      if (index != -1) {
-        _alerts[index] = _alerts[index].copyWith(status: status);
-      }
-    });
+    FirebaseFirestore.instance.collection('threat_alerts').doc(_selectedThreatId).update({
+      'status': status
+    }).catchError((e) => debugPrint("Update failed: \$e"));
   }
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final activeCount = _alerts.where((a) => a.status == 'ACTIVE').length;
-    final reviewingCount = _alerts.where((a) => a.geminiIntent == 'REVIEWING' && a.status == 'ACTIVE').length;
-    final dismissedCount = _alerts.where((a) => a.status == 'DISMISSED').length;
 
-    final selectedThreat = _selectedThreatId != null 
-        ? _alerts.firstWhere((a) => a.threatId == _selectedThreatId) 
-        : null;
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('threat_alerts').orderBy('detected_at', descending: true).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final docs = snapshot.data!.docs;
+          _alerts = docs.map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return ThreatAlert(
+              threatId: data['threat_id'] ?? doc.id,
+              matchedAssetName: data['matched_asset_name'] ?? 'Unknown Asset',
+              platform: data['platform'] ?? 'Unknown',
+              visualSimilarity: (data['visual_similarity'] as num?)?.toDouble() ?? 0.0,
+              audioSimilarity: (data['audio_similarity'] as num?)?.toDouble() ?? 0.0,
+              scrapedCaption: data['caption'] ?? 'No caption available',
+              geminiIntent: data['gemini_intent'] ?? 'REVIEWING',
+              geminiConfidence: (data['gemini_confidence'] as num?)?.toDouble() ?? 0.0,
+              geminiReasoning: data['gemini_reasoning'] ?? 'Pending analysis from Gemini.',
+              detectionTime: data['detected_at'] != null ? "\${DateTime.now().difference((data['detected_at'] as Timestamp).toDate()).inMinutes}m ago" : "Just now",
+              status: data['status'] ?? 'INVESTIGATING',
+              distributionTarget: data['distribution_target'] ?? 'Unknown Distribution',
+              decryptedLeakSource: data['patient_zero'] ?? 'Partner: Unknown',
+              patientZeroTimestamp: "Recently",
+            );
+          }).toList();
+          
+          if (_selectedThreatId == null && _alerts.isNotEmpty || (!_alerts.any((a) => a.threatId == _selectedThreatId) && _alerts.isNotEmpty)) {
+            _selectedThreatId = _alerts.first.threatId;
+          } else if (_alerts.isEmpty) {
+            _selectedThreatId = null;
+          }
+        }
 
-    return Scaffold(
-      backgroundColor: c.bgPrimary,
-      body: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        final activeCount = _alerts.where((a) => a.status == 'ACTIVE').length;
+        final reviewingCount = _alerts.where((a) => a.geminiIntent == 'REVIEWING' && a.status == 'ACTIVE').length;
+        final dismissedCount = _alerts.where((a) => a.status == 'DISMISSED').length;
+
+        final selectedThreat = _selectedThreatId != null 
+            ? _alerts.firstWhere((a) => a.threatId == _selectedThreatId, orElse: () => _alerts.first) 
+            : null;
+
+        return Scaffold(
+          backgroundColor: c.bgPrimary,
+          body: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             // HEADER
             SectionHeader(
               title: "THREAT RADAR",
@@ -129,7 +146,7 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
                             trailing: Text("${_alerts.length} ITEMS", style: AppTextStyles.mono(size: 10, color: c.textMuted)),
                           ),
                           Expanded(
-                            child: _isLoading 
+                            child: snapshot.connectionState == ConnectionState.waiting && _alerts.isEmpty
                               ? ListView.builder(
                                   itemCount: 8,
                                   itemBuilder: (context, index) => const Padding(
@@ -213,6 +230,8 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
         ),
       ),
     );
+  }
+);
   }
 }
 

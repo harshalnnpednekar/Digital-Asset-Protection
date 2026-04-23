@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'package:file_picker/file_picker.dart';
+import 'package:dio/dio.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/theme/app_colors.dart';
@@ -16,8 +19,17 @@ class UploadModal extends StatefulWidget {
 class _UploadModalState extends State<UploadModal> {
   bool _showProgress = false;
   String _assetName = "";
+  PlatformFile? _selectedFile;
   String _selectedCategory = "HIGHLIGHT";
   String _selectedDistribution = "Partner: StreamMax India";
+  
+  StreamSubscription<DocumentSnapshot>? _statusSub;
+
+  @override
+  void dispose() {
+    _statusSub?.cancel();
+    super.dispose();
+  }
 
   // Progress state
   int _currentStep = 0; // 0 to 5
@@ -30,30 +42,41 @@ class _UploadModalState extends State<UploadModal> {
   ];
 
   void _startUpload() async {
+    if (_selectedFile == null) return;
+    
     setState(() {
       _showProgress = true;
-      _currentStep = 1;
+      _currentStep = 0;
     });
 
-    await Future.delayed(const Duration(milliseconds: 1500));
-    if (!mounted) return;
-    setState(() => _currentStep = 2);
+    _statusSub = FirebaseFirestore.instance.collection('system_state').doc('processing_status').snapshots().listen((snapshot) {
+      if (snapshot.exists) {
+        final data = snapshot.data();
+        if (data != null && data['current_step'] != null) {
+          setState(() {
+            _currentStep = data['current_step'] as int;
+          });
+          
+          if (_currentStep == 5) {
+            Future.delayed(const Duration(milliseconds: 1000), () {
+              if (mounted) setState(() => _currentStep = 6);
+            });
+          }
+        }
+      }
+    });
 
-    await Future.delayed(const Duration(milliseconds: 2000));
-    if (!mounted) return;
-    setState(() => _currentStep = 3);
+    try {
+      final dio = Dio();
+      final formData = FormData.fromMap({
+        'distribution_target': _selectedDistribution,
+        'video_file': MultipartFile.fromBytes(_selectedFile!.bytes!, filename: _selectedFile!.name),
+      });
 
-    await Future.delayed(const Duration(milliseconds: 1500));
-    if (!mounted) return;
-    setState(() => _currentStep = 4);
-
-    await Future.delayed(const Duration(milliseconds: 2500));
-    if (!mounted) return;
-    setState(() => _currentStep = 5);
-
-    await Future.delayed(const Duration(milliseconds: 1000));
-    if (!mounted) return;
-    setState(() => _currentStep = 6); // Success state
+      await dio.post('http://127.0.0.1:8000/processasset', data: formData);
+    } catch (e) {
+      debugPrint("Upload failed: $e");
+    }
   }
 
   @override
@@ -102,8 +125,16 @@ class _UploadModalState extends State<UploadModal> {
       children: [
         // DRAG & DROP ZONE
         GestureDetector(
-          onTap: () {
-            // TODO: WIRE FILE PICKER
+          onTap: () async {
+            FilePickerResult? result = await FilePicker.platform.pickFiles(
+              type: FileType.video,
+              withData: true,
+            );
+            if (result != null) {
+              setState(() {
+                _selectedFile = result.files.first;
+              });
+            }
           },
           child: CustomPaint(
             painter:
@@ -117,27 +148,29 @@ class _UploadModalState extends State<UploadModal> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(PhosphorIcons.cloudArrowUp(),
-                        size: 32, color: c.accentBlue),
+                        size: 32, color: _selectedFile != null ? AppColors.accentGreen : c.accentBlue),
                     const SizedBox(height: 10),
                     Text(
-                      "DRAG VIDEO FILE HERE",
+                      _selectedFile != null ? _selectedFile!.name.toUpperCase() : "DRAG VIDEO FILE HERE",
                       style: AppTextStyles.mono(
                         size: 13,
                         weight: FontWeight.w600,
-                        color: c.textPrimary,
+                        color: _selectedFile != null ? AppColors.accentGreen : c.textPrimary,
                         letterSpacing: 1,
                       ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "or click to browse — MP4, MOV, AVI",
+                      _selectedFile != null ? "${(_selectedFile!.size / (1024 * 1024)).toStringAsFixed(2)} MB" : "or click to browse — MP4, MOV, AVI",
                       style: AppTextStyles.mono(
                           size: 11, color: c.textMuted),
                     ),
                     const SizedBox(height: 10),
                     _MiniChip(
-                        label: "MAX FILE SIZE: 50GB",
-                        color: c.textMuted),
+                        label: _selectedFile != null ? "READY TO INGEST" : "MAX FILE SIZE: 50GB",
+                        color: _selectedFile != null ? AppColors.accentGreen : c.textMuted),
                   ],
                 ),
               ),

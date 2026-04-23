@@ -3,7 +3,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_theme_colors.dart';
-import '../../core/config/demo_config.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dashboard_mock_data.dart';
 import 'dashboard_widgets.dart';
 
@@ -28,32 +28,61 @@ class DashboardTableSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         const _TableHeader(),
-        if (kDemoMode)
-          ...DashboardMockData.patientZeroRecords.map(
-            (record) => _TableRow(record: record),
-          )
-        else
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(40),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: c.borderDefault),
-                left: BorderSide(color: c.borderDefault),
-                right: BorderSide(color: c.borderDefault),
-              ),
-            ),
-            child: Center(
-              child: Text(
-                "NO RECENT IDENTIFICATIONS FOUND",
-                style: AppTextStyles.mono(
-                  size: 12, 
-                  color: c.textMuted, 
-                  letterSpacing: 1,
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection('threat_alerts').orderBy('detected_at', descending: true).limit(10).snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(40),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: c.borderDefault),
+                    left: BorderSide(color: c.borderDefault),
+                    right: BorderSide(color: c.borderDefault),
+                  ),
                 ),
-              ),
-            ),
-          ),
+                child: Center(
+                  child: Text(
+                    "NO RECENT IDENTIFICATIONS FOUND",
+                    style: AppTextStyles.mono(
+                      size: 12, 
+                      color: c.textMuted, 
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              );
+            }
+            
+            return Column(
+              children: snapshot.data!.docs.map((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                String formatTimeAgo(DateTime dt) {
+                  final diff = DateTime.now().difference(dt);
+                  if (diff.inSeconds < 60) return "${diff.inSeconds}s ago";
+                  if (diff.inMinutes < 60) return "${diff.inMinutes}m ago";
+                  if (diff.inHours < 24) return "${diff.inHours}h ago";
+                  return "${diff.inDays}d ago";
+                }
+                
+                final rawStatus = data['status'] == 'ACTIVE' ? 'INVESTIGATING' : data['status'] ?? 'UNKNOWN';
+                
+                final record = PatientZeroRecord(
+                  assetName: data['matched_asset_name'] ?? 'Unknown Asset',
+                  leakSource: data['patient_zero'] ?? 'Unknown Source',
+                  platform: data['platform'] ?? 'Unknown',
+                  timestamp: data['detected_at'] != null ? formatTimeAgo((data['detected_at'] as Timestamp).toDate()) : 'Recently',
+                  status: rawStatus,
+                );
+                return _TableRow(record: record);
+              }).toList(),
+            );
+          }
+        ),
       ],
     );
   }

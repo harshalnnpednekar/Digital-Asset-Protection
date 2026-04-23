@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_theme_colors.dart';
 import '../../core/widgets/shimmer_box.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dashboard_mock_data.dart';
 import 'dashboard_widgets.dart';
 
@@ -46,19 +47,44 @@ class _ThreatOriginPlatformsCard extends StatelessWidget {
               letterSpacing: 1.5,
             ),
           ),
-          const SizedBox(height: 16),
-          if (loading)
-            Column(
-              children: List.generate(
-                  4,
-                  (index) => const Padding(
-                        padding: EdgeInsets.only(bottom: 12),
-                        child: ShimmerBox(height: 20, width: double.infinity),
-                      )),
-            )
-          else
-            ...DashboardMockData.platformStats
-                .map((stat) => _PlatformBar(stat: stat)),
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance.collection('threat_alerts').snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Column(
+                  children: List.generate(
+                      4,
+                      (index) => const Padding(
+                            padding: EdgeInsets.only(bottom: 12),
+                            child: ShimmerBox(height: 20, width: double.infinity),
+                          )),
+                );
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Text("No origin data available");
+              }
+              
+              final docs = snapshot.data!.docs;
+              Map<String, int> counts = {};
+              for (var doc in docs) {
+                final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+                final platform = data['platform'] ?? 'Other';
+                counts[platform] = (counts[platform] ?? 0) + 1;
+              }
+              
+              int total = docs.length;
+              List<PlatformStat> stats = counts.entries.map((e) => PlatformStat(
+                platform: e.key, 
+                percentage: (e.value / total) * 100
+              )).toList();
+              
+              stats.sort((a, b) => b.percentage.compareTo(a.percentage));
+              
+              return Column(
+                children: stats.map((stat) => _PlatformBar(stat: stat)).toList(),
+              );
+            }
+          ),
         ],
       ),
     );
@@ -167,19 +193,47 @@ class _PatientZeroDetectionsCard extends StatelessWidget {
               letterSpacing: 1.5,
             ),
           ),
-          const SizedBox(height: 16),
-          if (loading)
-            Column(
-              children: List.generate(
-                  3,
-                  (index) => const Padding(
-                        padding: EdgeInsets.only(bottom: 12),
-                        child: ShimmerBox(height: 48, width: double.infinity),
-                      )),
-            )
-          else
-            ...DashboardMockData.recentDetections
-                .map((detection) => _DetectionRow(detection: detection)),
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance.collection('threat_alerts').orderBy('detected_at', descending: true).limit(20).snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Column(
+                  children: List.generate(
+                      3,
+                      (index) => const Padding(
+                            padding: EdgeInsets.only(bottom: 12),
+                            child: ShimmerBox(height: 48, width: double.infinity),
+                          )),
+                );
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Text("No detections yet");
+              }
+              
+              final docs = snapshot.data!.docs;
+              Map<String, PatientZeroDetection> distinctDetections = {};
+              
+              for (var doc in docs) {
+                if (distinctDetections.length >= 3) break;
+                final data = doc.data() as Map<String, dynamic>;
+                final pz = data['patient_zero'];
+                if (pz != null && pz.toString().isNotEmpty && !distinctDetections.containsKey(pz)) {
+                  distinctDetections[pz] = PatientZeroDetection(
+                    partnerName: pz,
+                    assetName: data['matched_asset_name'] ?? 'Unknown'
+                  );
+                }
+              }
+              
+              if (distinctDetections.isEmpty) {
+                return const Text("No patient zero marks identified.");
+              }
+              
+              return Column(
+                children: distinctDetections.values.map((d) => _DetectionRow(detection: d)).toList(),
+              );
+            }
+          ),
         ],
       ),
     );

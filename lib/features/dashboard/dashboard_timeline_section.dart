@@ -3,6 +3,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_theme_colors.dart';
 import '../../core/widgets/shimmer_box.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dashboard_mock_data.dart';
 import 'dashboard_widgets.dart';
 
@@ -51,33 +52,64 @@ class DashboardTimelineSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          if (loading)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-              child: Column(
-                children: List.generate(
-                    6,
-                    (index) => const Padding(
-                          padding: EdgeInsets.only(bottom: 12),
-                          child: ShimmerBox(height: 60, width: double.infinity),
-                        )),
-              ),
-            )
-          else
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: DashboardMockData.timelineEvents.length,
-              itemBuilder: (context, index) {
-                return _TimelineItemTile(
-                    item: DashboardMockData.timelineEvents[index]);
-              },
+          StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('threat_alerts').orderBy('detected_at', descending: true).limit(8).snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    child: Column(
+                      children: List.generate(
+                          6,
+                          (index) => const Padding(
+                                padding: EdgeInsets.only(bottom: 12),
+                                child: ShimmerBox(height: 60, width: double.infinity),
+                              )),
+                    ),
+                  );
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(child: Text("No threat activity recorded.")),
+                  );
+                }
+                
+                final docs = snapshot.data!.docs;
+                
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
+                    final data = docs[index].data() as Map<String, dynamic>;
+                    String formatTimeAgo(DateTime dt) {
+                      final diff = DateTime.now().difference(dt);
+                      if (diff.inSeconds < 60) return "${diff.inSeconds}s ago";
+                      if (diff.inMinutes < 60) return "${diff.inMinutes}m ago";
+                      if (diff.inHours < 24) return "${diff.inHours}h ago";
+                      return "${diff.inDays}d ago";
+                    }
+                    
+                    final item = ThreatTimelineItem(
+                      assetName: data['matched_asset_name'] ?? 'Unknown',
+                      platform: data['platform'] ?? 'Unknown',
+                      matchPercent: ((data['visual_similarity'] ?? 0.0) * 100).toStringAsFixed(1),
+                      timestamp: data['detected_at'] != null ? formatTimeAgo((data['detected_at'] as Timestamp).toDate()) : 'Just now',
+                      status: data['status'] ?? 'ACTIVE',
+                    );
+                    
+                    return _TimelineItemTile(item: item);
+                  },
+                );
+              }
             ),
         ],
       ),
     );
   }
 }
+
 
 class _TimelineItemTile extends StatelessWidget {
   final ThreatTimelineItem item;
@@ -89,6 +121,7 @@ class _TimelineItemTile extends StatelessWidget {
     final c = context.colors;
     Color statusColor;
     switch (item.status) {
+      case 'ACTIVE':
       case 'PIRACY':
         statusColor = AppColors.accentCrimson;
         break;

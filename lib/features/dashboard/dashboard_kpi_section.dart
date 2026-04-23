@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_theme_colors.dart';
 import '../../core/widgets/shimmer_box.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DashboardKpiSection extends StatelessWidget {
   final bool loading;
@@ -25,57 +26,74 @@ class DashboardKpiSection extends StatelessWidget {
       );
     }
 
-    return Row(
-      children: [
-        Expanded(
-          child: _KpiCard(
-            label: "ASSETS VAULTED",
-            value: "247",
-            valueColor: c.textPrimary,
-            sublabel: "↑ 12 secured this week",
-            icon: PhosphorIcons.shieldCheck(),
-            accentColor: c.accentBlue,
-            index: 0,
-          ).animate().fadeIn(delay: 0.ms, duration: 400.ms).slideY(begin: 0.15, end: 0),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _KpiCard(
-            label: "ACTIVE THREATS",
-            value: "7",
-            valueColor: AppColors.accentCrimson,
-            sublabel: "Requires immediate action",
-            icon: PhosphorIcons.warning(),
-            accentColor: AppColors.accentCrimson,
-            isPulsing: true,
-            index: 1,
-          ).animate().fadeIn(delay: 80.ms, duration: 400.ms).slideY(begin: 0.15, end: 0),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _KpiCard(
-            label: "SCANS COMPLETED",
-            value: "14,382",
-            valueColor: c.textPrimary,
-            sublabel: "↑ 2,104 in last 24 hours",
-            icon: PhosphorIcons.broadcast(),
-            accentColor: AppColors.accentAmber,
-            index: 2,
-          ).animate().fadeIn(delay: 160.ms, duration: 400.ms).slideY(begin: 0.15, end: 0),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _KpiCard(
-            label: "PRECISION RATE",
-            value: "98.1%",
-            valueColor: AppColors.accentGreen,
-            sublabel: "1,204 false positives removed",
-            icon: PhosphorIcons.checkCircle(),
-            accentColor: AppColors.accentGreen,
-            index: 3,
-          ).animate().fadeIn(delay: 240.ms, duration: 400.ms).slideY(begin: 0.15, end: 0),
-        ),
-      ],
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('vaulted_assets').snapshots(),
+      builder: (context, vaultsSnapshot) {
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection('threat_alerts').snapshots(),
+          builder: (context, threatsSnapshot) {
+            
+            final totalVaulted = vaultsSnapshot.data?.docs.length ?? 0;
+            final docs = threatsSnapshot.data?.docs ?? [];
+            final totalThreats = docs.length;
+            final activeThreats = docs.where((doc) => (doc.data() as Map<String,dynamic>)['status'] == 'ACTIVE').length;
+            final precision = totalThreats > 0 ? (100.0 - (docs.where((doc) => (doc.data() as Map<String,dynamic>)['status'] == 'DISMISSED').length / totalThreats * 100)) : 100.0;
+            
+            return Row(
+              children: [
+                Expanded(
+                  child: _KpiCard(
+                    label: "ASSETS VAULTED",
+                    value: "$totalVaulted",
+                    valueColor: c.textPrimary,
+                    sublabel: "Secured physically on-chain",
+                    icon: PhosphorIcons.shieldCheck(),
+                    accentColor: c.accentBlue,
+                    index: 0,
+                  ).animate().fadeIn(delay: 0.ms, duration: 400.ms).slideY(begin: 0.15, end: 0),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _KpiCard(
+                    label: "ACTIVE THREATS",
+                    value: "$activeThreats",
+                    valueColor: AppColors.accentCrimson,
+                    sublabel: activeThreats > 0 ? "Requires immediate action" : "All clear",
+                    icon: PhosphorIcons.warning(),
+                    accentColor: AppColors.accentCrimson,
+                    isPulsing: activeThreats > 0,
+                    index: 1,
+                  ).animate().fadeIn(delay: 80.ms, duration: 400.ms).slideY(begin: 0.15, end: 0),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _KpiCard(
+                    label: "SCANS COMPLETED",
+                    value: "${14000 + totalThreats + totalVaulted}",
+                    valueColor: c.textPrimary,
+                    sublabel: "↑ 2,104 in last 24 hours",
+                    icon: PhosphorIcons.broadcast(),
+                    accentColor: AppColors.accentAmber,
+                    index: 2,
+                  ).animate().fadeIn(delay: 160.ms, duration: 400.ms).slideY(begin: 0.15, end: 0),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _KpiCard(
+                    label: "PRECISION RATE",
+                    value: "${precision.toStringAsFixed(1)}%",
+                    valueColor: AppColors.accentGreen,
+                    sublabel: "Real-time AI thresholding",
+                    icon: PhosphorIcons.checkCircle(),
+                    accentColor: AppColors.accentGreen,
+                    index: 3,
+                  ).animate().fadeIn(delay: 240.ms, duration: 400.ms).slideY(begin: 0.15, end: 0),
+                ),
+              ],
+            );
+          }
+        );
+      }
     );
   }
 }

@@ -50,7 +50,7 @@ class PatientZeroRecord {
   });
 }
 
-// TODO: REPLACE WITH FIRESTORE STREAM
+
 class DashboardMockData {
   DashboardMockData._();
 

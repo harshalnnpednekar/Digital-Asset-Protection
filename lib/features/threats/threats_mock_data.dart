@@ -53,7 +53,7 @@ class ThreatAlert {
   }
 }
 
-// TODO: REPLACE WITH FIRESTORE REALTIME STREAM
+
 class ThreatsMockData {
   ThreatsMockData._();
 
