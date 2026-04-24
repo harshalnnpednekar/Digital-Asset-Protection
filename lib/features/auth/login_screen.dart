@@ -759,12 +759,13 @@ class _AuthButtonState extends State<_AuthButton> {
           }
 
           try {
-            await FirebaseAuth.instance.signInWithEmailAndPassword(
+            final credential =
+                await FirebaseAuth.instance.signInWithEmailAndPassword(
               email: email,
               password: password,
             );
 
-            final user = FirebaseAuth.instance.currentUser;
+            final user = credential.user;
             if (user == null) {
               AppRouter.isAuthenticated = false;
               if (!context.mounted) return;
@@ -801,6 +802,12 @@ class _AuthButtonState extends State<_AuthButton> {
             AppRouter.currentAdminName = storedAdminName.isEmpty
                 ? (user.displayName ?? 'Admin User')
                 : storedAdminName;
+
+            // Navigate through the app router directly to avoid local context timing issues.
+            if (context.mounted) {
+              await Future<void>.delayed(Duration.zero);
+              AppRouter.router.go('/dashboard');
+            }
           } on FirebaseAuthException catch (e) {
             AppRouter.isAuthenticated = false;
             if (!context.mounted) return;
@@ -1301,7 +1308,9 @@ void _showSignUpDialog(BuildContext context) {
                                         ),
                                       ),
                                     );
-                                    Navigator.of(context).pop();
+                                    Navigator.of(context).pop(); // Close dialog
+                                    context.go(
+                                        '/dashboard'); // Go to authenticated shell
                                   } on FirebaseAuthException catch (e) {
                                     if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(

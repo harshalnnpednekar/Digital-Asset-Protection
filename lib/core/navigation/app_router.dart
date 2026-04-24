@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/dashboard/dashboard_screen.dart';
 import '../../features/vault/vault_screen.dart';
@@ -9,25 +10,57 @@ import '../../features/settings/settings_screen.dart';
 import '../../features/landing/landing_screen.dart';
 import 'app_shell.dart';
 
+class AuthNotifier extends ChangeNotifier {
+  bool _isAuthenticated = false;
+  bool get isAuthenticated => _isAuthenticated;
+
+  set isAuthenticated(bool value) {
+    if (_isAuthenticated != value) {
+      _isAuthenticated = value;
+      notifyListeners();
+    }
+  }
+}
+
 class AppRouter {
   AppRouter._();
 
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
   static final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
-  // Use a simple boolean flag for authentication state
-  static bool isAuthenticated = false;
+  // Use a ChangeNotifier to let GoRouter react to auth state transitions
+  static final AuthNotifier authNotifier = AuthNotifier();
+
+  static bool get isAuthenticated => authNotifier.isAuthenticated;
+  static set isAuthenticated(bool value) =>
+      authNotifier.isAuthenticated = value;
+
   static String currentAdminName = "Admin User";
   static String currentOrganizationId = "ORG-ID N/A";
+
+  static void initializeAuthListener() {
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      // Keep router auth state fully synchronized with Firebase.
+      isAuthenticated = user != null;
+    });
+  }
 
   static final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
+    urlPathStrategy: UrlPathStrategy.hash,
+    refreshListenable: authNotifier,
     redirect: (context, state) {
+      final firebaseAuthenticated = FirebaseAuth.instance.currentUser != null;
+      final authenticated = isAuthenticated || firebaseAuthenticated;
+      if (isAuthenticated != authenticated) {
+        isAuthenticated = authenticated;
+      }
+
       final path = state.uri.path;
       final isPublic = path == '/' || path == '/login';
-      if (!isAuthenticated && !isPublic) return '/login';
-      if (isAuthenticated && path == '/login') return '/dashboard';
+      if (!authenticated && !isPublic) return '/login';
+      if (authenticated && path == '/login') return '/dashboard';
       return null;
     },
     routes: [
@@ -89,7 +122,8 @@ class AppRouter {
               final selectedThreatId = state.uri.queryParameters['threatId'];
               return CustomTransitionPage(
                 key: state.pageKey,
-                child: PropagationFlowScreen(selectedThreatId: selectedThreatId),
+                child:
+                    PropagationFlowScreen(selectedThreatId: selectedThreatId),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) =>
                         FadeTransition(opacity: animation, child: child),

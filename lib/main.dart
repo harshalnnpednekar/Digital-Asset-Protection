@@ -21,6 +21,11 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Await initial auth state to restore session
+  final initialUser = await FirebaseAuth.instance.authStateChanges().first;
+  AppRouter.isAuthenticated = initialUser != null;
+  AppRouter.initializeAuthListener();
+
   // Ensure Google Fonts can fetch at runtime on web
   GoogleFonts.config.allowRuntimeFetching = true;
   await GoogleFonts.pendingFonts([
@@ -42,30 +47,13 @@ class SentinelApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
 
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        AppRouter.isAuthenticated = snapshot.hasData;
-        if (snapshot.hasData) {
-          return MaterialApp.router(
-            title: 'ASTRA — Media Protection Platform',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: themeMode,
-            routerConfig: AppRouter.router,
-          );
-        } else {
-          return MaterialApp(
-            title: 'ASTRA — Media Protection Platform',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: themeMode,
-            home: const LoginScreen(),
-          );
-        }
-      },
+    return MaterialApp.router(
+      title: 'ASTRA — Media Protection Platform',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: themeMode,
+      routerConfig: AppRouter.router,
     );
   }
 }
