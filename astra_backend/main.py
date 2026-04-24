@@ -34,6 +34,11 @@ ALREADY_SCANNED_FILES = set()
 
 load_dotenv()  # Reads .env file in the current working directory
 
+# Security: Rate limiting state
+request_history = {}
+RATE_LIMIT_SECONDS = 60
+MAX_REQUESTS_PER_WINDOW = 3
+
 # ----------------------------------------------------------
 # STEP 2: Import FastAPI and CORS middleware
 # FastAPI is the web framework that handles HTTP requests.
@@ -41,7 +46,7 @@ load_dotenv()  # Reads .env file in the current working directory
 # different port/domain) to call this backend without
 # being blocked by the browser's same-origin policy.
 # ----------------------------------------------------------
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import base64
@@ -197,7 +202,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],       # Allow requests from any origin (domain)
-    allow_credentials=True,    # Allow cookies and auth headers
+    allow_credentials=False,    # Allow cookies and auth headers
     allow_methods=["*"],       # Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"],       # Allow all HTTP headers
 )
@@ -222,9 +227,37 @@ def root():
 
 @app.post("/processasset")
 async def process_asset(
+    request: Request,
     video_file: UploadFile = File(...),
     distribution_target: str = Form(...)
 ):
+    # RATE LIMITING (Test 10)
+    client_ip = request.client.host
+    now = asyncio.get_event_loop().time()
+    if client_ip not in request_history:
+        request_history[client_ip] = []
+    request_history[client_ip] = [t for t in request_history[client_ip] if now - t < RATE_LIMIT_SECONDS]
+    if len(request_history[client_ip]) >= MAX_REQUESTS_PER_WINDOW:
+        return JSONResponse(status_code=429, content={"success": False, "error": "Too many requests. Please wait 60 seconds."})
+    request_history[client_ip].append(now)
+
+    # FILE SIZE VALIDATION (Test 3)
+    MAX_SIZE = 100 * 1024 * 1024
+    video_file.file.seek(0, os.SEEK_END)
+    file_size = video_file.file.tell()
+    video_file.file.seek(0)
+    if file_size > MAX_SIZE:
+        return JSONResponse(status_code=413, content={"success": False, "error": "File too large. Maximum 100MB allowed."})
+
+    # FILE TYPE VALIDATION (Test 4)
+    ALLOWED_TYPES = ["video/mp4", "video/quicktime", "video/x-msvideo", "video/x-matroska", "video/webm"]
+    if video_file.content_type not in ALLOWED_TYPES:
+        return JSONResponse(status_code=415, content={"success": False, "error": "Unsupported file type. Only video files are accepted."})
+
+    # EMPTY FIELD VALIDATION (Test 5)
+    if not distribution_target or not distribution_target.strip():
+        return JSONResponse(status_code=422, content={"success": False, "error": "distribution_target is required and cannot be empty."})
+
     try:
         db = firestore.client()
         status_ref = db.collection("system_state").document("processing_status")
