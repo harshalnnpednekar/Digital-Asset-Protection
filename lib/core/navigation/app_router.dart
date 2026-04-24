@@ -85,13 +85,16 @@ class AppRouter {
           ),
           GoRoute(
             path: '/contagion',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: const PropagationFlowScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) =>
-                      FadeTransition(opacity: animation, child: child),
-            ),
+            pageBuilder: (context, state) {
+              final selectedThreatId = state.uri.queryParameters['threatId'];
+              return CustomTransitionPage(
+                key: state.pageKey,
+                child: PropagationFlowScreen(selectedThreatId: selectedThreatId),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) =>
+                        FadeTransition(opacity: animation, child: child),
+              );
+            },
           ),
           GoRoute(
             path: '/settings',
