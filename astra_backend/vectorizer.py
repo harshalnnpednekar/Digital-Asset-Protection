@@ -9,9 +9,13 @@ from transformers import CLIPProcessor, CLIPModel
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# Set device and precision based on hardware availability
+device = "cuda" if torch.cuda.is_available() else "cpu"
+dtype = torch.float16 if device == "cuda" else torch.float32
+
 # Load model and processor globally (outside function so it loads only once)
-logger.info("Loading local CLIP model 'openai/clip-vit-base-patch32'...")
-model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+logger.info(f"Loading local CLIP model 'openai/clip-vit-base-patch32' on {device}...")
+model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32", torch_dtype=dtype).to(device)
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 # Set model to evaluation mode
@@ -20,77 +24,53 @@ model.eval()
 def generate_video_vector(frame_file_paths):
     """
     Convert a list of image frame paths into a single 512-dimensional vector 
-    using a local CLIP model.
+    using a local CLIP model. Optimised with batch processing and hardware acceleration.
     """
-    # 1. Create empty list
-    all_vectors = []
-
-    # 2. Loop through each image path
-    for path in frame_file_paths:
-        try:
-            # a. Check if file exists
-            if not os.path.exists(path):
-                logger.warning(f"File skipped. Not found: {path}")
-                continue
-                
-            # b. Open image using PIL
-            image = Image.open(path).convert("RGB")
-
-            # c. Preprocess image — processor returns only pixel_values for image input
-            inputs = processor(images=image, return_tensors="pt")
-            pixel_values = inputs["pixel_values"]  # shape: (1, 3, 224, 224)
-
-            # d. Run vision encoder + linear projection directly (version-stable path)
-            with torch.no_grad():
-                # Step 1: vision encoder → CLS token pooled output: (1, 768)
-                vision_outputs = model.vision_model(pixel_values=pixel_values)
-                pooled = vision_outputs.pooler_output  # (1, 768)
-
-                # Step 2: visual projection → projected embedding: (1, 512)
-                projected = model.visual_projection(pooled)  # (1, 512)
-
-            # e. Convert to numpy 1D vector
-            extracted_vector = projected.detach().cpu().numpy()[0]  # shape: (512,)
-
-            # Safety check: must be exactly (512,)
-            if extracted_vector.shape != (512,):
-                logger.warning(f"Unexpected vector shape {extracted_vector.shape} for {path}, skipping.")
-                continue
-
-            # f. Append vector to all_vectors
-            all_vectors.append(extracted_vector)
-
-            # 3. Logging (only path and 3-value preview — no full vector)
-            logger.info(f"Processed frame: {path}")
-            logger.info(f"Vector preview: {extracted_vector[:3]}")
-
-        except Exception as e:
-            # Skip failed frames
-            logger.warning(f"Processing sequence aborted for vector mapping bound {path}: {str(e)}")
-            
-    # POST PROCESSING
-    # 4. If all_vectors is empty
-    if not all_vectors:
-        # log ERROR and return None
-        logger.error("Global sequence failure: No valid vectors processed. Failed dependency.")
+    if not frame_file_paths:
+        logger.error("No frame paths provided for vectorization.")
         return None
 
     try:
-        # CORRECT IMPLEMENTATION:
-        # Convert list to numpy array:
-        arr = np.array(all_vectors)
+        # 1. Load and validate all images
+        images = []
+        for path in frame_file_paths:
+            if os.path.exists(path):
+                try:
+                    img = Image.open(path).convert("RGB")
+                    images.append(img)
+                except Exception as e:
+                    logger.warning(f"Failed to open image {path}: {e}")
         
-        # Compute mean across frames (arr must be 2D: num_frames x 512):
-        mean_vector = np.mean(arr, axis=0)
+        if not images:
+            logger.error("No valid images found to process.")
+            return None
 
-        # Defensive squeeze: ensure output is always 1D before converting
-        mean_vector = mean_vector.squeeze()
+        # 2. Batch preprocessing
+        # Using return_tensors="pt" to get PyTorch tensors directly on the target device
+        inputs = processor(images=images, return_tensors="pt", padding=True).to(device)
 
-        logger.info(f"Final vector shape: {mean_vector.shape} | length: {len(mean_vector)}")
+        # 3. Batch inference
+        with torch.no_grad():
+            # Step 1: Get visual features
+            vision_outputs = model.vision_model(pixel_values=inputs.pixel_values.to(dtype))
+            pooled = vision_outputs.pooler_output  # shape: (num_frames, 768)
+
+            # Step 2: Project to 512-dimensional space
+            projected = model.visual_projection(pooled)  # shape: (num_frames, 512)
+
+            # Step 3: Compute mean across frames (mean pooling)
+            # Doing this in Torch before moving to CPU is faster
+            mean_vector_tensor = torch.mean(projected, dim=0)  # shape: (512,)
+            
+            # Move to CPU and convert to numpy
+            mean_vector = mean_vector_tensor.cpu().float().numpy()
+
+        logger.info(f"Batch processed {len(images)} frames successfully.")
+        logger.info(f"Final vector shape: {mean_vector.shape} | preview: {mean_vector[:3]}")
 
         # Return as flat list of 512 floats
         return mean_vector.tolist()
-        
+
     except Exception as e:
-        logger.error(f"Mathematical numpy mean mapping exception raised: {str(e)}")
+        logger.error(f"Batch vectorization failed: {str(e)}")
         return None

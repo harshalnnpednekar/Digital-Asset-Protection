@@ -71,9 +71,9 @@ def inject_watermark(video_file_path, distribution_target, asset_id):
             has_audio = False
             
         if has_audio:
-            out = ffmpeg.output(v, input_video.audio, watermarked_video_path, acodec='copy')
+            out = ffmpeg.output(v, input_video.audio, watermarked_video_path, acodec='copy', preset='ultrafast')
         else:
-            out = ffmpeg.output(v, watermarked_video_path)
+            out = ffmpeg.output(v, watermarked_video_path, preset='ultrafast')
             
         out.overwrite_output().run(capture_stdout=True, capture_stderr=True)
         

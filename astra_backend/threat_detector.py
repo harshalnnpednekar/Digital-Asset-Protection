@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import requests
+import numpy as np
 from scipy.spatial.distance import cosine
 
 # Setup logging if not already configured by the main app
@@ -20,6 +21,66 @@ def compare_vectors(vector_a: list, vector_b: list) -> float:
     except (ValueError, ZeroDivisionError) as e:
         logger.error(f"Error computing cosine similarity: {e}")
         return 0.0
+
+def find_best_match(query_vector: list, vaulted_assets: list) -> tuple:
+    """
+    Finds the best match for a query vector against a list of vaulted assets
+    using high-speed NumPy matrix operations.
+    
+    Args:
+        query_vector: The 512D vector from the scraped video.
+        vaulted_assets: List of Firestore DocumentSnapshots.
+        
+    Returns:
+        tuple: (highest_similarity, matched_doc)
+    """
+    if not vaulted_assets:
+        return 0.0, None
+
+    try:
+        # Convert query vector to a normalized numpy array
+        q = np.array(query_vector)
+        q_norm = np.linalg.norm(q)
+        if q_norm == 0:
+            return 0.0, None
+        q = q / q_norm
+
+        # Extract vectors from documents and keep track of valid ones
+        doc_vectors = []
+        valid_docs = []
+        
+        for doc in vaulted_assets:
+            data = doc.to_dict()
+            v = data.get("vector")
+            if v and len(v) == 512:
+                doc_vectors.append(v)
+                valid_docs.append(doc)
+
+        if not doc_vectors:
+            return 0.0, None
+
+        # Convert all vaulted vectors to a matrix: (N, 512)
+        matrix = np.array(doc_vectors)
+        
+        # Normalize the matrix (row-wise)
+        norms = np.linalg.norm(matrix, axis=1, keepdims=True)
+        # Avoid division by zero
+        norms[norms == 0] = 1.0
+        matrix = matrix / norms
+
+        # Batch Cosine Similarity = Matrix-Vector Multiplication: (N, 512) x (512,) = (N,)
+        similarities = np.dot(matrix, q)
+
+        # Find the index of the maximum similarity
+        idx = np.argmax(similarities)
+        highest_similarity = float(similarities[idx])
+        matched_doc = valid_docs[idx]
+
+        return highest_similarity, matched_doc
+
+    except Exception as e:
+        logger.error(f"Batch comparison failed: {e}")
+        return 0.0, None
 
 def check_intent(caption_text: str) -> dict:
     """

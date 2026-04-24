@@ -25,31 +25,13 @@ def process_scraped_video(video_file_path: str, metadata_dict: dict):
             logger.warning(f"Vector generation failed for {video_file_path}")
             return
             
-        # Step 4: Query the Firestore vaulted_assets collection
+        # Step 4 & 5: Query Firestore and find best match in batch
         db = firestore.client()
         vaulted_assets_ref = db.collection("vaulted_assets")
         vaulted_assets = list(vaulted_assets_ref.stream())
         
-        if not vaulted_assets:
-            logger.info("No vaulted assets found in Firestore. Skipping comparison.")
-            return
-            
-        # Step 5: Compare vectors to find highest similarity
-        highest_similarity = 0.0
-        matched_asset_doc = None
-        
-        for doc in vaulted_assets:
-            doc_data = doc.to_dict()
-            vaulted_vector = doc_data.get("vector")
-            
-            if not vaulted_vector:
-                continue
-                
-            similarity = compare_vectors(scraped_vector, vaulted_vector)
-            
-            if similarity > highest_similarity:
-                highest_similarity = similarity
-                matched_asset_doc = doc
+        from threat_detector import find_best_match
+        highest_similarity, matched_asset_doc = find_best_match(scraped_vector, vaulted_assets)
                 
         # Step 6: If similarity < 0.82
         if highest_similarity < 0.82:
