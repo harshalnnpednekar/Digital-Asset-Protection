@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../features/auth/login_screen.dart';
+import '../../features/auth/signup_screen.dart';
 import '../../features/dashboard/dashboard_screen.dart';
 import '../../features/vault/vault_screen.dart';
 import '../../features/threats/threats_screen.dart';
@@ -57,9 +58,10 @@ class AppRouter {
       }
 
       final path = state.uri.path;
-      final isPublic = path == '/' || path == '/login';
+      final isPublic = path == '/' || path == '/login' || path == '/signup';
       if (!authenticated && !isPublic) return '/login';
-      if (authenticated && path == '/login') return '/dashboard';
+      if (authenticated && (path == '/login' || path == '/signup'))
+        return '/dashboard';
       return null;
     },
     routes: [
@@ -77,6 +79,15 @@ class AppRouter {
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
           child: const LoginScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      ),
+      GoRoute(
+        path: '/signup',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const SignupScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) =>
               FadeTransition(opacity: animation, child: child),
         ),
