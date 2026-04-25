@@ -27,8 +27,6 @@ class LandingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final pageWidth = MediaQuery.of(context).size.width;
-    final valueSize = _fluidType(pageWidth, min: 26, max: 36, base: 1400);
 
     return Scaffold(
       backgroundColor: c.bgPrimary,
@@ -639,6 +637,11 @@ class _FeatureGrid extends StatelessWidget {
                 : width > 700
                     ? 2
                     : 1;
+            final cardAspectRatio = crossAxisCount == 4
+                ? 1.55
+                : crossAxisCount == 2
+                    ? 1.4
+                    : 1.8;
             return GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -647,13 +650,13 @@ class _FeatureGrid extends StatelessWidget {
                 crossAxisCount: crossAxisCount,
                 mainAxisSpacing: 14,
                 crossAxisSpacing: 14,
-                childAspectRatio: crossAxisCount == 1 ? 1.8 : 1.14,
+                childAspectRatio: cardAspectRatio,
               ),
               itemBuilder: (_, i) {
                 final item = features[i];
                 return _GlassShell(
                   radius: 16,
-                  padding: const EdgeInsets.all(18),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -671,7 +674,7 @@ class _FeatureGrid extends StatelessWidget {
                       Text(
                         item.title,
                         style: AppTextStyles.display(
-                          size: 17,
+                          size: 18,
                           weight: FontWeight.w700,
                           color: c.textPrimary,
                         ),
@@ -680,8 +683,8 @@ class _FeatureGrid extends StatelessWidget {
                       Text(
                         item.desc,
                         style: AppTextStyles.body(
-                          size: 13,
-                          height: 1.45,
+                          size: 14,
+                          height: 1.5,
                           color: c.textSecondary,
                         ),
                       ),
@@ -707,53 +710,63 @@ class _CtaBand extends StatelessWidget {
     return _GlassShell(
       radius: 24,
       padding: const EdgeInsets.all(24),
-      child: Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        runSpacing: 18,
-        spacing: 18,
-        children: [
-          SizedBox(
-            width: 620,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Ready To Protect Your Media Assets?',
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxTextWidth = constraints.maxWidth >= 980
+              ? constraints.maxWidth * 0.62
+              : constraints.maxWidth;
+
+          return Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 18,
+            spacing: 18,
+            children: [
+              SizedBox(
+                width: maxTextWidth,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Ready To Protect Your Media Assets?',
+                      style: AppTextStyles.display(
+                        size: 32,
+                        weight: FontWeight.w800,
+                        color: c.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Start your secure workspace and begin monitoring high-risk asset activity in minutes.',
+                      style:
+                          AppTextStyles.body(size: 15, color: c.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              FilledButton.icon(
+                onPressed: () => context.go('/signup'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.accentAmber,
+                  foregroundColor: AppColors.textOnAmber,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                ),
+                icon: Icon(PhosphorIcons.lockSimple()),
+                label: Text(
+                  'Get Started Free',
                   style: AppTextStyles.display(
-                    size: 32,
+                    size: 14,
                     weight: FontWeight.w800,
-                    color: c.textPrimary,
+                    color: AppColors.textOnAmber,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Start your secure workspace and begin monitoring high-risk asset activity in minutes.',
-                  style: AppTextStyles.body(size: 15, color: c.textSecondary),
-                ),
-              ],
-            ),
-          ),
-          FilledButton.icon(
-            onPressed: () => context.go('/signup'),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.accentAmber,
-              foregroundColor: AppColors.textOnAmber,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            ),
-            icon: Icon(PhosphorIcons.lockSimple()),
-            label: Text(
-              'Get Started Free',
-              style: AppTextStyles.display(
-                size: 14,
-                weight: FontWeight.w800,
-                color: AppColors.textOnAmber,
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     ).animate().fadeIn(delay: 580.ms);
   }
