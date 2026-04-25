@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040" role="img" aria-labelledby="title desc">
+  <title id="title">ASTRA System Architecture</title>
+  <desc id="desc">System architecture for ASTRA showing Flutter frontend, FastAPI backend, AI services, and Firebase with non-overlapping connectors.</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f6f9ff"/>
+      <stop offset="100%" stop-color="#ebf1fb"/>
+    </linearGradient>
+    <linearGradient id="leftGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d6efd"/>
+      <stop offset="100%" stop-color="#4b93ff"/>
+    </linearGradient>
+    <linearGradient id="midGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#198754"/>
+      <stop offset="100%" stop-color="#3ca76f"/>
+    </linearGradient>
+    <linearGradient id="rightGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fd7e14"/>
+      <stop offset="100%" stop-color="#ffab5a"/>
+    </linearGradient>
+    <linearGradient id="aiGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6f42c1"/>
+      <stop offset="100%" stop-color="#8f63dd"/>
+    </linearGradient>
+
+    <style>
+      .title { font: 700 36px Segoe UI, Arial, sans-serif; fill: #10233d; }
+      .subtitle { font: 500 16px Segoe UI, Arial, sans-serif; fill: #3c5270; }
+      .laneTitle { font: 700 22px Segoe UI, Arial, sans-serif; fill: #ffffff; }
+      .cardTitle { font: 700 16px Segoe UI, Arial, sans-serif; fill: #122b48; }
+      .cardText { font: 500 13px Segoe UI, Arial, sans-serif; fill: #284564; }
+      .flowLabel { font: 600 12px Segoe UI, Arial, sans-serif; fill: #17304d; }
+      .legend { font: 600 12px Segoe UI, Arial, sans-serif; fill: #1a3455; }
+      .light { fill: #ffffff; }
+      .muted { fill: #e5ddfa; }
+    </style>
+
+    <marker id="arrBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#2f6fdd"/>
+    </marker>
+    <marker id="arrGreen" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#1f8a5b"/>
+    </marker>
+    <marker id="arrOrange" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#d67c10"/>
+    </marker>
+    <marker id="arrPurple" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#6f42c1"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="1040" fill="url(#bg)"/>
+
+  <text x="800" y="62" text-anchor="middle" class="title">ASTRA Digital Asset Protection - System Architecture</text>
+  <text x="800" y="90" text-anchor="middle" class="subtitle">Frontend, backend orchestration, AI analysis, and Firebase data plane</text>
+
+  <rect x="50" y="130" width="450" height="820" rx="18" fill="url(#leftGrad)"/>
+  <rect x="575" y="130" width="450" height="820" rx="18" fill="url(#midGrad)"/>
+  <rect x="1100" y="130" width="450" height="820" rx="18" fill="url(#rightGrad)"/>
+
+  <text x="275" y="172" text-anchor="middle" class="laneTitle">Frontend (Flutter)</text>
+  <text x="800" y="172" text-anchor="middle" class="laneTitle">Backend (FastAPI / Python)</text>
+  <text x="1325" y="172" text-anchor="middle" class="laneTitle">Firebase Platform</text>
+
+  <rect x="82" y="205" width="386" height="108" rx="12" class="light"/>
+  <text x="102" y="235" class="cardTitle">UI Features</text>
+  <text x="102" y="258" class="cardText">Auth, Dashboard, Vault, Threats, Contagion</text>
+  <text x="102" y="280" class="cardText">Settings, landing pages, and responsive layouts</text>
+
+  <rect x="82" y="335" width="386" height="108" rx="12" class="light"/>
+  <text x="102" y="365" class="cardTitle">Core App Layer</text>
+  <text x="102" y="388" class="cardText">go_router navigation, themes, providers</text>
+  <text x="102" y="410" class="cardText">Shared widgets and app-shell composition</text>
+
+  <rect x="82" y="465" width="386" height="108" rx="12" class="light"/>
+  <text x="102" y="495" class="cardTitle">Network and Auth Clients</text>
+  <text x="102" y="518" class="cardText">Dio calls to backend endpoints</text>
+  <text x="102" y="540" class="cardText">Firebase Auth + Firestore stream listeners</text>
+
+  <rect x="82" y="595" width="386" height="108" rx="12" class="light"/>
+  <text x="102" y="625" class="cardTitle">Frontend Configuration</text>
+  <text x="102" y="648" class="cardText">frontend.env for Firebase web options</text>
+  <text x="102" y="670" class="cardText">BACKEND_BASE_URL via dart-define</text>
+
+  <rect x="82" y="725" width="386" height="190" rx="12" class="light"/>
+  <text x="102" y="755" class="cardTitle">Primary User Flows</text>
+  <text x="102" y="778" class="cardText">1) Upload and secure asset</text>
+  <text x="102" y="800" class="cardText">2) View threat queue and forensic details</text>
+  <text x="102" y="822" class="cardText">3) Track contagion propagation graph</text>
+  <text x="102" y="844" class="cardText">4) Decrypt watermark and identify patient zero</text>
+
+  <rect x="607" y="205" width="386" height="90" rx="12" class="light"/>
+  <text x="627" y="235" class="cardTitle">API Gateway</text>
+  <text x="627" y="258" class="cardText">/process-asset, /decrypt-watermark, /health</text>
+
+  <rect x="607" y="315" width="386" height="112" rx="12" class="light"/>
+  <text x="627" y="345" class="cardTitle">Processing Orchestrator</text>
+  <text x="627" y="368" class="cardText">Frame extraction, vectors, watermark injection</text>
+  <text x="627" y="390" class="cardText">Asset persistence and status progression</text>
+
+  <rect x="607" y="447" width="386" height="112" rx="12" class="light"/>
+  <text x="627" y="477" class="cardTitle">Background Scanner</text>
+  <text x="627" y="500" class="cardText">Polls monitored feed folders on schedule</text>
+  <text x="627" y="522" class="cardText">Creates alerts and contagion events</text>
+
+  <rect x="607" y="579" width="386" height="112" rx="12" class="light"/>
+  <text x="627" y="609" class="cardTitle">Security and Reliability</text>
+  <text x="627" y="632" class="cardText">Rate limits, MIME and size validation</text>
+  <text x="627" y="654" class="cardText">Threaded heavy jobs and temp isolation</text>
+
+  <rect x="607" y="711" width="386" height="204" rx="12" fill="url(#aiGrad)"/>
+  <text x="627" y="742" class="laneTitle" style="font-size:18px;">AI Services Integration</text>
+  <text x="627" y="768" class="muted" style="font:600 13px Segoe UI, Arial, sans-serif;">CLIP visual fingerprint vectors</text>
+  <text x="627" y="792" class="muted" style="font:600 13px Segoe UI, Arial, sans-serif;">Gemini intent analysis (piracy/fair use)</text>
+  <text x="627" y="816" class="muted" style="font:600 13px Segoe UI, Arial, sans-serif;">Watermark encryption/decryption logic</text>
+  <text x="627" y="840" class="muted" style="font:600 13px Segoe UI, Arial, sans-serif;">Threat scoring and forensic enrichment</text>
+
+  <rect x="1132" y="205" width="386" height="112" rx="12" class="light"/>
+  <text x="1152" y="235" class="cardTitle">Firebase Authentication</text>
+  <text x="1152" y="258" class="cardText">Client sign-in state and session handling</text>
+  <text x="1152" y="280" class="cardText">Directly consumed by Flutter app</text>
+
+  <rect x="1132" y="337" width="386" height="186" rx="12" class="light"/>
+  <text x="1152" y="367" class="cardTitle">Cloud Firestore</text>
+  <text x="1152" y="390" class="cardText">vaulted_assets</text>
+  <text x="1152" y="412" class="cardText">threat_alerts</text>
+  <text x="1152" y="434" class="cardText">contagion_nodes</text>
+  <text x="1152" y="456" class="cardText">system_state / processing_status</text>
+  <text x="1152" y="478" class="cardText">Realtime streams consumed by frontend</text>
+
+  <rect x="1132" y="543" width="386" height="132" rx="12" class="light"/>
+  <text x="1152" y="573" class="cardTitle">Cloud Storage</text>
+  <text x="1152" y="596" class="cardText">vault/ secured media output</text>
+  <text x="1152" y="618" class="cardText">temp/ transient processing artifacts</text>
+  <text x="1152" y="640" class="cardText">Written by backend pipeline</text>
+
+  <rect x="1132" y="695" width="386" height="220" rx="12" class="light"/>
+  <text x="1152" y="725" class="cardTitle">Realtime Feedback Loop</text>
+  <text x="1152" y="748" class="cardText">Backend writes state and events</text>
+  <text x="1152" y="770" class="cardText">Firestore pushes snapshots to frontend</text>
+  <text x="1152" y="792" class="cardText">UI updates alerts, status, and graphs live</text>
+  <text x="1152" y="814" class="cardText">No client polling required</text>
+
+  <rect x="640" y="24" width="320" height="44" rx="12" fill="#4f5d75"/>
+  <text x="800" y="51" text-anchor="middle" style="font:700 12px Segoe UI, Arial, sans-serif; fill:#fff;">YouTube / Telegram / Twitter monitored feeds</text>
+
+  <path d="M470 520 C525 520, 550 520, 607 520" fill="none" stroke="#2f6fdd" stroke-width="4" marker-end="url(#arrBlue)"/>
+  <text x="536" y="507" text-anchor="middle" class="flowLabel">REST upload and decrypt requests</text>
+
+  <path d="M993 380 C1048 380, 1075 380, 1132 380" fill="none" stroke="#1f8a5b" stroke-width="4" marker-end="url(#arrGreen)"/>
+  <text x="1062" y="367" text-anchor="middle" class="flowLabel">Metadata and threat writes</text>
+
+  <path d="M993 610 C1048 610, 1075 610, 1132 610" fill="none" stroke="#1f8a5b" stroke-width="4" marker-end="url(#arrGreen)"/>
+  <text x="1062" y="597" text-anchor="middle" class="flowLabel">Media object uploads</text>
+
+  <path d="M1132 860 C1075 860, 1048 860, 993 860" fill="none" stroke="#d67c10" stroke-width="4" marker-end="url(#arrOrange)"/>
+  <text x="1062" y="847" text-anchor="middle" class="flowLabel">Realtime snapshot streams</text>
+
+  <path d="M1132 255 C1025 255, 930 255, 470 255" fill="none" stroke="#d67c10" stroke-width="4" marker-end="url(#arrOrange)"/>
+  <text x="800" y="242" text-anchor="middle" class="flowLabel">Auth state and session feedback</text>
+
+  <path d="M800 68 C800 95, 800 120, 800 205" fill="none" stroke="#6f42c1" stroke-width="4" marker-end="url(#arrPurple)"/>
+  <text x="815" y="112" class="flowLabel">Scraper ingest</text>
+
+  <rect x="50" y="968" width="1500" height="52" rx="8" fill="#dbe7f8"/>
+  <line x1="86" y1="995" x2="126" y2="995" stroke="#2f6fdd" stroke-width="4" marker-end="url(#arrBlue)"/>
+  <text x="138" y="999" class="legend">Frontend API calls</text>
+
+  <line x1="350" y1="995" x2="390" y2="995" stroke="#1f8a5b" stroke-width="4" marker-end="url(#arrGreen)"/>
+  <text x="402" y="999" class="legend">Backend writes to Firebase</text>
+
+  <line x1="670" y1="995" x2="710" y2="995" stroke="#d67c10" stroke-width="4" marker-end="url(#arrOrange)"/>
+  <text x="722" y="999" class="legend">Realtime stream and auth feedback</text>
+
+  <line x1="1066" y1="995" x2="1106" y2="995" stroke="#6f42c1" stroke-width="4" marker-end="url(#arrPurple)"/>
+  <text x="1118" y="999" class="legend">External source ingestion</text>
+</svg>
