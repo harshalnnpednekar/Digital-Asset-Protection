@@ -46,8 +46,11 @@ app.*.map.json
 
 # Environment and config files
 .env
-**/config/
 astra_backend/config/
+**/.env
+*.env
+**/*.env
+**/serviceAccountKey.json
 
 # Python virtual environment
 astra_env/

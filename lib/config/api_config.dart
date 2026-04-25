@@ -1,0 +1,8 @@
+class ApiConfig {
+  ApiConfig._();
+
+  static const String backendBaseUrl = String.fromEnvironment(
+    'BACKEND_BASE_URL',
+    defaultValue: 'http://127.0.0.1:8000',
+  );
+}

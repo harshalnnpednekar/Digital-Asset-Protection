@@ -2,7 +2,6 @@ import tempfile
 import shutil
 import logging
 import uuid
-import random
 from firebase_admin import firestore
 
 from media_processor import extract_frames
@@ -71,8 +70,8 @@ def write_threat_alert(video_file_path, metadata_dict, matched_asset_doc, simila
     matched_asset_name = doc_data.get("asset_name", "Unknown Asset")
     patient_zero = doc_data.get("distribution_target", "Unknown Target")
     
-    # SIMULATED FOR DEMO audio matching not yet implemented
-    audio_similarity = random.uniform(0.80, 0.93)
+    # Audio fingerprinting is not implemented yet, so keep the metric neutral.
+    audio_similarity = 0.0
     
     threat_data = {
         "threat_id": threat_id,
@@ -98,24 +97,35 @@ def write_threat_alert(video_file_path, metadata_dict, matched_asset_doc, simila
     
     # ROOT node
     nodes_ref.add({
+        "node_id": "N0",
         "threat_id": threat_id,
         "type": "ROOT",
-        "label": patient_zero
+        "label": patient_zero,
+        "platform": metadata_dict.get("platform", "Internal"),
+        "url": metadata_dict.get("url", ""),
+        "parent_id": None,
     })
     
     # MIRROR node
     nodes_ref.add({
+        "node_id": "N1",
         "threat_id": threat_id,
         "type": "MIRROR",
-        "platform": "YouTube",
-        "url": "https://youtube.com/fake_mirror"
+        "platform": metadata_dict.get("platform", "Unknown"),
+        "url": metadata_dict.get("url", ""),
+        "source_url": metadata_dict.get("url", ""),
+        "parent_id": "N0",
     })
     
     # SOCIAL_RESHARE node
     nodes_ref.add({
+        "node_id": "N2",
         "threat_id": threat_id,
         "type": "SOCIAL_RESHARE",
-        "platform": "Twitter"
+        "platform": metadata_dict.get("platform", "Unknown"),
+        "url": metadata_dict.get("url", ""),
+        "source_url": metadata_dict.get("url", ""),
+        "parent_id": "N1",
     })
     
     logger.info(f"SUCCESS: Created threat alert {threat_id} for scraped video.")

@@ -48,7 +48,6 @@ class AppRouter {
   static final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
-    urlPathStrategy: UrlPathStrategy.hash,
     refreshListenable: authNotifier,
     redirect: (context, state) {
       final firebaseAuthenticated = FirebaseAuth.instance.currentUser != null;

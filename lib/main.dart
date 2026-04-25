@@ -13,7 +13,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Load environment variables
-  await dotenv.load(fileName: "astra_backend/config/.env");
+  await dotenv.load(fileName: "lib/config/frontend.env");
 
   // Initialize Firebase
   await Firebase.initializeApp(

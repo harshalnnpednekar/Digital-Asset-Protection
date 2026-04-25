@@ -25,28 +25,47 @@ class PropagationFlowPainter extends CustomPainter {
   // S2: VECTOR (Extraction point)
   // S3: HUB (Primary distribution node)
   // S4: ENDPOINTS (Marketplaces/Platforms)
-  
+
   void _calculatePositions(Size size) {
     nodePositions.clear();
     final double w = size.width;
     final double h = size.height;
 
-    // S1: SOURCE (Left center)
-    nodePositions["N0"] = Offset(w * 0.12, h * 0.5);
+    final tierOrder = ['ROOT', 'T1', 'T2', 'T3'];
+    final tierX = <String, double>{
+      'ROOT': 0.12,
+      'T1': 0.35,
+      'T2': 0.62,
+      'T3': 0.88,
+    };
+    final nodesByTier = <String, List<ContagionNode>>{};
 
-    // S2: VECTOR (Step 2)
-    nodePositions["N1"] = Offset(w * 0.35, h * 0.25);
-    nodePositions["N2"] = Offset(w * 0.35, h * 0.50);
-    nodePositions["N3"] = Offset(w * 0.35, h * 0.75);
+    for (final node in nodes) {
+      nodesByTier.putIfAbsent(node.tier, () => <ContagionNode>[]).add(node);
+    }
 
-    // S3: HUB (Step 3)
-    nodePositions["N4"] = Offset(w * 0.60, h * 0.35);
-    nodePositions["N5"] = Offset(w * 0.60, h * 0.65);
-    
-    // S4: ENDPOINTS (Step 4)
-    final double step4X = w * 0.88;
-    for (int i = 6; i <= 17; i++) {
-       nodePositions["N$i"] = Offset(step4X, h * (0.08 + (i - 6) * 0.08));
+    for (final tier in tierOrder) {
+      final tierNodes = nodesByTier[tier];
+      if (tierNodes == null || tierNodes.isEmpty) {
+        continue;
+      }
+
+      tierNodes.sort((a, b) {
+        final aIndex = int.tryParse(a.id.replaceAll(RegExp(r'\D'), '')) ?? 0;
+        final bIndex = int.tryParse(b.id.replaceAll(RegExp(r'\D'), '')) ?? 0;
+        return aIndex.compareTo(bIndex);
+      });
+
+      final x = w * tierX[tier]!;
+      final top = tier == 'ROOT' ? 0.5 : 0.12;
+      final bottom = tier == 'ROOT' ? 0.5 : 0.88;
+
+      for (var index = 0; index < tierNodes.length; index++) {
+        final progress =
+            tierNodes.length == 1 ? 0.5 : index / (tierNodes.length - 1);
+        final y = h * (top + (bottom - top) * progress);
+        nodePositions[tierNodes[index].id] = Offset(x, y);
+      }
     }
 
     if (onPositionsCalculated != null) {
@@ -62,7 +81,8 @@ class PropagationFlowPainter extends CustomPainter {
     // 1. Draw Forensic Connections (Orthogonal)
     for (final node in nodes) {
       if (node.parentId != null && nodePositions.containsKey(node.parentId)) {
-        _drawOrthogonalEdge(canvas, nodePositions[node.parentId]!, nodePositions[node.id]!, node.tier);
+        _drawOrthogonalEdge(canvas, nodePositions[node.parentId]!,
+            nodePositions[node.id]!, node.tier);
       }
     }
 
@@ -76,7 +96,7 @@ class PropagationFlowPainter extends CustomPainter {
     final paint = Paint()
       ..color = colors.textMuted.withValues(alpha: 0.1)
       ..strokeWidth = 0.5;
-    
+
     const spacing = 100.0;
     for (double x = 0; x < size.width; x += spacing) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
@@ -86,9 +106,10 @@ class PropagationFlowPainter extends CustomPainter {
     }
   }
 
-  void _drawOrthogonalEdge(Canvas canvas, Offset start, Offset end, String tier) {
+  void _drawOrthogonalEdge(
+      Canvas canvas, Offset start, Offset end, String tier) {
     final path = Path()..moveTo(start.dx, start.dy);
-    
+
     // Linear orthogonal connection
     final midX = start.dx + (end.dx - start.dx) / 2;
     path.lineTo(midX, start.dy);
@@ -96,68 +117,84 @@ class PropagationFlowPainter extends CustomPainter {
     path.lineTo(end.dx, end.dy);
 
     final color = _getTierColor(tier).withValues(alpha: 0.4);
-    canvas.drawPath(path, Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0);
-      
+    canvas.drawPath(
+        path,
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0);
+
     // Signal Pulse along Orthogonal Path
     _drawSignalPulse(canvas, start, midX, end, tier);
   }
 
-  void _drawSignalPulse(Canvas canvas, Offset start, double midX, Offset end, String tier) {
-     final totalLen = (midX - start.dx).abs() + (end.dy - start.dy).abs() + (end.dx - midX).abs();
-     final d1 = (midX - start.dx).abs();
-     final d2 = (end.dy - start.dy).abs();
-     
-     final travel = totalLen * animationValue;
-     Offset pos;
-     
-     if (travel < d1) {
-       pos = Offset(start.dx + travel, start.dy);
-     } else if (travel < d1 + d2) {
-       pos = Offset(midX, start.dy + (travel - d1) * (end.dy > start.dy ? 1 : -1));
-     } else {
-       pos = Offset(midX + (travel - d1 - d2), end.dy);
-     }
+  void _drawSignalPulse(
+      Canvas canvas, Offset start, double midX, Offset end, String tier) {
+    final totalLen = (midX - start.dx).abs() +
+        (end.dy - start.dy).abs() +
+        (end.dx - midX).abs();
+    final d1 = (midX - start.dx).abs();
+    final d2 = (end.dy - start.dy).abs();
 
-     final color = _getTierColor(tier);
-     canvas.drawCircle(pos, 3, Paint()..color = color);
-     canvas.drawCircle(pos, 6, Paint()..color = color.withValues(alpha: 0.2));
+    final travel = totalLen * animationValue;
+    Offset pos;
+
+    if (travel < d1) {
+      pos = Offset(start.dx + travel, start.dy);
+    } else if (travel < d1 + d2) {
+      pos =
+          Offset(midX, start.dy + (travel - d1) * (end.dy > start.dy ? 1 : -1));
+    } else {
+      pos = Offset(midX + (travel - d1 - d2), end.dy);
+    }
+
+    final color = _getTierColor(tier);
+    canvas.drawCircle(pos, 3, Paint()..color = color);
+    canvas.drawCircle(pos, 6, Paint()..color = color.withValues(alpha: 0.2));
   }
 
   void _drawStageNode(Canvas canvas, Offset pos, ContagionNode node) {
     final isSelected = node.id == selectedNodeId;
     final nodeColor = _getTierColor(node.tier);
-    final bool isEndpoint = node.tier == "T2";
-    
+    final bool isEndpoint = node.tier == "T3";
+
     final width = isEndpoint ? 90.0 : 110.0;
     final height = isEndpoint ? 24.0 : 36.0;
-    
+
     final rect = Rect.fromCenter(center: pos, width: width, height: height);
     // Corporate sharp edges
 
     // Selection Glow
     if (isSelected) {
-      canvas.drawRect(rect.inflate(4), Paint()..color = AppColors.accentAmber.withValues(alpha: 0.15));
-      canvas.drawRect(rect.inflate(1), Paint()..color = AppColors.accentAmber..style = PaintingStyle.stroke..strokeWidth = 2);
+      canvas.drawRect(rect.inflate(4),
+          Paint()..color = AppColors.accentAmber.withValues(alpha: 0.15));
+      canvas.drawRect(
+          rect.inflate(1),
+          Paint()
+            ..color = AppColors.accentAmber
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2);
     }
 
     // Node Body
     canvas.drawRect(rect, Paint()..color = colors.bgPrimary);
-    canvas.drawRect(rect, Paint()
-      ..color = nodeColor.withValues(alpha: 0.8)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1);
+    canvas.drawRect(
+        rect,
+        Paint()
+          ..color = nodeColor.withValues(alpha: 0.8)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1);
 
     // Left Accent Bar
-    canvas.drawRect(Rect.fromLTWH(rect.left, rect.top, 3, rect.height), Paint()..color = nodeColor);
+    canvas.drawRect(Rect.fromLTWH(rect.left, rect.top, 3, rect.height),
+        Paint()..color = nodeColor);
 
     // Node Details
     _drawForensicData(canvas, rect, node, nodeColor, isEndpoint);
   }
 
-  void _drawForensicData(Canvas canvas, Rect rect, ContagionNode node, Color color, bool isEndpoint) {
+  void _drawForensicData(Canvas canvas, Rect rect, ContagionNode node,
+      Color color, bool isEndpoint) {
     // A. TITLE / ID
     final titleTp = _createTextPainter(
       isEndpoint ? node.platform.toUpperCase() : node.id.toUpperCase(),
@@ -166,10 +203,11 @@ class PropagationFlowPainter extends CustomPainter {
       color: colors.textPrimary,
       isMono: true,
     );
-    titleTp.paint(canvas, Offset(rect.left + 10, rect.top + (isEndpoint ? 7 : 8)));
+    titleTp.paint(
+        canvas, Offset(rect.left + 10, rect.top + (isEndpoint ? 7 : 8)));
 
     if (!isEndpoint) {
-       // B. SUBTITLE (IP or Stage)
+      // B. SUBTITLE (IP or Stage)
       final subTp = _createTextPainter(
         node.ipAddress,
         fontSize: 7,
@@ -181,7 +219,8 @@ class PropagationFlowPainter extends CustomPainter {
     }
   }
 
-  TextPainter _createTextPainter(String text, {
+  TextPainter _createTextPainter(
+    String text, {
     required double fontSize,
     required FontWeight fontWeight,
     required Color color,

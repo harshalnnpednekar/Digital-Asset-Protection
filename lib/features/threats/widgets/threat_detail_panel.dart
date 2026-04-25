@@ -76,8 +76,8 @@ class ThreatDetailPanel extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           "DETECTED: ${threat.detectionTime.toUpperCase()}",
-                          style: AppTextStyles.mono(
-                              size: 10, color: c.textMuted),
+                          style:
+                              AppTextStyles.mono(size: 10, color: c.textMuted),
                         ),
                       ],
                     ),
@@ -131,7 +131,7 @@ class ThreatDetailPanel extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
-                onPressed: () {}, 
+                onPressed: null,
                 child: Text(
                   "▶  PLAY BOTH SIMULTANEOUSLY",
                   style: AppTextStyles.mono(
@@ -165,8 +165,7 @@ class ThreatDetailPanel extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   "DUAL-LOCK CONFIRMATION: Both visual semantic embeddings AND audio waveform vectors exceed the 85% detection threshold.",
-                  style: AppTextStyles.mono(
-                      size: 11, color: c.textSecondary),
+                  style: AppTextStyles.mono(size: 11, color: c.textSecondary),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -291,7 +290,8 @@ class ThreatDetailPanel extends StatelessWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ScaleButton(
-                    onTap: () => _showDMCAConfirmation(context, threat, onUpdateStatus),
+                    onTap: () =>
+                        _showDMCAConfirmation(context, threat, onUpdateStatus),
                     child: Container(
                       height: 52,
                       alignment: Alignment.center,
@@ -318,7 +318,8 @@ class ThreatDetailPanel extends StatelessWidget {
     );
   }
 
-  void _showDMCAConfirmation(BuildContext context, ThreatAlert threat, Function(String) onUpdateStatus) {
+  void _showDMCAConfirmation(BuildContext context, ThreatAlert threat,
+      Function(String) onUpdateStatus) {
     final c = context.colors;
     showDialog(
       context: context,
@@ -338,15 +339,12 @@ class ThreatDetailPanel extends StatelessWidget {
               Text(
                 "CONFIRM DMCA ENFORCEMENT",
                 style: AppTextStyles.mono(
-                    size: 14,
-                    weight: FontWeight.w700,
-                    color: c.textPrimary),
+                    size: 14, weight: FontWeight.w700, color: c.textPrimary),
               ),
               const SizedBox(height: 12),
               Text(
                 "An automated DMCA takedown notice will be drafted by Gemini AI and submitted to ${threat.platform}. This action is logged and irreversible.",
-                style: AppTextStyles.mono(
-                    size: 13, color: c.textSecondary),
+                style: AppTextStyles.mono(size: 13, color: c.textSecondary),
               ),
               const SizedBox(height: 24),
               Row(
@@ -355,15 +353,18 @@ class ThreatDetailPanel extends StatelessWidget {
                   ScaleButton(
                     onTap: () => Navigator.pop(context),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
                       decoration: BoxDecoration(
                         border: Border.all(color: c.borderDefault),
                         borderRadius: BorderRadius.zero,
                       ),
-                      child: Text(
-                        "CANCEL", 
-                        style: AppTextStyles.mono(size: 11, color: c.textPrimary, weight: FontWeight.w700, letterSpacing: 1)
-                      ),
+                      child: Text("CANCEL",
+                          style: AppTextStyles.mono(
+                              size: 11,
+                              color: c.textPrimary,
+                              weight: FontWeight.w700,
+                              letterSpacing: 1)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -373,14 +374,17 @@ class ThreatDetailPanel extends StatelessWidget {
                       onUpdateStatus('DMCA_FILED');
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
                       decoration: const BoxDecoration(
                         color: AppColors.accentCrimson,
                       ),
-                      child: Text(
-                        "CONFIRM & FILE", 
-                        style: AppTextStyles.mono(size: 11, color: Colors.white, weight: FontWeight.w700, letterSpacing: 1)
-                      ),
+                      child: Text("CONFIRM & FILE",
+                          style: AppTextStyles.mono(
+                              size: 11,
+                              color: Colors.white,
+                              weight: FontWeight.w700,
+                              letterSpacing: 1)),
                     ),
                   ),
                 ],
@@ -403,11 +407,11 @@ class _SectionHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
       child: Text(
-        label, 
+        label,
         style: AppTextStyles.mono(
-          size: 11, 
-          weight: FontWeight.w600, 
-          color: c.textMuted, 
+          size: 11,
+          weight: FontWeight.w600,
+          color: c.textMuted,
           letterSpacing: 2.5,
         ),
       ),
@@ -468,8 +472,9 @@ class _EvidenceStack extends StatelessWidget {
         AspectRatio(
           aspectRatio: 16 / 9,
           child: Container(
-            color:
-                isOriginal ? c.bgTertiary : AppColors.accentCrimsonDim.withAlpha(50),
+            color: isOriginal
+                ? c.bgTertiary
+                : AppColors.accentCrimsonDim.withAlpha(50),
             child: Stack(
               children: [
                 Center(
@@ -517,8 +522,8 @@ class _EvidenceStack extends StatelessWidget {
               Text(
                 label,
                 style: AppTextStyles.mono(
-                  size: 9, 
-                  color: c.textMuted, 
+                  size: 9,
+                  color: c.textMuted,
                   letterSpacing: 1.5,
                 ),
               ),
@@ -526,9 +531,7 @@ class _EvidenceStack extends StatelessWidget {
               Text(
                 assetName,
                 style: AppTextStyles.sans(
-                    size: 11,
-                    weight: FontWeight.w500,
-                    color: c.textPrimary),
+                    size: 11, weight: FontWeight.w500, color: c.textPrimary),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -627,14 +630,14 @@ class _PatientZeroSectionState extends State<_PatientZeroSection> {
             .get();
         assetId = doc.data()?['matched_asset_id'] ?? widget.threat.threatId;
       } else {
-        assetId = widget.threat.threatId; 
+        assetId = widget.threat.threatId;
       }
-      
+
       final response = await dioClient.post(
         '${ApiConfig.backendBaseUrl}/decrypt-watermark',
         data: {'asset_id': assetId},
       );
-      
+
       final data = response.data;
       if (data != null && data['success'] == true) {
         setState(() {
@@ -656,7 +659,7 @@ class _PatientZeroSectionState extends State<_PatientZeroSection> {
                   .toString())
               : (e.message ?? e.toString()))
           : e.toString();
-          
+
       setState(() {
         _error = errorMessage;
       });
@@ -685,10 +688,13 @@ class _PatientZeroSectionState extends State<_PatientZeroSection> {
               children: [
                 Row(
                   children: [
-                    Icon(PhosphorIcons.dna(), size: 16, color: AppColors.accentCrimson),
+                    Icon(PhosphorIcons.dna(),
+                        size: 16, color: AppColors.accentCrimson),
                     const SizedBox(width: 8),
                     Text(
-                      _isRevealed ? "PATIENT ZERO IDENTIFIED" : "PATIENT ZERO TRACING",
+                      _isRevealed
+                          ? "PATIENT ZERO IDENTIFIED"
+                          : "PATIENT ZERO TRACING",
                       style: AppTextStyles.mono(
                           size: 13,
                           weight: FontWeight.w700,
@@ -698,24 +704,32 @@ class _PatientZeroSectionState extends State<_PatientZeroSection> {
                   ],
                 ),
                 if (_isRevealed || (!widget.threat.isLive && _error == null))
-                  const CustomChip(label: "DECRYPTED", color: AppColors.accentCrimson)
+                  const CustomChip(
+                      label: "DECRYPTED", color: AppColors.accentCrimson)
                 else if (_isLoading)
-                  const CustomChip(label: "DECRYPTING...", color: AppColors.accentAmber)
+                  const CustomChip(
+                      label: "DECRYPTING...", color: AppColors.accentAmber)
                 else if (_error != null)
-                  const CustomChip(label: "FAILED", color: AppColors.accentCrimson)
+                  const CustomChip(
+                      label: "FAILED", color: AppColors.accentCrimson)
                 else
-                  const CustomChip(label: "ENCRYPTED", color: AppColors.accentAmber),
+                  const CustomChip(
+                      label: "ENCRYPTED", color: AppColors.accentAmber),
               ],
             ),
             const SizedBox(height: 16),
-            if (!_isRevealed && _error == null && !_isLoading && !widget.threat.isLive) ...[
+            if (!_isRevealed &&
+                _error == null &&
+                !_isLoading &&
+                !widget.threat.isLive) ...[
               _DataRow(
                   label: "LEAK SOURCE",
                   value: widget.threat.decryptedLeakSource,
                   valueColor: AppColors.accentAmber),
               _DataRow(
                   label: "DISTRIBUTION MARKER",
-                  value: "[AES-256 Payload: ${widget.threat.threatId.hashCode.toRadixString(16).toUpperCase()}]",
+                  value:
+                      "[AES-256 Payload: ${widget.threat.threatId.hashCode.toRadixString(16).toUpperCase()}]",
                   valueColor: c.textSecondary),
               _DataRow(
                   label: "MARKER ASSIGNED ON",
@@ -732,7 +746,8 @@ class _PatientZeroSectionState extends State<_PatientZeroSection> {
               const SizedBox(height: 12),
               Text(
                 "Steganographic payload decrypted from media bitstream — admissible as digital forensic evidence",
-                style: AppTextStyles.mono(size: 9, color: c.textMuted, letterSpacing: 0.5),
+                style: AppTextStyles.mono(
+                    size: 9, color: c.textMuted, letterSpacing: 0.5),
               ),
             ] else if (!_isRevealed && _error == null) ...[
               Text(
@@ -747,10 +762,11 @@ class _PatientZeroSectionState extends State<_PatientZeroSection> {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.accentCrimson,
-                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    onPressed: () {},
+                    onPressed: null,
                     child: _isLoading
                         ? const SizedBox(
                             width: 16,
@@ -770,12 +786,14 @@ class _PatientZeroSectionState extends State<_PatientZeroSection> {
             ] else if (_error != null) ...[
               Row(
                 children: [
-                  Icon(PhosphorIcons.warning(PhosphorIconsStyle.fill), color: AppColors.accentAmber),
+                  Icon(PhosphorIcons.warning(PhosphorIconsStyle.fill),
+                      color: AppColors.accentAmber),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _error!,
-                      style: AppTextStyles.mono(size: 12, color: AppColors.accentAmber),
+                      style: AppTextStyles.mono(
+                          size: 12, color: AppColors.accentAmber),
                     ),
                   ),
                 ],
@@ -788,13 +806,17 @@ class _PatientZeroSectionState extends State<_PatientZeroSection> {
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppColors.accentAmber),
-                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    onPressed: () {},
+                    onPressed: null,
                     child: Text(
                       "RETRY DECRYPTION",
-                      style: AppTextStyles.mono(size: 11, weight: FontWeight.w700, color: AppColors.accentAmber),
+                      style: AppTextStyles.mono(
+                          size: 11,
+                          weight: FontWeight.w700,
+                          color: AppColors.accentAmber),
                     ),
                   ),
                 ),
@@ -806,7 +828,8 @@ class _PatientZeroSectionState extends State<_PatientZeroSection> {
                   valueColor: AppColors.accentAmber),
               _DataRow(
                   label: "DISTRIBUTION MARKER",
-                  value: "[AES-256 Payload: ${widget.threat.threatId.hashCode.toRadixString(16).toUpperCase()}]",
+                  value:
+                      "[AES-256 Payload: ${widget.threat.threatId.hashCode.toRadixString(16).toUpperCase()}]",
                   valueColor: c.textSecondary),
               _DataRow(
                   label: "MARKER ASSIGNED ON",
@@ -823,7 +846,8 @@ class _PatientZeroSectionState extends State<_PatientZeroSection> {
               const SizedBox(height: 12),
               Text(
                 "Steganographic payload decrypted from media bitstream — admissible as digital forensic evidence",
-                style: AppTextStyles.mono(size: 9, color: c.textMuted, letterSpacing: 0.5),
+                style: AppTextStyles.mono(
+                    size: 9, color: c.textMuted, letterSpacing: 0.5),
               ),
             ],
           ],

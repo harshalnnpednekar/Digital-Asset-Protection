@@ -2,6 +2,8 @@ import os
 import json
 import base64
 import logging
+import tempfile
+import shutil
 from cryptography.fernet import Fernet
 from stegano import lsb
 import ffmpeg
@@ -9,13 +11,15 @@ import ffmpeg
 # Configure logger
 logger = logging.getLogger(__name__)
 
-def inject_watermark(video_file_path, distribution_target, asset_id):
+def inject_watermark(video_file_path, distribution_target, asset_id, temp_dir=None):
     """
     Embeds an invisible encrypted identifier into the first frame of the video.
     """
     # SECURITY NOTE — The encryption key is returned here for storage in Firestore
     # for demo purposes only. In production this key must be stored in Google Cloud
     # Secret Manager or equivalent HSM and never written to a database.
+    working_dir = temp_dir
+    created_temp_dir = False
     try:
         # Step 1: Generate Fernet key
         key = Fernet.generate_key()
@@ -35,12 +39,12 @@ def inject_watermark(video_file_path, distribution_target, asset_id):
         # Step 4: Convert ciphertext to base64 string
         base64_str = base64.b64encode(ciphertext_bytes).decode('utf-8')
         
-        # Ensure temp directory exists
-        os.makedirs('temp', exist_ok=True)
-        
-        frame_to_mark_path = 'temp/frame_to_mark.png'
-        frame_marked_path = 'temp/frame_marked.png'
-        watermarked_video_path = 'temp/watermarked_video.mp4'
+        working_dir = temp_dir or tempfile.mkdtemp(prefix='astra_watermark_')
+        created_temp_dir = temp_dir is None
+
+        frame_to_mark_path = os.path.join(working_dir, 'frame_to_mark.png')
+        frame_marked_path = os.path.join(working_dir, 'frame_marked.png')
+        watermarked_video_path = os.path.join(working_dir, 'watermarked_video.mp4')
 
         # Step 5: Extract the first frame as PNG
         (
@@ -86,3 +90,6 @@ def inject_watermark(video_file_path, distribution_target, asset_id):
     except Exception as e:
         logger.error(f"Failed to inject watermark: {e}")
         return None
+    finally:
+        if created_temp_dir and os.path.isdir(working_dir):
+            shutil.rmtree(working_dir, ignore_errors=True)

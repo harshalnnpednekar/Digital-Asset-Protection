@@ -19,7 +19,7 @@ class UploadModal extends StatefulWidget {
 }
 
 class _UploadModalState extends State<UploadModal> {
-  final bool _showProgress = false;
+  bool _showProgress = false;
   bool _isUploading = false;
   String _assetName = "";
   PlatformFile? _selectedFile;
@@ -35,7 +35,7 @@ class _UploadModalState extends State<UploadModal> {
   }
 
   // Progress state
-  final int _currentStep = 0; // 0 to 5
+  int _currentStep = 0; // 0 to 6
   final List<String> _steps = [
     "UPLOADING TO SECURE STORAGE",
     "INJECTING C2PA MANIFEST + AES-256 WATERMARK",
@@ -44,37 +44,48 @@ class _UploadModalState extends State<UploadModal> {
     "WRITING TO FIRESTORE VAULT",
   ];
 
-  void _startUpload() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.video,
-      withData: true,
-    );
+  Future<void> _startUpload() async {
+    final selectedFile = _selectedFile ??
+        (await FilePicker.platform.pickFiles(
+          type: FileType.video,
+          withData: true,
+        ))
+            ?.files
+            .first;
 
-    if (result == null || result.files.isEmpty) {
+    if (selectedFile == null) {
       return;
     }
 
-    final pickedFile = result.files.first;
     setState(() {
-      _selectedFile = pickedFile;
+      _selectedFile = selectedFile;
       _isUploading = true;
+      _showProgress = true;
+      _currentStep = 1;
     });
 
     try {
-      final multipartFile = pickedFile.path != null
+      final multipartFile = selectedFile.path != null
           ? await MultipartFile.fromFile(
-              pickedFile.path!,
-              filename: pickedFile.name,
+              selectedFile.path!,
+              filename: selectedFile.name,
             )
           : MultipartFile.fromBytes(
-              pickedFile.bytes ?? <int>[],
-              filename: pickedFile.name,
+              selectedFile.bytes ?? <int>[],
+              filename: selectedFile.name,
             );
 
+      setState(() => _currentStep = 2);
+
       final formData = FormData.fromMap({
+        'asset_name':
+            _assetName.trim().isEmpty ? selectedFile.name : _assetName.trim(),
+        'asset_category': _selectedCategory,
         'distribution_target': _selectedDistribution,
         'video_file': multipartFile,
       });
+
+      setState(() => _currentStep = 3);
 
       final response = await dioClient.post(
         '${ApiConfig.backendBaseUrl}/process-asset',
@@ -82,10 +93,13 @@ class _UploadModalState extends State<UploadModal> {
         options: Options(contentType: 'multipart/form-data'),
       );
 
+      setState(() => _currentStep = 4);
+
       final data = response.data;
       final success = data is Map<String, dynamic> && data['success'] == true;
 
       if (success) {
+        setState(() => _currentStep = 6);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -102,6 +116,12 @@ class _UploadModalState extends State<UploadModal> {
       final errorMessage = data is Map<String, dynamic>
           ? (data['error'] ?? data['message'] ?? 'Upload failed').toString()
           : 'Upload failed';
+      if (mounted) {
+        setState(() {
+          _showProgress = false;
+          _currentStep = 0;
+        });
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -122,6 +142,13 @@ class _UploadModalState extends State<UploadModal> {
                   .toString())
               : (e.message ?? e.toString()))
           : e.toString();
+
+      if (mounted) {
+        setState(() {
+          _showProgress = false;
+          _currentStep = 0;
+        });
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -240,7 +267,7 @@ class _UploadModalState extends State<UploadModal> {
                     _MiniChip(
                         label: _selectedFile != null
                             ? "READY TO INGEST"
-                            : "MAX FILE SIZE: 50GB",
+                            : "MAX FILE SIZE: 100MB",
                         color: _selectedFile != null
                             ? AppColors.accentGreen
                             : c.textMuted),
@@ -328,7 +355,7 @@ class _UploadModalState extends State<UploadModal> {
         const SizedBox(height: 8),
 
         DropdownButtonFormField<String>(
-          initialValue: _selectedDistribution,
+          value: _selectedDistribution,
           dropdownColor: c.bgSecondary,
           style: AppTextStyles.mono(size: 13, color: c.textPrimary),
           decoration: _inputDecoration(""),
@@ -381,7 +408,7 @@ class _UploadModalState extends State<UploadModal> {
                       borderRadius: BorderRadius.zero),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                onPressed: () {}, // Handled by ScaleButton
+                onPressed: null,
                 child: Text("CLOSE", style: AppTextStyles.buttonLabel),
               ),
             ),
@@ -513,7 +540,7 @@ class _ModalFooter extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               ),
-              onPressed: () {},
+              onPressed: null,
               child: Text(
                 "CANCEL",
                 style: AppTextStyles.mono(
@@ -534,7 +561,7 @@ class _ModalFooter extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               ),
-              onPressed: () {},
+              onPressed: null,
               child: isLoading
                   ? SizedBox(
                       width: 16,

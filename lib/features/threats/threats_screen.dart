@@ -7,6 +7,7 @@ import '../../core/theme/app_theme_colors.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/status_dot.dart';
 import '../../core/widgets/scale_button.dart';
+import '../../core/config/demo_config.dart';
 import 'threats_mock_data.dart';
 import 'widgets/threat_queue_item.dart';
 import 'widgets/threat_detail_panel.dart';
@@ -99,7 +100,9 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
             ..clear()
             ..addAll(liveAlerts.map((alert) => alert.threatId));
 
-          _alerts = [...liveAlerts, ...ThreatsMockData.alerts];
+          final mockAlerts =
+              kDemoMode ? ThreatsMockData.alerts : <ThreatAlert>[];
+          _alerts = [...liveAlerts, ...mockAlerts];
 
           if (_selectedThreatId == null && _alerts.isNotEmpty ||
               (!_alerts.any((a) => a.threatId == _selectedThreatId) &&
@@ -156,7 +159,7 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 10),
                           ),
-                          onPressed: () {},
+                          onPressed: null,
                           child: Row(
                             children: [
                               Icon(PhosphorIcons.broadcast(),
@@ -247,8 +250,11 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
                                                       _selectedThreatId ==
                                                           threat.threatId,
                                                   onTap: () {
-                                                    setState(() => _selectedThreatId = threat.threatId);
-                                                    context.push('/contagion?threatId=${threat.threatId}');
+                                                    setState(() =>
+                                                        _selectedThreatId =
+                                                            threat.threatId);
+                                                    context.push(
+                                                        '/contagion?threatId=${threat.threatId}');
                                                   },
                                                 );
                                               },

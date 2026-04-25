@@ -72,8 +72,7 @@ class _VaultScreenState extends State<VaultScreen> {
                 return const SizedBox.shrink();
               }
 
-              final stepLabel =
-                  (data['step_label'] as String?) ?? 'Processing';
+              final stepLabel = (data['step_label'] as String?) ?? 'Processing';
 
               return Container(
                 width: double.infinity,
@@ -154,7 +153,7 @@ class _VaultScreenState extends State<VaultScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 14),
                             ),
-                            onPressed: () {}, // Handled by ScaleButton
+                            onPressed: null,
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [

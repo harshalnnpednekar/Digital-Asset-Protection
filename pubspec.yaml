@@ -53,4 +53,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - astra_backend/config/.env
+    - lib/config/frontend.env

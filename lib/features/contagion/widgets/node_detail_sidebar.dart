@@ -54,14 +54,15 @@ class NodeDetailSidebar extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(PhosphorIcons.fingerprint(), size: 14, color: AppColors.accentAmber),
+                    Icon(PhosphorIcons.fingerprint(),
+                        size: 14, color: AppColors.accentAmber),
                     const SizedBox(width: 8),
                     Text(
-                      "FORENSIC INSPECTION", 
+                      "FORENSIC INSPECTION",
                       style: AppTextStyles.mono(
-                        size: 11, 
-                        weight: FontWeight.w600, 
-                        color: c.textMuted, 
+                        size: 11,
+                        weight: FontWeight.w600,
+                        color: c.textMuted,
                         letterSpacing: 2,
                       ),
                     ),
@@ -88,41 +89,64 @@ class NodeDetailSidebar extends StatelessWidget {
                       children: [
                         // TIER BADGE
                         CustomChip(
-                          label: node!.tier == 'ROOT' ? 'PATIENT ZERO' : 'TIER ${node!.tier.substring(1)}',
+                          label: node!.tier == 'ROOT'
+                              ? 'PATIENT ZERO'
+                              : 'TIER ${node!.tier.substring(1)}',
                           color: _getTierColor(node!.tier, c),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         Text(
                           node!.label,
-                          style: AppTextStyles.mono(size: 15, weight: FontWeight.w700, color: c.textPrimary),
+                          style: AppTextStyles.mono(
+                              size: 15,
+                              weight: FontWeight.w700,
+                              color: c.textPrimary),
                         ),
                         const SizedBox(height: 8),
                         _PlatformBadge(platform: node!.platform),
-                        
+
                         const SizedBox(height: 24),
-                        Text("NETWORK SIGNATURE", 
-                            style: AppTextStyles.mono(size: 10, color: c.textMuted, weight: FontWeight.w700, letterSpacing: 1)),
+                        Text("NETWORK SIGNATURE",
+                            style: AppTextStyles.mono(
+                                size: 10,
+                                color: c.textMuted,
+                                weight: FontWeight.w700,
+                                letterSpacing: 1)),
                         const SizedBox(height: 12),
-                        
-                        _ForensicRow(label: "IP ADDRESS", value: node!.ipAddress, isPrimary: true),
-                        _ForensicRow(label: "SOURCE URL", value: node!.sourceUrl),
-                        _ForensicRow(label: "DETECTED AT", value: node!.detectedAt),
-                        _ForensicRow(label: "EST. REACH", value: node!.estimatedReach),
-                        
+
+                        _ForensicRow(
+                            label: "IP ADDRESS",
+                            value: node!.ipAddress,
+                            isPrimary: true),
+                        _ForensicRow(
+                            label: "SOURCE URL", value: node!.sourceUrl),
+                        _ForensicRow(
+                            label: "DETECTED AT", value: node!.detectedAt),
+                        _ForensicRow(
+                            label: "EST. REACH", value: node!.estimatedReach),
+
                         const SizedBox(height: 20),
                         Divider(color: c.borderDefault),
                         const SizedBox(height: 20),
-                        
-                        Text("HIERARCHY POSITION", 
-                            style: AppTextStyles.mono(size: 10, color: c.textMuted, weight: FontWeight.w700, letterSpacing: 1)),
+
+                        Text("HIERARCHY POSITION",
+                            style: AppTextStyles.mono(
+                                size: 10,
+                                color: c.textMuted,
+                                weight: FontWeight.w700,
+                                letterSpacing: 1)),
                         const SizedBox(height: 12),
-                        
-                        _ForensicRow(label: "PARENT NODE", value: parentNode?.label ?? "ORIGIN SOURCE"),
-                        _ForensicRow(label: "CHILD NODES", value: "$childCount downstream entities"),
-                        
+
+                        _ForensicRow(
+                            label: "PARENT NODE",
+                            value: parentNode?.label ?? "ORIGIN SOURCE"),
+                        _ForensicRow(
+                            label: "CHILD NODES",
+                            value: "$childCount downstream entities"),
+
                         const SizedBox(height: 32),
-                        
+
                         if (node!.tier != 'ROOT') ...[
                           SizedBox(
                             width: double.infinity,
@@ -131,12 +155,14 @@ class NodeDetailSidebar extends StatelessWidget {
                               onTap: () {},
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.accentCrimson.withValues(alpha: 0.8),
+                                  backgroundColor: AppColors.accentCrimson
+                                      .withValues(alpha: 0.8),
                                   foregroundColor: Colors.white,
-                                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                  shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.zero),
                                   elevation: 0,
                                 ),
-                                onPressed: () {}, 
+                                onPressed: null,
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -144,7 +170,10 @@ class NodeDetailSidebar extends StatelessWidget {
                                     const SizedBox(width: 12),
                                     Text(
                                       "ISSUE DMCA TAKEDOWN",
-                                      style: AppTextStyles.mono(size: 11, weight: FontWeight.w700, letterSpacing: 1),
+                                      style: AppTextStyles.mono(
+                                          size: 11,
+                                          weight: FontWeight.w700,
+                                          letterSpacing: 1),
                                     ),
                                   ],
                                 ),
@@ -153,7 +182,7 @@ class NodeDetailSidebar extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                         ],
-                        
+
                         SizedBox(
                           width: double.infinity,
                           height: 40,
@@ -162,18 +191,25 @@ class NodeDetailSidebar extends StatelessWidget {
                             child: OutlinedButton(
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(color: c.borderDefault),
-                                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.zero),
                               ),
-                              onPressed: () {}, 
+                              onPressed: null,
                               child: Text(
                                 "CLIP EVIDENCE LOG",
-                                style: AppTextStyles.mono(size: 11, weight: FontWeight.w600, color: c.textSecondary),
+                                style: AppTextStyles.mono(
+                                    size: 11,
+                                    weight: FontWeight.w600,
+                                    color: c.textSecondary),
                               ),
                             ),
                           ),
                         ),
                       ],
-                    ).animate(key: ValueKey(node!.id)).fadeIn(duration: 300.ms).slideY(begin: 0.05, end: 0),
+                    )
+                        .animate(key: ValueKey(node!.id))
+                        .fadeIn(duration: 300.ms)
+                        .slideY(begin: 0.05, end: 0),
                   ),
           ),
         ],
@@ -183,9 +219,12 @@ class NodeDetailSidebar extends StatelessWidget {
 
   Color _getTierColor(String tier, AppThemeColors c) {
     switch (tier) {
-      case 'ROOT': return AppColors.accentCrimson;
-      case 'T1': return AppColors.accentAmber;
-      default: return c.accentBlue;
+      case 'ROOT':
+        return AppColors.accentCrimson;
+      case 'T1':
+        return AppColors.accentAmber;
+      default:
+        return c.accentBlue;
     }
   }
 }
@@ -195,7 +234,8 @@ class _ForensicRow extends StatelessWidget {
   final String value;
   final bool isPrimary;
 
-  const _ForensicRow({required this.label, required this.value, this.isPrimary = false});
+  const _ForensicRow(
+      {required this.label, required this.value, this.isPrimary = false});
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +245,12 @@ class _ForensicRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AppTextStyles.mono(size: 9, color: c.textMuted, weight: FontWeight.w700, letterSpacing: 1.5)),
+          Text(label,
+              style: AppTextStyles.mono(
+                  size: 9,
+                  color: c.textMuted,
+                  weight: FontWeight.w700,
+                  letterSpacing: 1.5)),
           const SizedBox(height: 6),
           Container(
             width: double.infinity,
@@ -216,10 +261,10 @@ class _ForensicRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(2),
             ),
             child: Text(
-              value, 
+              value,
               style: AppTextStyles.mono(
-                size: isPrimary ? 13 : 11, 
-                weight: isPrimary ? FontWeight.w700 : FontWeight.w500, 
+                size: isPrimary ? 13 : 11,
+                weight: isPrimary ? FontWeight.w700 : FontWeight.w500,
                 color: isPrimary ? AppColors.accentAmber : c.textSecondary,
               ),
               overflow: TextOverflow.ellipsis,
@@ -253,7 +298,8 @@ class _PlatformBadge extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             platform.toUpperCase(),
-            style: AppTextStyles.mono(size: 9, weight: FontWeight.w800, color: c.accentBlue),
+            style: AppTextStyles.mono(
+                size: 9, weight: FontWeight.w800, color: c.accentBlue),
           ),
         ],
       ),

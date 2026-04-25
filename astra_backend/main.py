@@ -20,8 +20,13 @@ import logging
 import tempfile
 import shutil
 import uuid
+import sys
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
+
+backend_dir = os.path.dirname(__file__)
+if backend_dir not in sys.path:
+    sys.path.append(backend_dir)
 
 from scanner_pipeline import process_scraped_video
 from media_processor import extract_frames
@@ -32,7 +37,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 ALREADY_SCANNED_FILES = set()
 
-load_dotenv()  # Reads .env file in the current working directory
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "config", ".env"))
 
 # Security: Rate limiting state
 request_history = {}
@@ -46,7 +51,7 @@ MAX_REQUESTS_PER_WINDOW = 3
 # different port/domain) to call this backend without
 # being blocked by the browser's same-origin policy.
 # ----------------------------------------------------------
-from fastapi import FastAPI, UploadFile, File, Form, Request
+from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import base64
@@ -72,13 +77,25 @@ from firebase_admin import credentials, firestore, storage
 # backend with Firebase — NEVER commit it to git.
 # ----------------------------------------------------------
 firebase_creds_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
+firebase_storage_bucket = os.getenv("FIREBASE_STORAGE_BUCKET")
+
+if firebase_creds_path and not os.path.isabs(firebase_creds_path):
+    backend_config_dir = os.path.join(os.path.dirname(__file__), "config")
+    candidate_path = os.path.join(backend_config_dir, firebase_creds_path)
+    if os.path.exists(candidate_path):
+        firebase_creds_path = candidate_path
+    else:
+        firebase_creds_path = os.path.join(os.path.dirname(__file__), firebase_creds_path)
 
 # Only initialize if the credentials file actually exists
 # This prevents crashes during initial setup before the
 # user has placed their firebase_credentials.json file
 if firebase_creds_path and os.path.exists(firebase_creds_path):
     cred = credentials.Certificate(firebase_creds_path)
-    firebase_admin.initialize_app(cred)
+    init_options = {}
+    if firebase_storage_bucket:
+        init_options["storageBucket"] = firebase_storage_bucket
+    firebase_admin.initialize_app(cred, init_options or None)
     print("✅ Firebase Admin SDK initialized successfully!")
 else:
     print("⚠️  Firebase credentials file not found at:", firebase_creds_path)
@@ -154,7 +171,7 @@ async def run_scanner_cycle():
                         "is_suspicious": True
                     }
 
-                process_scraped_video(video_path, metadata)
+                await asyncio.to_thread(process_scraped_video, video_path, metadata)
 
             except Exception as e:
                 logging.error(f"Error handling file {video_path}: {e}")
@@ -202,10 +219,28 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],       # Allow requests from any origin (domain)
-    allow_credentials=True,    # Allow cookies and auth headers
+    allow_credentials=False,   # Credentials are not required for these API calls
     allow_methods=["*"],       # Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"],       # Allow all HTTP headers
 )
+
+
+def require_firebase_services():
+    if not firebase_admin._apps:
+        raise HTTPException(
+            status_code=503,
+            detail="Firebase services are not configured on this backend.",
+        )
+    if not firebase_storage_bucket:
+        raise HTTPException(
+            status_code=503,
+            detail="FIREBASE_STORAGE_BUCKET is not configured on this backend.",
+        )
+
+
+def copy_upload_file(source_file, destination_path):
+    with open(destination_path, "wb") as destination_file:
+        shutil.copyfileobj(source_file, destination_file)
 
 # ----------------------------------------------------------
 # STEP 7: Root endpoint — Health Check
@@ -225,14 +260,14 @@ def root():
         "health": True
     }
 
-@app.post("/processasset")
+@app.post("/process-asset")
 async def process_asset(
     request: Request,
     video_file: UploadFile = File(...),
     distribution_target: str = Form(...)
 ):
     # RATE LIMITING (Test 10)
-    client_ip = request.client.host
+    client_ip = request.client.host if request.client else "unknown"
     now = asyncio.get_event_loop().time()
     if client_ip not in request_history:
         request_history[client_ip] = []
@@ -259,6 +294,7 @@ async def process_asset(
         return JSONResponse(status_code=422, content={"success": False, "error": "distribution_target is required and cannot be empty."})
 
     try:
+        require_firebase_services()
         db = firestore.client()
         status_ref = db.collection("system_state").document("processing_status")
         
@@ -268,7 +304,7 @@ async def process_asset(
         temp_video_path = os.path.join(temp_dir, video_file.filename)
         
         # Run synchronous file copy in a background thread
-        await asyncio.to_thread(shutil.copyfileobj, video_file.file, open(temp_video_path, "wb"))
+        await asyncio.to_thread(copy_upload_file, video_file.file, temp_video_path)
             
         # Step 2 of 5: Call extract_frames from media_processor.py
         status_ref.set({"current_step": 2, "step_label": "Extracting video frames"})
@@ -285,7 +321,7 @@ async def process_asset(
         asset_id = str(uuid.uuid4())
         
         watermark_result = await asyncio.to_thread(
-            inject_watermark, temp_video_path, distribution_target, asset_id
+            inject_watermark, temp_video_path, distribution_target, asset_id, temp_dir
         )
         
         watermark_key = None
@@ -298,7 +334,7 @@ async def process_asset(
         # Step 4 of 5: Upload the video file to Firebase Cloud Storage
         status_ref.set({"current_step": 4, "step_label": "Uploading to secure vault"})
         unique_filename = f"{uuid.uuid4()}_{video_file.filename}"
-        bucket = storage.bucket()
+        bucket = storage.bucket(firebase_storage_bucket)
         blob = bucket.blob(f"vault/{unique_filename}")
         await asyncio.to_thread(blob.upload_from_filename, temp_video_path)
         
@@ -322,7 +358,7 @@ async def process_asset(
         }
         
     except Exception as e:
-        logging.error(f"Error in /processasset: {e}")
+        logging.error(f"Error in /process-asset: {e}")
         return {
             "success": False,
             "error": str(e)
@@ -337,6 +373,7 @@ class DecryptRequest(BaseModel):
 @app.post("/decrypt-watermark")
 async def decrypt_watermark(req: DecryptRequest):
     try:
+        require_firebase_services()
         db = firestore.client()
         doc_ref = db.collection("vaulted_assets").document(req.asset_id)
         doc = await asyncio.to_thread(doc_ref.get)
@@ -354,7 +391,7 @@ async def decrypt_watermark(req: DecryptRequest):
             from fastapi.responses import JSONResponse
             return JSONResponse(status_code=500, content={"success": False, "error": "Storage path missing"})
             
-        bucket = storage.bucket()
+        bucket = storage.bucket(firebase_storage_bucket)
         blob = bucket.blob(storage_path)
         
         temp_dir = tempfile.mkdtemp(prefix="astra_decrypt_")
@@ -401,3 +438,9 @@ async def decrypt_watermark(req: DecryptRequest):
         if 'temp_dir' in locals():
             import shutil
             shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")), reload=True)

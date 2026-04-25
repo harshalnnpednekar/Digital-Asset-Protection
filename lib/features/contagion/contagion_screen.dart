@@ -66,13 +66,8 @@ class _PropagationFlowScreenState extends State<PropagationFlowScreen>
     // Derived Data
     const activeNodes =
         ContagionMockData.nodes; // In real app, filter by _selectedAsset
-    final selectedNode = _selectedNodeId != null
-        ? activeNodes.firstWhere((n) => n.id == _selectedNodeId)
-        : null;
-
-    final parentNode = selectedNode?.parentId != null
-        ? activeNodes.firstWhere((n) => n.id == selectedNode!.parentId)
-        : null;
+    final selectedNode = _nodeById(_selectedNodeId, activeNodes);
+    final parentNode = _nodeById(selectedNode?.parentId, activeNodes);
 
     final childCount = _selectedNodeId != null
         ? activeNodes.where((n) => n.parentId == _selectedNodeId).length
@@ -81,126 +76,138 @@ class _PropagationFlowScreenState extends State<PropagationFlowScreen>
     return Scaffold(
       backgroundColor: c.bgPrimary,
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('contagion_nodes')
-            .where('threat_id', isEqualTo: widget.selectedThreatId)
-            .snapshots(),
-        builder: (context, snapshot) {
-          final hasData = snapshot.hasData && snapshot.data!.docs.isNotEmpty;
-          final useRealData = widget.selectedThreatId != null && hasData;
+          stream: FirebaseFirestore.instance
+              .collection('contagion_nodes')
+              .where('threat_id', isEqualTo: widget.selectedThreatId)
+              .snapshots(),
+          builder: (context, snapshot) {
+            final hasData = snapshot.hasData && snapshot.data!.docs.isNotEmpty;
+            final useRealData = widget.selectedThreatId != null && hasData;
 
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // COMPACT HEADER
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            useRealData ? "LIVE PROPAGATION MAP" : "PROPAGATION FLOW",
-                            style: AppTextStyles.display(
-                              size: 18,
-                              weight: FontWeight.w800,
-                              color: c.textPrimary,
-                              letterSpacing: 1.5,
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // COMPACT HEADER
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              useRealData
+                                  ? "LIVE PROPAGATION MAP"
+                                  : "PROPAGATION FLOW",
+                              style: AppTextStyles.display(
+                                size: 18,
+                                weight: FontWeight.w800,
+                                color: c.textPrimary,
+                                letterSpacing: 1.5,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            useRealData 
-                                ? "Real-time forensic trace for threat: ${widget.selectedThreatId}"
-                                : "Corporate forensic trace of unauthorized media distribution.",
-                            style: AppTextStyles.body(size: 12, color: c.textMuted),
-                          ),
+                            const SizedBox(height: 4),
+                            Text(
+                              useRealData
+                                  ? "Real-time forensic trace for threat: ${widget.selectedThreatId}"
+                                  : "Corporate forensic trace of unauthorized media distribution.",
+                              style: AppTextStyles.body(
+                                  size: 12, color: c.textMuted),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Inline legend
+                      Row(
+                        children: [
+                          _dot(AppColors.accentCrimson),
+                          const SizedBox(width: 8),
+                          Text("ROOT",
+                              style: AppTextStyles.mono(
+                                  size: 10,
+                                  color: c.textMuted,
+                                  weight: FontWeight.w700)),
+                          const SizedBox(width: 20),
+                          _dot(AppColors.accentAmber),
+                          const SizedBox(width: 8),
+                          Text("MIRROR",
+                              style: AppTextStyles.mono(
+                                  size: 10,
+                                  color: c.textMuted,
+                                  weight: FontWeight.w700)),
+                          const SizedBox(width: 20),
+                          _dot(c.accentBlue),
+                          const SizedBox(width: 8),
+                          Text("RESHARE",
+                              style: AppTextStyles.mono(
+                                  size: 10,
+                                  color: c.textMuted,
+                                  weight: FontWeight.w700)),
                         ],
                       ),
-                    ),
-                    // Inline legend
-                    Row(
-                      children: [
-                        _dot(AppColors.accentCrimson),
-                        const SizedBox(width: 8),
-                        Text("ROOT",
-                            style: AppTextStyles.mono(
-                                size: 10,
-                                color: c.textMuted,
-                                weight: FontWeight.w700)),
-                        const SizedBox(width: 20),
-                        _dot(AppColors.accentAmber),
-                        const SizedBox(width: 8),
-                        Text("MIRROR",
-                            style: AppTextStyles.mono(
-                                size: 10,
-                                color: c.textMuted,
-                                weight: FontWeight.w700)),
-                        const SizedBox(width: 20),
-                        _dot(c.accentBlue),
-                        const SizedBox(width: 8),
-                        Text("RESHARE",
-                            style: AppTextStyles.mono(
-                                size: 10,
-                                color: c.textMuted,
-                                weight: FontWeight.w700)),
-                      ],
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-                if (!useRealData) _buildAssetSelectorBar(c),
-                const SizedBox(height: 12),
-
-                // THE GRAPH
-                Expanded(
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        height: double.infinity,
-                        decoration: BoxDecoration(
-                          color: c.bgSecondary,
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: c.borderDefault),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: useRealData 
-                              ? _buildRealGraph(context, c, snapshot.data!.docs)
-                              : _buildGraphView(context, c, activeNodes),
-                        ),
-                      ),
-
-                      // SIDEBAR (Only for mock data, as requested real data uses tooltips/bottomsheets)
-                      if (!useRealData && _selectedNodeId != null)
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          bottom: 0,
-                          child: NodeDetailSidebar(
-                            node: selectedNode,
-                            parentNode: parentNode,
-                            childCount: childCount,
-                            onClose: () => setState(() => _selectedNodeId = null),
-                          ).animate().slideX(
-                              begin: 1,
-                              end: 0,
-                              duration: 250.ms,
-                              curve: Curves.easeOutCubic),
-                        ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          );
-        }
-      ),
+
+                  const SizedBox(height: 12),
+                  if (!useRealData) _buildAssetSelectorBar(c),
+                  const SizedBox(height: 12),
+
+                  // THE GRAPH
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          decoration: BoxDecoration(
+                            color: c.bgSecondary,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: c.borderDefault),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: useRealData
+                                ? _buildRealGraph(
+                                    context, c, snapshot.data!.docs)
+                                : _buildGraphView(context, c, activeNodes),
+                          ),
+                        ),
+
+                        // SIDEBAR (Only for mock data, as requested real data uses tooltips/bottomsheets)
+                        if (!useRealData && _selectedNodeId != null)
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            bottom: 0,
+                            child: NodeDetailSidebar(
+                              node: selectedNode,
+                              parentNode: parentNode,
+                              childCount: childCount,
+                              onClose: () =>
+                                  setState(() => _selectedNodeId = null),
+                            ).animate().slideX(
+                                begin: 1,
+                                end: 0,
+                                duration: 250.ms,
+                                curve: Curves.easeOutCubic),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
     );
+  }
+
+  ContagionNode? _nodeById(String? id, List<ContagionNode> nodes) {
+    if (id == null) return null;
+    for (final node in nodes) {
+      if (node.id == id) return node;
+    }
+    return null;
   }
 
   Widget _buildAssetSelectorBar(AppThemeColors c) {
@@ -312,10 +319,18 @@ class _PropagationFlowScreenState extends State<PropagationFlowScreen>
           padding: const EdgeInsets.symmetric(vertical: 20),
           child: const Stack(
             children: [
-              Align(alignment: Alignment(-0.76, 0), child: _StageHeader(label: "ORIGIN")),
-              Align(alignment: Alignment(-0.3, 0), child: _StageHeader(label: "VECTORS")),
-              Align(alignment: Alignment(0.2, 0), child: _StageHeader(label: "HUBS")),
-              Align(alignment: Alignment(0.76, 0), child: _StageHeader(label: "ENDPOINTS")),
+              Align(
+                  alignment: Alignment(-0.76, 0),
+                  child: _StageHeader(label: "ORIGIN")),
+              Align(
+                  alignment: Alignment(-0.3, 0),
+                  child: _StageHeader(label: "VECTORS")),
+              Align(
+                  alignment: Alignment(0.2, 0),
+                  child: _StageHeader(label: "HUBS")),
+              Align(
+                  alignment: Alignment(0.76, 0),
+                  child: _StageHeader(label: "ENDPOINTS")),
             ],
           ),
         ),
@@ -363,7 +378,8 @@ class _PropagationFlowScreenState extends State<PropagationFlowScreen>
     );
   }
 
-  Widget _buildRealGraph(BuildContext context, AppThemeColors c, List<QueryDocumentSnapshot> docs) {
+  Widget _buildRealGraph(BuildContext context, AppThemeColors c,
+      List<QueryDocumentSnapshot> docs) {
     final graph = gv.Graph();
     final Map<String, gv.Node> nodeMap = {};
 
@@ -381,7 +397,7 @@ class _PropagationFlowScreenState extends State<PropagationFlowScreen>
       final data = doc.data() as Map<String, dynamic>;
       final nodeId = data['node_id'] ?? doc.id;
       final parentId = data['parent_id'];
-      
+
       if (parentId != null && nodeMap.containsKey(parentId)) {
         graph.addEdge(nodeMap[parentId]!, nodeMap[nodeId]!);
       }
@@ -403,7 +419,8 @@ class _PropagationFlowScreenState extends State<PropagationFlowScreen>
           height: 800,
           child: gv.GraphView(
             graph: graph,
-            algorithm: gv.BuchheimWalkerAlgorithm(builder, gv.TreeEdgeRenderer(builder)),
+            algorithm: gv.BuchheimWalkerAlgorithm(
+                builder, gv.TreeEdgeRenderer(builder)),
             paint: Paint()
               ..color = c.borderDefault
               ..strokeWidth = 1
@@ -415,7 +432,7 @@ class _PropagationFlowScreenState extends State<PropagationFlowScreen>
                 return (dData['node_id'] ?? d.id) == nodeId;
               });
               final data = doc.data() as Map<String, dynamic>;
-              
+
               return _buildNodeWidget(data, c);
             },
           ),

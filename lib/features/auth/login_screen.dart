@@ -1402,7 +1402,7 @@ class _SignUpField extends StatelessWidget {
         const SizedBox(height: 8),
         if (isDropdown)
           DropdownButtonFormField<String>(
-            initialValue: dropdownValue,
+            value: dropdownValue,
             dropdownColor: c.bgSecondary,
             style: AppTextStyles.body(color: c.textPrimary, size: 14),
             decoration: InputDecoration(

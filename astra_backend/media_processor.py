@@ -6,13 +6,6 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Global constant for temporary frame extraction directory
-FRAMES_TEMP_DIR = "astra_backend/temp/frames"
-
-# Ensure the temporary frames directory exists on module load
-os.makedirs(FRAMES_TEMP_DIR, exist_ok=True)
-
-
 def extract_frames(video_file_path: str, output_directory: str) -> list:
     """
     Extracts frames from a given video file.
