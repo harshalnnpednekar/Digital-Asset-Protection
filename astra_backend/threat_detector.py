@@ -89,7 +89,7 @@ def check_intent(caption_text: str) -> dict:
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         logger.warning("GEMINI_API_KEY environment variable is not set. Defaulting to PIRACY.")
-        return {"intent": "PIRACY", "confidence_score": 0.5, "fallback": True}
+        return {"intent": "PIRACY", "confidence_score": 0.5, "reasoning": "Gemini API key not configured — defaulting to piracy classification.", "fallback": True}
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     
@@ -99,9 +99,10 @@ def check_intent(caption_text: str) -> dict:
         "or if it is legitimate fan commentary. A caption indicates piracy if it contains phrases "
         "suggesting free downloads, unofficial streams, sharing without permission, or explicit "
         "statements that no copyright is claimed to avoid detection. Legitimate fan use includes analysis, "
-        "commentary, reactions, or discussion. Respond with only a JSON object with two fields: "
-        "intent set to either the string PIRACY or the string FAIR_USE, and confidence_score "
-        "set to a float between 0.0 and 1.0. Caption to analyze: " + caption_text
+        "commentary, reactions, or discussion. Respond with only a JSON object with three fields: "
+        "intent set to either the string PIRACY or the string FAIR_USE, confidence_score "
+        "set to a float between 0.0 and 1.0, and reasoning set to a one-sentence explanation "
+        "of why the caption was classified as piracy or fair use. Caption to analyze: " + caption_text
     )
 
     payload = {
@@ -139,7 +140,8 @@ def check_intent(caption_text: str) -> dict:
         # Enforce exactly formatting specified
         return {
             "intent": str(intent).strip().upper(),
-            "confidence_score": float(parsed_result.get("confidence_score", 0.5))
+            "confidence_score": float(parsed_result.get("confidence_score", 0.5)),
+            "reasoning": str(parsed_result.get("reasoning", "No reasoning provided."))
         }
 
     except Exception as e:
@@ -147,4 +149,4 @@ def check_intent(caption_text: str) -> dict:
         if 'response' in locals() and hasattr(response, 'text'):
             raw_response = response.text
         logger.warning(f"Failed to parse Gemini response for intent check. Error: {e}. Raw response: {raw_response}")
-        return {"intent": "PIRACY", "confidence_score": 0.5, "fallback": True}
+        return {"intent": "PIRACY", "confidence_score": 0.5, "reasoning": "Gemini response parsing failed — defaulting to piracy classification.", "fallback": True}

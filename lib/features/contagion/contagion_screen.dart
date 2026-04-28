@@ -542,7 +542,7 @@ class _PropagationFlowScreenState extends State<PropagationFlowScreen>
               ),
               const SizedBox(height: 16),
               _detailRow("PLATFORM", data['platform'] ?? 'N/A'),
-              _detailRow("URL/LABEL", data['label'] ?? 'N/A'),
+              _detailRow("URL/LABEL", data['label'] ?? data['url'] ?? data['source_url'] ?? 'N/A'),
               _detailRow("THREAT ID", data['threat_id'] ?? 'N/A'),
               _detailRow("TYPE", data['type'] ?? 'N/A'),
               const SizedBox(height: 24),

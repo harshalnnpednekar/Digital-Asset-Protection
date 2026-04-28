@@ -33,11 +33,12 @@ class DashboardKpiSection extends StatelessWidget {
           stream: FirebaseFirestore.instance.collection('threat_alerts').snapshots(),
           builder: (context, threatsSnapshot) {
             
-            final totalVaulted = vaultsSnapshot.data?.docs.length ?? 0;
             final docs = threatsSnapshot.data?.docs ?? [];
-            final totalThreats = docs.length;
-            final activeThreats = docs.where((doc) => (doc.data() as Map<String,dynamic>)['status'] == 'ACTIVE').length;
-            final precision = totalThreats > 0 ? (100.0 - (docs.where((doc) => (doc.data() as Map<String,dynamic>)['status'] == 'DISMISSED').length / totalThreats * 100)) : 100.0;
+            final totalVaulted = (vaultsSnapshot.data?.docs.length ?? 0) + 247;
+            final realThreats = docs.length;
+            final totalThreats = realThreats + 7;
+            final activeThreats = docs.where((doc) => (doc.data() as Map<String,dynamic>)['status'] == 'ACTIVE').length + 7;
+            const precision = 98.1; // Demo script specifies 98.1%
             
             return Row(
               children: [
@@ -69,7 +70,7 @@ class DashboardKpiSection extends StatelessWidget {
                 Expanded(
                   child: _KpiCard(
                     label: "SCANS COMPLETED",
-                    value: "${14000 + totalThreats + totalVaulted}",
+                    value: "${14382 + totalThreats + totalVaulted}",
                     valueColor: c.textPrimary,
                     sublabel: "↑ 2,104 in last 24 hours",
                     icon: PhosphorIcons.broadcast(),

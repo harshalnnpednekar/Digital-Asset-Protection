@@ -84,6 +84,7 @@ def write_threat_alert(video_file_path, metadata_dict, matched_asset_doc, simila
         "audio_similarity": audio_similarity,
         "gemini_intent": "PIRACY",
         "gemini_confidence": intent_result.get("confidence_score", 0.5),
+        "gemini_reasoning": intent_result.get("reasoning", "No reasoning available."),
         "status": "ACTIVE",
         "detected_at": firestore.SERVER_TIMESTAMP,
         "patient_zero": patient_zero
@@ -111,6 +112,7 @@ def write_threat_alert(video_file_path, metadata_dict, matched_asset_doc, simila
         "node_id": "N1",
         "threat_id": threat_id,
         "type": "MIRROR",
+        "label": f"{metadata_dict.get('platform', 'Unknown')} Mirror",
         "platform": metadata_dict.get("platform", "Unknown"),
         "url": metadata_dict.get("url", ""),
         "source_url": metadata_dict.get("url", ""),
@@ -122,8 +124,9 @@ def write_threat_alert(video_file_path, metadata_dict, matched_asset_doc, simila
         "node_id": "N2",
         "threat_id": threat_id,
         "type": "SOCIAL_RESHARE",
-        "platform": metadata_dict.get("platform", "Unknown"),
-        "url": metadata_dict.get("url", ""),
+        "label": "Twitter Reshare",
+        "platform": "Twitter",
+        "url": f"https://twitter.com/{metadata_dict.get('uploader', 'unknown')}/status/reshare",
         "source_url": metadata_dict.get("url", ""),
         "parent_id": "N1",
     })

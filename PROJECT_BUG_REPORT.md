@@ -30,7 +30,7 @@ Analysis: Full static code audit — backend (FastAPI/Python) + frontend (Flutte
 ### C-2. Firebase Web Config Hardcoded in Committed `.env` Template
 
 - **File:** `astra_backend/config/.env:59-65`
-- **Problem:** Real Firebase web app config values (`apiKey=AIzaSyB70abwV_0PARaReirGWvIKch_DhdW282I`, `appId`, `messagingSenderId`, `measurementId`) are hardcoded in the `.env` template file — the same file that is supposed to be a "copy and fill in" template (see comment at line 5).
+- **Problem:** Real Firebase web app config values (`apiKey=[REDACTED]`, `appId`, `messagingSenderId`, `measurementId`) are hardcoded in the `.env` template file — the same file that is supposed to be a "copy and fill in" template (see comment at line 5).
 - **Impact:** Anyone reading this template gets real Firebase project identifiers. Combined with C-1, this completes the attack surface.
 - **Fix:** Replace all real values with `YOUR_*_HERE` placeholders in the template.
 

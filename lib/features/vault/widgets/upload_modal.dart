@@ -64,6 +64,28 @@ class _UploadModalState extends State<UploadModal> {
       _currentStep = 1;
     });
 
+    // Listen to real-time progress from the backend via Firestore
+    _statusSub?.cancel();
+    _statusSub = FirebaseFirestore.instance
+        .collection('system_state')
+        .doc('processing_status')
+        .snapshots()
+        .listen((snapshot) {
+      if (!mounted) return;
+      final data = snapshot.data();
+      if (data == null) return;
+      final step = data['current_step'];
+      if (step is num) {
+        final stepInt = step.toInt();
+        if (stepInt >= 1 && stepInt <= 5) {
+          setState(() => _currentStep = stepInt);
+        }
+        if (stepInt >= 5) {
+          setState(() => _currentStep = 6);
+        }
+      }
+    });
+
     try {
       final multipartFile = selectedFile.path != null
           ? await MultipartFile.fromFile(
@@ -75,8 +97,6 @@ class _UploadModalState extends State<UploadModal> {
               filename: selectedFile.name,
             );
 
-      setState(() => _currentStep = 2);
-
       final formData = FormData.fromMap({
         'asset_name':
             _assetName.trim().isEmpty ? selectedFile.name : _assetName.trim(),
@@ -85,21 +105,20 @@ class _UploadModalState extends State<UploadModal> {
         'video_file': multipartFile,
       });
 
-      setState(() => _currentStep = 3);
-
       final response = await dioClient.post(
         '${ApiConfig.backendBaseUrl}/process-asset',
         data: formData,
         options: Options(contentType: 'multipart/form-data'),
       );
 
-      setState(() => _currentStep = 4);
-
       final data = response.data;
       final success = data is Map<String, dynamic> && data['success'] == true;
 
       if (success) {
+        // Firestore listener will set _currentStep = 6 when step 5 arrives,
+        // but also set it here as a fallback in case the listener fires late.
         setState(() => _currentStep = 6);
+        _statusSub?.cancel();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -116,6 +135,7 @@ class _UploadModalState extends State<UploadModal> {
       final errorMessage = data is Map<String, dynamic>
           ? (data['error'] ?? data['message'] ?? 'Upload failed').toString()
           : 'Upload failed';
+      _statusSub?.cancel();
       if (mounted) {
         setState(() {
           _showProgress = false;
@@ -133,6 +153,7 @@ class _UploadModalState extends State<UploadModal> {
         ),
       );
     } catch (e) {
+      _statusSub?.cancel();
       final errorMessage = e is DioException
           ? (e.response?.data is Map<String, dynamic>
               ? ((e.response!.data['error'] ??
@@ -355,7 +376,7 @@ class _UploadModalState extends State<UploadModal> {
         const SizedBox(height: 8),
 
         DropdownButtonFormField<String>(
-          value: _selectedDistribution,
+          initialValue: _selectedDistribution,
           dropdownColor: c.bgSecondary,
           style: AppTextStyles.mono(size: 13, color: c.textPrimary),
           decoration: _inputDecoration(""),

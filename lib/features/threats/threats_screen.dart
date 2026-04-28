@@ -13,7 +13,7 @@ import 'widgets/threat_queue_item.dart';
 import 'widgets/threat_detail_panel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
+
 
 class ThreatsScreen extends StatefulWidget {
   const ThreatsScreen({super.key});
@@ -253,8 +253,6 @@ class _ThreatsScreenState extends State<ThreatsScreen> {
                                                     setState(() =>
                                                         _selectedThreatId =
                                                             threat.threatId);
-                                                    context.push(
-                                                        '/contagion?threatId=${threat.threatId}');
                                                   },
                                                 );
                                               },
