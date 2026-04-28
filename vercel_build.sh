@@ -3,6 +3,9 @@
 # Vercel does not have Flutter pre-installed.
 # This script securely clones the stable Flutter SDK and builds the web app.
 
+# Fix Vercel's relative path resolution bug for pub-cache
+export PUB_CACHE="`pwd`/.pub-cache"
+
 echo "Cloning Flutter SDK..."
 git clone https://github.com/flutter/flutter.git -b stable --depth 1
 
