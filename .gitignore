@@ -54,6 +54,10 @@ astra_backend/config/
 
 # Python virtual environment
 astra_env/
+fresh_env/
+env/
+.venv/
+node_modules/
 __pycache__/
 *.pyc
 temp/

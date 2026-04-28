@@ -210,9 +210,13 @@ class _UploadModalState extends State<UploadModal> {
             _ModalHeader(onClose: () => Navigator.pop(context)),
 
             // BODY
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: _showProgress ? _buildProgressView() : _buildFormView(),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: _showProgress ? _buildProgressView() : _buildFormView(),
+                ),
+              ),
             ),
 
             // FOOTER (Only in form view)

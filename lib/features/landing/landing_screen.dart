@@ -638,9 +638,9 @@ class _FeatureGrid extends StatelessWidget {
                     ? 2
                     : 1;
             final cardAspectRatio = crossAxisCount == 4
-                ? 1.55
+                ? 1.35
                 : crossAxisCount == 2
-                    ? 1.4
+                    ? 1.2
                     : 1.8;
             return GridView.builder(
               shrinkWrap: true,
@@ -680,12 +680,15 @@ class _FeatureGrid extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        item.desc,
-                        style: AppTextStyles.body(
-                          size: 14,
-                          height: 1.5,
-                          color: c.textSecondary,
+                      Flexible(
+                        child: Text(
+                          item.desc,
+                          overflow: TextOverflow.fade,
+                          style: AppTextStyles.body(
+                            size: 14,
+                            height: 1.5,
+                            color: c.textSecondary,
+                          ),
                         ),
                       ),
                     ],
