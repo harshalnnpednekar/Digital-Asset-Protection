@@ -7,7 +7,7 @@ import '../../core/theme/app_theme_colors.dart';
 import 'contagion_mock_data.dart';
 import 'widgets/contagion_graph_painter.dart';
 import 'widgets/node_detail_sidebar.dart';
-import 'package:graphview/graphview.dart' as gv;
+import 'package:graphview/GraphView.dart' as gv;
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PropagationFlowScreen extends StatefulWidget {
