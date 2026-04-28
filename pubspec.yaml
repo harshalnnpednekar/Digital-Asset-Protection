@@ -40,7 +40,7 @@ dependencies:
   firebase_core: ^2.24.2
   firebase_auth: ^4.17.9
   cloud_firestore: ^4.15.9
-  firebase_storage: ^11.6.10
+  firebase_storage: ^11.6.10 # kept in pubspec.lock but unused — safe to remove next flutter pub get
 
   # Environment variables
   flutter_dotenv: ^5.1.0

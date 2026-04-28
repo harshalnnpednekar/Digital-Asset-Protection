@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../config/api_config.dart';
@@ -45,15 +47,32 @@ class _UploadModalState extends State<UploadModal> {
   ];
 
   Future<void> _startUpload() async {
+    // Ensure withData: true so bytes are always populated on Flutter Web.
+    // On web, PlatformFile.path THROWS an exception (not null) — never access it.
     final selectedFile = _selectedFile ??
         (await FilePicker.platform.pickFiles(
           type: FileType.video,
-          withData: true,
+          withData: true, // mandatory on web
+          allowedExtensions: null, // FileType.video handles the filter
         ))
             ?.files
             .first;
 
-    if (selectedFile == null) {
+    if (selectedFile == null) return;
+
+    // Guard: on web bytes must be present (withData: true guarantees this).
+    // On native, either bytes or path is fine.
+    if (kIsWeb && (selectedFile.bytes == null || selectedFile.bytes!.isEmpty)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.accentCrimson,
+          content: Text(
+            'Failed to read file bytes. Please re-select the file.',
+            style: AppTextStyles.mono(size: 11, color: Colors.white),
+          ),
+        ),
+      );
       return;
     }
 
@@ -87,32 +106,62 @@ class _UploadModalState extends State<UploadModal> {
     });
 
     try {
-      final multipartFile = selectedFile.path != null
-          ? await MultipartFile.fromFile(
-              selectedFile.path!,
-              filename: selectedFile.name,
-            )
-          : MultipartFile.fromBytes(
-              selectedFile.bytes ?? <int>[],
-              filename: selectedFile.name,
-            );
+      // ─────────────────────────────────────────────────────────────────
+      // PLATFORM-SAFE MULTIPART FILE CONSTRUCTION
+      //
+      // Flutter Web:   PlatformFile.path THROWS — always use .bytes.
+      // Native (iOS/Android/Desktop): prefer .path for memory efficiency,
+      //                               fall back to .bytes if path is null.
+      // ─────────────────────────────────────────────────────────────────
+      final MultipartFile multipartFile;
+      if (kIsWeb) {
+        // Web path: bytes are loaded by file_picker (withData: true)
+        final Uint8List fileBytes = selectedFile.bytes!;
+        multipartFile = MultipartFile.fromBytes(
+          fileBytes,
+          filename: selectedFile.name,
+        );
+      } else if (selectedFile.path != null) {
+        // Native path: stream directly from disk (memory efficient)
+        multipartFile = await MultipartFile.fromFile(
+          selectedFile.path!,
+          filename: selectedFile.name,
+        );
+      } else {
+        // Native fallback: bytes present but no path (e.g. some desktop pickers)
+        final Uint8List fileBytes =
+            selectedFile.bytes ?? Uint8List(0);
+        multipartFile = MultipartFile.fromBytes(
+          fileBytes,
+          filename: selectedFile.name,
+        );
+      }
+
+      final resolvedName =
+          _assetName.trim().isEmpty ? selectedFile.name : _assetName.trim();
 
       final formData = FormData.fromMap({
-        'asset_name':
-            _assetName.trim().isEmpty ? selectedFile.name : _assetName.trim(),
+        'asset_name': resolvedName,
         'asset_category': _selectedCategory,
         'distribution_target': _selectedDistribution,
         'video_file': multipartFile,
       });
 
+      // ── IMPORTANT: Do NOT pass Options(contentType: 'multipart/form-data') ──
+      // On Flutter Web, Dio uses XMLHttpRequest. When FormData is the body,
+      // the browser *must* set Content-Type itself so it can append the
+      // multipart boundary (e.g. "multipart/form-data; boundary=---XYZ").
+      // Manually specifying the header drops the boundary → server can't parse
+      // the body → XHR fires onError before a response is ever received.
       final response = await dioClient.post(
         '${ApiConfig.backendBaseUrl}/process-asset',
         data: formData,
-        options: Options(contentType: 'multipart/form-data'),
       );
 
-      final data = response.data;
-      final success = data is Map<String, dynamic> && data['success'] == true;
+      final responseData = response.data;
+      final success =
+          responseData is Map<String, dynamic> &&
+          responseData['success'] == true;
 
       if (success) {
         // Firestore listener will set _currentStep = 6 when step 5 arrives,
@@ -124,7 +173,7 @@ class _UploadModalState extends State<UploadModal> {
           SnackBar(
             backgroundColor: AppColors.accentGreen,
             content: Text(
-              'Asset secured successfully',
+              'Asset secured and vaulted successfully.',
               style: AppTextStyles.mono(size: 11, color: Colors.white),
             ),
           ),
@@ -132,8 +181,12 @@ class _UploadModalState extends State<UploadModal> {
         return;
       }
 
-      final errorMessage = data is Map<String, dynamic>
-          ? (data['error'] ?? data['message'] ?? 'Upload failed').toString()
+      // Server responded but returned success: false
+      final errorMessage = responseData is Map<String, dynamic>
+          ? (responseData['error'] ??
+                  responseData['message'] ??
+                  'Upload failed')
+              .toString()
           : 'Upload failed';
       _statusSub?.cancel();
       if (mounted) {
@@ -154,15 +207,21 @@ class _UploadModalState extends State<UploadModal> {
       );
     } catch (e) {
       _statusSub?.cancel();
-      final errorMessage = e is DioException
-          ? (e.response?.data is Map<String, dynamic>
-              ? ((e.response!.data['error'] ??
-                      e.response!.data['message'] ??
-                      e.message ??
-                      'Upload failed')
-                  .toString())
-              : (e.message ?? e.toString()))
-          : e.toString();
+      String errorMessage;
+      if (e is DioException) {
+        final serverData = e.response?.data;
+        if (serverData is Map<String, dynamic>) {
+          errorMessage = (serverData['error'] ??
+                  serverData['message'] ??
+                  e.message ??
+                  'Upload failed')
+              .toString();
+        } else {
+          errorMessage = e.message ?? e.toString();
+        }
+      } else {
+        errorMessage = e.toString();
+      }
 
       if (mounted) {
         setState(() {

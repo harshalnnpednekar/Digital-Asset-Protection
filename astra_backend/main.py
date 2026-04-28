@@ -53,6 +53,7 @@ MAX_REQUESTS_PER_WINDOW = 3
 # ----------------------------------------------------------
 from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import base64
 import ffmpeg
@@ -67,7 +68,8 @@ from stegano import lsb
 # the server side using a service account JSON key file.
 # ----------------------------------------------------------
 import firebase_admin
-from firebase_admin import credentials, firestore, storage
+from firebase_admin import credentials, firestore
+# Firebase Storage removed — files are stored locally under uploads/
 
 # ----------------------------------------------------------
 # STEP 4: Initialize Firebase Admin SDK
@@ -77,7 +79,10 @@ from firebase_admin import credentials, firestore, storage
 # backend with Firebase — NEVER commit it to git.
 # ----------------------------------------------------------
 firebase_creds_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
-firebase_storage_bucket = os.getenv("FIREBASE_STORAGE_BUCKET")
+# Local upload root — videos are saved here instead of Firebase Storage
+UPLOADS_ROOT = os.path.join(os.path.dirname(__file__), "uploads")
+VAULT_DIR    = os.path.join(UPLOADS_ROOT, "vault")
+os.makedirs(VAULT_DIR, exist_ok=True)
 
 if firebase_creds_path and not os.path.isabs(firebase_creds_path):
     backend_config_dir = os.path.join(os.path.dirname(__file__), "config")
@@ -92,11 +97,9 @@ if firebase_creds_path and not os.path.isabs(firebase_creds_path):
 # user has placed their firebase_credentials.json file
 if firebase_creds_path and os.path.exists(firebase_creds_path):
     cred = credentials.Certificate(firebase_creds_path)
-    init_options = {}
-    if firebase_storage_bucket:
-        init_options["storageBucket"] = firebase_storage_bucket
-    firebase_admin.initialize_app(cred, init_options or None)
-    print("✅ Firebase Admin SDK initialized successfully!")
+    # No storageBucket needed — we use local disk storage now
+    firebase_admin.initialize_app(cred)
+    print("✅ Firebase Admin SDK initialized (Firestore only, no Storage)")
 else:
     print("⚠️  Firebase credentials file not found at:", firebase_creds_path)
     print("   The server will start, but Firebase features won't work.")
@@ -208,6 +211,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# ── Static file serving for locally-stored vault videos ──────────────────────
+# Vaulted videos are saved to astra_backend/uploads/vault/ and accessible at:
+#   GET http://127.0.0.1:8000/uploads/vault/<filename>
+# This replaces Firebase Storage download URLs entirely.
+app.mount("/uploads", StaticFiles(directory=UPLOADS_ROOT), name="uploads")
+
 # ----------------------------------------------------------
 # STEP 6: Add CORS Middleware
 # This allows the Flutter web frontend to make API calls
@@ -226,15 +235,11 @@ app.add_middleware(
 
 
 def require_firebase_services():
+    """Ensures Firestore is available. Storage is local — no bucket check needed."""
     if not firebase_admin._apps:
         raise HTTPException(
             status_code=503,
-            detail="Firebase services are not configured on this backend.",
-        )
-    if not firebase_storage_bucket:
-        raise HTTPException(
-            status_code=503,
-            detail="FIREBASE_STORAGE_BUCKET is not configured on this backend.",
+            detail="Firebase (Firestore) is not configured on this backend.",
         )
 
 
@@ -264,7 +269,9 @@ def root():
 async def process_asset(
     request: Request,
     video_file: UploadFile = File(...),
-    distribution_target: str = Form(...)
+    distribution_target: str = Form(...),
+    asset_name: str = Form(default=""),
+    asset_category: str = Form(default="HIGHLIGHT"),
 ):
     # RATE LIMITING (Test 10)
     client_ip = request.client.host if request.client else "unknown"
@@ -331,24 +338,37 @@ async def process_asset(
         else:
             logging.warning("Watermark injection failed. Continuing with original unwatermarked video.")
             
-        # Step 4 of 5: Upload the video file to Firebase Cloud Storage
-        status_ref.set({"current_step": 4, "step_label": "Uploading to secure vault"})
+        # Step 4 of 5: Persist watermarked video to local vault storage
+        # Previously uploaded to Firebase Storage — now saved to disk to avoid
+        # the Blaze billing requirement. File is served via StaticFiles mount.
+        status_ref.set({"current_step": 4, "step_label": "Persisting to secure local vault"})
         unique_filename = f"{uuid.uuid4()}_{video_file.filename}"
-        bucket = storage.bucket(firebase_storage_bucket)
-        blob = bucket.blob(f"vault/{unique_filename}")
-        await asyncio.to_thread(blob.upload_from_filename, temp_video_path)
-        
+        vault_file_path = os.path.join(VAULT_DIR, unique_filename)
+        await asyncio.to_thread(shutil.copy2, temp_video_path, vault_file_path)
+        local_video_url = f"/uploads/vault/{unique_filename}"
+        logging.info(f"Video persisted locally: {vault_file_path}")
+
         # Step 5 of 5: Write a new document to the Firestore vaulted_assets collection
         status_ref.set({"current_step": 5, "step_label": "Secured and vaulted"})
         
+        # Resolve display name: use user-supplied name or fall back to filename
+        resolved_asset_name = asset_name.strip() if asset_name.strip() else video_file.filename
+        resolved_category = asset_category.strip().upper() if asset_category.strip() else "HIGHLIGHT"
+
         db.collection("vaulted_assets").document(asset_id).set({
-            "asset_name": video_file.filename,
+            "asset_name": resolved_asset_name,
+            "category": resolved_category,
             "distribution_target": distribution_target,
             "vector": vector,
-            "storage_path": f"vault/{unique_filename}",
+            # local_path: absolute path on disk (used by decrypt-watermark)
+            "local_path": vault_file_path,
+            # video_url: relative URL served by this backend's /uploads mount
+            "video_url": local_video_url,
             "status": "VAULTED",
             "created_at": firestore.SERVER_TIMESTAMP,
-            "watermark_key": watermark_key
+            "watermark_key": watermark_key,
+            "upload_date": __import__('datetime').datetime.utcnow().strftime("%Y-%m-%d"),
+            "file_size": f"{round(file_size / (1024 * 1024), 1)} MB",
         })
         
         return {
@@ -372,71 +392,74 @@ class DecryptRequest(BaseModel):
 
 @app.post("/decrypt-watermark")
 async def decrypt_watermark(req: DecryptRequest):
+    """
+    Decrypts the steganographic watermark embedded in a vaulted asset.
+    Reads the video directly from local disk (no Firebase Storage needed).
+    """
+    temp_dir = None
     try:
         require_firebase_services()
         db = firestore.client()
         doc_ref = db.collection("vaulted_assets").document(req.asset_id)
         doc = await asyncio.to_thread(doc_ref.get)
         if not doc.exists:
-            from fastapi.responses import JSONResponse
             return JSONResponse(status_code=404, content={"success": False, "error": "Asset not found"})
-        
+
         data = doc.to_dict()
         watermark_key = data.get("watermark_key")
         if not watermark_key:
             return {"success": False, "message": "Watermark not available for this asset"}
-            
-        storage_path = data.get("storage_path")
-        if not storage_path:
-            from fastapi.responses import JSONResponse
-            return JSONResponse(status_code=500, content={"success": False, "error": "Storage path missing"})
-            
-        bucket = storage.bucket(firebase_storage_bucket)
-        blob = bucket.blob(storage_path)
-        
+
+        # ── Read video from local disk ────────────────────────────────────────
+        # Prefer the absolute local_path written at ingest time.
+        # Fall back to reconstructing from video_url for older records.
+        local_path = data.get("local_path")
+        if not local_path or not os.path.exists(local_path):
+            # Attempt fallback: reconstruct path from video_url
+            video_url = data.get("video_url", "")
+            if video_url.startswith("/uploads/vault/"):
+                filename = video_url.replace("/uploads/vault/", "")
+                local_path = os.path.join(VAULT_DIR, filename)
+
+        if not local_path or not os.path.exists(local_path):
+            return JSONResponse(
+                status_code=404,
+                content={"success": False, "error": "Vaulted video file not found on disk. It may have been cleaned up."}
+            )
+
         temp_dir = tempfile.mkdtemp(prefix="astra_decrypt_")
-        temp_video_path = os.path.join(temp_dir, "video.mp4")
         temp_image_path = os.path.join(temp_dir, "frame.png")
-        
-        await asyncio.to_thread(blob.download_to_filename, temp_video_path)
-        
-        import ffmpeg
+
+        # Extract first frame from the locally-stored video
         (
             ffmpeg
-            .input(temp_video_path)
+            .input(local_path)
             .filter('select', 'eq(n,0)')
             .output(temp_image_path, vframes=1, format='image2', vcodec='png')
             .overwrite_output()
             .run(capture_stdout=True, capture_stderr=True)
         )
-        
-        from stegano import lsb
+
         base64_str = await asyncio.to_thread(lsb.reveal, temp_image_path)
         if not base64_str:
             raise Exception("No watermark found in image")
-             
-        import base64
-        import json
-        from cryptography.fernet import Fernet
-        
+
         ciphertext_bytes = base64.b64decode(base64_str)
         f = Fernet(watermark_key.encode('utf-8'))
         decrypted_bytes = f.decrypt(ciphertext_bytes)
         payload = json.loads(decrypted_bytes.decode('utf-8'))
-        
+
         return {
             "success": True,
             "patient_zero": payload.get("distribution_target", "Unknown"),
             "asset_id": payload.get("asset_id", "Unknown")
         }
-        
+
     except Exception as e:
         logging.error(f"Error in /decrypt-watermark: {e}")
-        from fastapi.responses import JSONResponse
         return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
     finally:
-        if 'temp_dir' in locals():
-            import shutil
+        if temp_dir and os.path.isdir(temp_dir):
             shutil.rmtree(temp_dir, ignore_errors=True)
 
 

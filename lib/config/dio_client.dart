@@ -8,7 +8,6 @@
 // network failures — it returns a friendly error message instead.
 // ============================================================
 
-import 'dart:io';
 import 'package:dio/dio.dart';
 import 'api_config.dart';
 
@@ -46,9 +45,13 @@ Dio _createDioClient() {
       // extraction, AI analysis) can take over a minute.
       receiveTimeout: const Duration(seconds: 120),
 
-      // Default headers sent with every request
+      // NOTE: Do NOT set a global Content-Type default here.
+      // For multipart/form-data uploads, the browser (XMLHttpRequest on web)
+      // must set Content-Type itself so it can include the boundary parameter.
+      // A global default would override the browser-generated header and break
+      // multipart parsing on the server. Set Content-Type per-request when
+      // sending JSON explicitly if needed.
       headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
     ),
@@ -67,7 +70,11 @@ Dio _createDioClient() {
 
         // Check what type of error occurred and assign a
         // human-readable message the UI can display directly.
-        if (error.error is SocketException) {
+        final errorStr = error.error?.toString() ?? '';
+        if (error.error != null &&
+            (errorStr.contains('SocketException') ||
+                errorStr.contains('Connection refused') ||
+                errorStr.contains('Network is unreachable'))) {
           // SocketException = device has no internet or server is down
           friendlyMessage =
               'Cannot reach the server. Check your internet connection '
